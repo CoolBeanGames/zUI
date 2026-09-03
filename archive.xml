@@ -23,6 +23,29 @@
     <filesChanged>core/css/tokens.css, core/css/themes/holo.css, core/css/themes/clean.css, core/css/THEMES.md, core/css/base.css, core/css/components/{button,layout,panel,scrollbar,table,tooltip,window}.css, showcase/index.html, showcase/music.html, README.md, design.txt, task_images/ZU-33.png</filesChanged>
     <image>ZU-33.png</image>
   </task>
+  <task id="ZU-16">
+    <name>loading and progress indicators</name>
+    <prompt>Finalise loading.css: small spinner (sizes), determinate and indeterminate thin progress bars, skeleton placeholder rows, reduced-motion support, zui.js helpers to bind progress to host events. Requirement: no flashy animation; matches design.txt restraint.</prompt>
+    <requirements>Spinner (3 sizes), determinate + indeterminate thin progress bars, labelled-progress, and skeleton placeholders; all restrained, prefers-reduced-motion honoured; progress is host-drivable via the IO layer.</requirements>
+    <inProgress>false</inProgress>
+    <done>true</done>
+    <bug>false</bug>
+    <error>false</error>
+    <errorMessage></errorMessage>
+    <lockKey></lockKey>
+    <locked>false</locked>
+    <archived>true</archived>
+    <blockedBy></blockedBy>
+    <dateStarted></dateStarted>
+    <dueDate></dueDate>
+    <commit>true</commit>
+    <build>false</build>
+    <release>false</release>
+    <tags>ui,coding</tags>
+    <notes>loading.css: added .zui-spinner--sm, .zui-loading inline row, .zui-progress--tall, .zui-progress-labelled (+ __text caption row), and skeleton placeholders (.zui-skeleton / --text/--title/--row, .zui-skeleton-list, low-contrast shimmer). prefers-reduced-motion now also slows the indeterminate bar and disables the skeleton shimmer. Progress bars carry data-zui-id -&gt; host sets fill % or 'indeterminate' through the ZU-35 IO layer (no bespoke helper needed). Showcase Feedback block reworked + a skeleton example added.</notes>
+    <filesChanged>core/css/components/loading.css, showcase/index.html</filesChanged>
+    <image></image>
+  </task>
   <task id="ZU-15">
     <name>menu bars and context menus</name>
     <prompt>Complete menubar.css and zui.js: traditional File/Edit/View/Help menu, keyboard access (Alt, arrows), accelerators/mnemonics, checkable and disabled items, submenus, right-click context menus sharing the same renderer. Requirement: menus are fully keyboard-operable and emit channel messages.</prompt>

@@ -108,12 +108,27 @@
 
         <div class="sc-block">
           <h3>Feedback</h3>
-          <div class="zui-row zui-gap-3 zui-center">
-            <div class="zui-spinner"></div>
-            <div class="zui-progress" style="width:160px"><div class="zui-progress__bar" style="width:45%"></div></div>
+          <div class="zui-row zui-gap-3 zui-items-center">
+            <span class="zui-loading"><span class="zui-spinner"></span> Loading…</span>
             <span class="zui-badge">3</span>
             <span class="zui-badge zui-badge--error">!</span>
             <button class="zui-btn" onclick="zui.toast('Library scan complete', {kind:'ok'})">Toast</button>
+          </div>
+          <div class="zui-progress-labelled" style="max-width:280px;margin-top:var(--zui-space-3)">
+            <div class="zui-progress-labelled__text"><span>Importing</span><span>42 of 300</span></div>
+            <div class="zui-progress"><div class="zui-progress__bar" style="width:14%"></div></div>
+          </div>
+          <div class="zui-progress zui-progress--indeterminate" style="max-width:280px;margin-top:var(--zui-space-2)">
+            <div class="zui-progress__bar"></div>
+          </div>
+        </div>
+
+        <div class="sc-block">
+          <h3>Skeleton (loading placeholder)</h3>
+          <div class="zui-skeleton-list" style="max-width:320px;border:1px solid var(--zui-border)">
+            <div class="zui-skeleton zui-skeleton--row"></div>
+            <div class="zui-skeleton zui-skeleton--row"></div>
+            <div class="zui-skeleton zui-skeleton--row"></div>
           </div>
         </div>
 

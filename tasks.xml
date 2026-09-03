@@ -1,28 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <tasks project="zUI" nextIndex="37">
-  <task id="ZU-16">
-    <name>loading and progress indicators</name>
-    <prompt>Finalise loading.css: small spinner (sizes), determinate and indeterminate thin progress bars, skeleton placeholder rows, reduced-motion support, zui.js helpers to bind progress to host events. Requirement: no flashy animation; matches design.txt restraint.</prompt>
-    <requirements></requirements>
-    <inProgress>false</inProgress>
-    <done>false</done>
-    <bug>false</bug>
-    <error>false</error>
-    <errorMessage></errorMessage>
-    <lockKey></lockKey>
-    <locked>false</locked>
-    <archived>false</archived>
-    <blockedBy></blockedBy>
-    <dateStarted></dateStarted>
-    <dueDate></dueDate>
-    <commit>true</commit>
-    <build>false</build>
-    <release>false</release>
-    <tags>ui,coding</tags>
-    <notes></notes>
-    <filesChanged></filesChanged>
-    <image></image>
-  </task>
   <task id="ZU-17">
     <name>notification glyphs and toasts</name>
     <prompt>Complete notification.css: badges (count/dot/warn/error), inline status glyphs, and an understated toast stack with kinds (ok/warn/error) and auto-dismiss. zui.js toast queue and host push channel. Requirement: notifications never dominate the UI; toast stack is compact and corner-anchored.</prompt>

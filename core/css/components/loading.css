@@ -1,4 +1,5 @@
-/* Loading icons: a small spinner and a thin progress bar. No flourish. */
+/* Loading indicators: a small spinner, a thin progress bar, skeleton rows.
+ * Restrained per design.txt - no flourish, honours prefers-reduced-motion. */
 
 .zui-spinner {
   width: 14px;
@@ -9,8 +10,17 @@
   animation: zui-spin 0.7s linear infinite;
 }
 .zui-spinner--lg { width: 22px; height: 22px; border-width: 3px; }
+.zui-spinner--sm { width: 11px; height: 11px; }
 @keyframes zui-spin { to { transform: rotate(360deg); } }
-@media (prefers-reduced-motion: reduce) { .zui-spinner { animation-duration: 2s; } }
+
+/* Inline "working…" row: spinner + label. */
+.zui-loading {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--zui-space-2);
+  color: var(--zui-text-secondary);
+  font-size: var(--zui-fs-normal);
+}
 
 .zui-progress {
   height: 4px;
@@ -18,7 +28,12 @@
   border-radius: 2px;
   overflow: hidden;
 }
-.zui-progress__bar { height: 100%; background: var(--zui-accent); transition: width var(--zui-dur-fast) var(--zui-ease); }
+.zui-progress--tall { height: 6px; }
+.zui-progress__bar {
+  height: 100%;
+  background: var(--zui-accent);
+  transition: width var(--zui-dur-fast) var(--zui-ease);
+}
 .zui-progress--indeterminate .zui-progress__bar {
   width: 30%;
   animation: zui-indeterminate 1.1s ease-in-out infinite;
@@ -26,4 +41,40 @@
 @keyframes zui-indeterminate {
   0%   { margin-left: -30%; }
   100% { margin-left: 100%; }
+}
+
+/* Progress with a caption line (e.g. "Importing 42 of 300"). */
+.zui-progress-labelled { display: flex; flex-direction: column; gap: var(--zui-space-1); }
+.zui-progress-labelled__text {
+  display: flex;
+  justify-content: space-between;
+  font-size: var(--zui-fs-small);
+  color: var(--zui-text-secondary);
+}
+
+/* Skeleton placeholders while content loads. Very low-contrast shimmer. */
+.zui-skeleton {
+  background: var(--zui-bg-surface-alt);
+  border-radius: var(--zui-radius);
+  position: relative;
+  overflow: hidden;
+}
+.zui-skeleton::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.06), transparent);
+  animation: zui-shimmer 1.4s ease-in-out infinite;
+}
+.zui-skeleton--text { height: 10px; margin: 4px 0; }
+.zui-skeleton--title { height: 14px; width: 40%; margin: 4px 0 8px; }
+.zui-skeleton--row { height: 22px; margin: 0; border-radius: 0; }
+.zui-skeleton-list > * + * { border-top: var(--zui-border-w) solid var(--zui-bg-surface); }
+@keyframes zui-shimmer { to { transform: translateX(100%); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .zui-spinner { animation-duration: 2s; }
+  .zui-progress--indeterminate .zui-progress__bar { animation-duration: 2.5s; }
+  .zui-skeleton::after { animation: none; }
 }
