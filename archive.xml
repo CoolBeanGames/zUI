@@ -1,5 +1,28 @@
 <?xml version="1.0" encoding="utf-8"?>
 <tasks project="zUI" nextIndex="31">
+  <task id="ZU-8">
+    <name>dropdowns and selects</name>
+    <prompt>Flesh out dropdown.css and zui.js select behaviour: single/multi select, keyboard nav (arrows/home/end/type-ahead), disabled and checked items, submenu support, popover positioning that stays on screen. Requirement: keyboard-operable select and a shared popover menu used by menubar and context menus.</prompt>
+    <requirements>Keyboard-operable select, and one shared popover-menu renderer (zui.menu) used by dropdowns, the menu bar and context menus.</requirements>
+    <inProgress>false</inProgress>
+    <done>true</done>
+    <bug>false</bug>
+    <error>false</error>
+    <errorMessage></errorMessage>
+    <lockKey></lockKey>
+    <locked>false</locked>
+    <archived>true</archived>
+    <blockedBy></blockedBy>
+    <dateStarted></dateStarted>
+    <dueDate></dueDate>
+    <commit>true</commit>
+    <build>false</build>
+    <release>false</release>
+    <tags>ui,coding</tags>
+    <notes>zui.menu is already the single renderer for select/menubar/context menus; added full keyboard operation to it: focus moves to the menu on open, ArrowUp/Down/Home/End move the active item, Enter/Space activate, Escape closes, printable keys do prefix type-ahead (600ms window), disabled items skipped. Select trigger: Enter/Space/ArrowDown opens and highlights the first item. Menu-bar items: tabindex, Enter/Space/ArrowDown opens; ArrowLeft/Right walk to the adjacent top-level menu while open. Popover stays on-screen (existing clamp).</notes>
+    <filesChanged>core/js/zui.js</filesChanged>
+    <image></image>
+  </task>
   <task id="ZU-7">
     <name>window shell &amp; chrome</name>
     <prompt>Complete core/css/components/window.css plus JS: title bar, menu row, primary nav strip, workspace, status/device bar, contextual/playback bar as one horizontal hierarchy with subtle separators. Wire title-bar buttons and app-region drag for host integration. Requirement: showcase window matches the WINDOW STRUCTURE section of design.txt.</prompt>

@@ -93,16 +93,60 @@
       el.style.left = Math.min(x, innerWidth - w - 4) + "px";
       el.style.top = Math.min(y, innerHeight - h - 4) + "px";
       openMenu = el;
+      menuActive = -1;
+      el.setAttribute("tabindex", "-1");
+      el.focus();
       return el;
     }
   };
 
   var openMenu = null;
-  function closeMenus() { if (openMenu) { openMenu.remove(); openMenu = null; } }
+  var menuActive = -1;
+  var typeahead = "";
+  var typeaheadTimer = null;
+
+  function closeMenus() {
+    if (openMenu) { openMenu.remove(); openMenu = null; menuActive = -1; }
+  }
+
+  function menuItems() {
+    return openMenu
+      ? Array.prototype.filter.call(openMenu.querySelectorAll(".zui-menu__item"),
+          function (i) { return i.getAttribute("aria-disabled") !== "true"; })
+      : [];
+  }
+
+  function setMenuActive(i) {
+    var items = menuItems();
+    if (!items.length) return;
+    menuActive = (i + items.length) % items.length;
+    items.forEach(function (it, ix) { it.classList.toggle("zui-active", ix === menuActive); });
+    items[menuActive].scrollIntoView({ block: "nearest" });
+  }
+
   document.addEventListener("mousedown", function (e) {
     if (openMenu && !openMenu.contains(e.target)) closeMenus();
   });
-  document.addEventListener("keydown", function (e) { if (e.key === "Escape") closeMenus(); });
+
+  document.addEventListener("keydown", function (e) {
+    if (!openMenu) return;
+    var items = menuItems();
+    if (e.key === "Escape") { closeMenus(); e.preventDefault(); }
+    else if (e.key === "ArrowDown") { setMenuActive(menuActive + 1); e.preventDefault(); }
+    else if (e.key === "ArrowUp") { setMenuActive(menuActive - 1); e.preventDefault(); }
+    else if (e.key === "Home") { setMenuActive(0); e.preventDefault(); }
+    else if (e.key === "End") { setMenuActive(items.length - 1); e.preventDefault(); }
+    else if (e.key === "Enter" || e.key === " ") {
+      if (menuActive >= 0 && items[menuActive]) { items[menuActive].click(); e.preventDefault(); }
+    } else if (e.key.length === 1) {
+      typeahead += e.key.toLowerCase();
+      clearTimeout(typeaheadTimer);
+      typeaheadTimer = setTimeout(function () { typeahead = ""; }, 600);
+      for (var k = 0; k < items.length; k++) {
+        if (items[k].textContent.toLowerCase().indexOf(typeahead) === 0) { setMenuActive(k); break; }
+      }
+    }
+  });
 
   /* --------------------------------------------------------------------- */
   /* Declarative component wiring                                          */
@@ -169,20 +213,41 @@
         m.style.minWidth = r.width + "px";
         var clear = function () { sel.setAttribute("aria-expanded", "false"); document.removeEventListener("mousedown", clear); };
         setTimeout(function () { document.addEventListener("mousedown", clear); });
+        setMenuActive(0);
+      });
+      sel.addEventListener("keydown", function (e) {
+        if (e.key === "Enter" || e.key === " " || e.key === "ArrowDown") {
+          e.preventDefault();
+          if (sel.getAttribute("aria-expanded") !== "true") sel.click();
+        }
       });
     });
 
     /* Menu bar: [data-zui="menubar"] with items carrying data-menu (JSON). */
     root.querySelectorAll('[data-zui="menubar"] .zui-menubar__item').forEach(function (item) {
       if (item.__zuiWired) return; item.__zuiWired = true;
+      item.setAttribute("tabindex", "0");
+      var bar = item.parentElement;
       item.addEventListener("click", function () {
         var spec;
         try { spec = JSON.parse(item.getAttribute("data-menu") || "[]"); } catch (e) { spec = []; }
         var r = item.getBoundingClientRect();
         item.setAttribute("aria-expanded", "true");
-        zui.menu(spec, r.left, r.bottom);
+        var m = zui.menu(spec, r.left, r.bottom);
+        setMenuActive(0);
+        /* Left/Right move to the adjacent top-level menu while one is open. */
+        m.addEventListener("keydown", function (e) {
+          if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
+          var sibs = Array.prototype.slice.call(bar.querySelectorAll(".zui-menubar__item"));
+          var ix = sibs.indexOf(item) + (e.key === "ArrowRight" ? 1 : -1);
+          var nxt = sibs[(ix + sibs.length) % sibs.length];
+          if (nxt) { closeMenus(); nxt.click(); e.preventDefault(); }
+        });
         var clear = function () { item.setAttribute("aria-expanded", "false"); document.removeEventListener("mousedown", clear); };
         setTimeout(function () { document.addEventListener("mousedown", clear); });
+      });
+      item.addEventListener("keydown", function (e) {
+        if (e.key === "Enter" || e.key === " " || e.key === "ArrowDown") { e.preventDefault(); item.click(); }
       });
     });
 
