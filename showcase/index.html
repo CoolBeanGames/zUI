@@ -111,6 +111,16 @@
         </div>
 
         <div class="sc-block">
+          <h3>Interaction &amp; keyboard</h3>
+          <div class="zui-row zui-gap-2 zui-items-center">
+            <button class="zui-btn" id="ixAdd">Add item</button>
+            <span class="zui-text-secondary">Ctrl+Z undo &middot; Ctrl+Y redo &middot;
+              <span data-zui-shortcut="Ctrl+K" onclick="zui.toast('Quick find (Ctrl+K)')" style="text-decoration:underline">Ctrl+K</span></span>
+            <span class="zui-badge zui-badge--muted" id="ixCount">0</span>
+          </div>
+        </div>
+
+        <div class="sc-block">
           <h3>Feedback</h3>
           <div class="zui-row zui-gap-3 zui-items-center">
             <span class="zui-loading"><span class="zui-spinner"></span> Loading…</span>

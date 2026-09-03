@@ -72,6 +72,22 @@ zui.renameInPlace(el, onCommit)   // swap text for an input; Enter/blur commit, 
 An element with `data-zui-rename="channel"` renames on double-click / F2 and
 emits `{channel, {value}}` on commit.
 
+## Interaction layer (centralised in `zui.js`)
+
+```js
+zui.shortcuts({ "Ctrl+K": fn, "Ctrl+Shift+P": fn })   // -> unregister fn
+zui.history.push({ label, undo(), redo() })            // reversible step
+zui.history.undo() / zui.history.redo()                // also Ctrl+Z / Ctrl+Y|Ctrl+Shift+Z
+zui.cursor(...) / zui.cursor.while(name, promise)      // cursor state
+```
+
+Declarative: `data-zui-shortcut="Ctrl+K"` clicks the element on that combo;
+`data-zui-dblclick="channel"` emits on double-click.
+
+Channels: `history` `{canUndo,canRedo,label}`, `undo`/`redo` `{label}`,
+`shortcut` (custom). Shortcuts are ignored while typing in a field unless the
+combo has Ctrl/Alt/Meta.
+
 ---
 
 ## Other channels emitted by components

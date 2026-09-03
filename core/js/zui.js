@@ -199,6 +199,43 @@
       zui.send("theme-changed", name);
     },
 
+    /* ---- interaction layer ------------------------------------------- */
+
+    /* Global keyboard shortcuts. zui.shortcuts({ "Ctrl+K": fn, "Ctrl+Shift+P": fn }).
+       Keys: Ctrl/Alt/Shift/Meta + a key name (case-insensitive). Ignored while
+       typing in an input/textarea unless the combo has a modifier other than Shift.
+       Returns an unregister fn. */
+    shortcuts: function (map) {
+      Object.keys(map).forEach(function (combo) { shortcutMap[normCombo(combo)] = map[combo]; });
+      return function () { Object.keys(map).forEach(function (c) { delete shortcutMap[normCombo(c)]; }); };
+    },
+
+    /* Undo/redo history. Push a reversible step; Ctrl+Z / Ctrl+Y (or Ctrl+Shift+Z)
+       run it. Each step: {label?, undo(), redo()}. Also emits "undo"/"redo". */
+    history: (function () {
+      var past = [], future = [];
+      return {
+        push: function (step) { past.push(step); future.length = 0; zui.send("history", { canUndo: true, canRedo: false, label: step.label }); },
+        undo: function () {
+          var s = past.pop(); if (!s) return false;
+          try { s.undo(); } catch (e) { console.error(e); }
+          future.push(s); zui.send("undo", { label: s.label });
+          zui.send("history", { canUndo: past.length > 0, canRedo: true, label: s.label });
+          return true;
+        },
+        redo: function () {
+          var s = future.pop(); if (!s) return false;
+          try { s.redo(); } catch (e) { console.error(e); }
+          past.push(s); zui.send("redo", { label: s.label });
+          zui.send("history", { canUndo: true, canRedo: future.length > 0, label: s.label });
+          return true;
+        },
+        clear: function () { past.length = future.length = 0; },
+        get canUndo() { return past.length > 0; },
+        get canRedo() { return future.length > 0; }
+      };
+    })(),
+
     /* Compact corner toast. opts: {kind:"ok|warn|error", timeout, action:{label,channel|onClick}}.
        Stack is capped so notifications never take over the screen. */
     toast: function (message, opts) {
@@ -244,6 +281,38 @@
   var menuActive = -1;         // active index within the deepest menu
   var typeahead = "";
   var typeaheadTimer = null;
+
+  /* ---- shortcut registry + global key handling --------------------- */
+  var shortcutMap = Object.create(null);
+
+  function normCombo(c) {
+    var parts = String(c).split("+").map(function (p) { return p.trim().toLowerCase(); });
+    var mods = { ctrl: false, alt: false, shift: false, meta: false }, key = "";
+    parts.forEach(function (p) {
+      if (p === "ctrl" || p === "control") mods.ctrl = true;
+      else if (p === "alt" || p === "option") mods.alt = true;
+      else if (p === "shift") mods.shift = true;
+      else if (p === "meta" || p === "cmd" || p === "win") mods.meta = true;
+      else key = p;
+    });
+    return (mods.ctrl ? "c" : "") + (mods.alt ? "a" : "") + (mods.shift ? "s" : "") + (mods.meta ? "m" : "") + ":" + key;
+  }
+  function eventCombo(e) {
+    var key = (e.key || "").toLowerCase();
+    if (key === " ") key = "space";
+    return (e.ctrlKey ? "c" : "") + (e.altKey ? "a" : "") + (e.shiftKey ? "s" : "") + (e.metaKey ? "m" : "") + ":" + key;
+  }
+  document.addEventListener("keydown", function (e) {
+    var combo = eventCombo(e);
+    var inField = /^(input|textarea|select)$/i.test(e.target.tagName || "") || e.target.isContentEditable;
+    var hasCmdMod = /[cam]/.test(combo.split(":")[0]);
+    if (!inField || hasCmdMod) {
+      if (combo === "c:z" || combo === "m:z") { if (zui.history.undo()) { e.preventDefault(); return; } }
+      if (combo === "c:y" || combo === "cs:z" || combo === "ms:z") { if (zui.history.redo()) { e.preventDefault(); return; } }
+    }
+    var fn = shortcutMap[combo];
+    if (fn && (!inField || hasCmdMod)) { e.preventDefault(); fn(e); }
+  }, true);
 
   function openMenuGet() { return menuStack.length ? menuStack[menuStack.length - 1].el : null; }
 
@@ -1141,6 +1210,22 @@
           scrollThrottle[id] = setTimeout(function () { scrollThrottle[id] = null; ioEmit(el); }, 100);
         }, { passive: true });
       }
+    });
+
+    /* Generic double-click action: data-zui-dblclick="channel". */
+    (root || document).querySelectorAll("[data-zui-dblclick]").forEach(function (el) {
+      if (el.__zuiDbl) return; el.__zuiDbl = true;
+      el.addEventListener("dblclick", function () {
+        zui.send(el.getAttribute("data-zui-dblclick"), { id: el.getAttribute("data-id") || null });
+      });
+    });
+
+    /* Declarative shortcuts: data-zui-shortcut="Ctrl+K" clicks the element. */
+    (root || document).querySelectorAll("[data-zui-shortcut]").forEach(function (el) {
+      if (el.__zuiSc) return; el.__zuiSc = true;
+      var m = {};
+      m[el.getAttribute("data-zui-shortcut")] = function () { el.click(); };
+      el.__zuiScUnbind = zui.shortcuts(m);
     });
 
     /* Rename-in-place: dblclick (or F2 when focused) an element carrying

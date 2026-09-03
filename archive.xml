@@ -23,6 +23,29 @@
     <filesChanged>core/css/tokens.css, core/css/themes/holo.css, core/css/themes/clean.css, core/css/THEMES.md, core/css/base.css, core/css/components/{button,layout,panel,scrollbar,table,tooltip,window}.css, showcase/index.html, showcase/music.html, README.md, design.txt, task_images/ZU-33.png</filesChanged>
     <image>ZU-33.png</image>
   </task>
+  <task id="ZU-28">
+    <name>interaction and keyboard layer</name>
+    <prompt>Implement the shared interaction behaviours from design.txt: context menus, double-click actions, drag and drop, global shortcuts incl. Ctrl+Z/Ctrl+Y, Tab order, multi/shift/ctrl selection helpers, tooltips, rename-in-place. Requirement: behaviours are centralised in zui.js and reused by every component.</prompt>
+    <requirements>Shared interaction behaviours (context menus, dbl-click, drag&amp;drop, global shortcuts incl. Ctrl+Z/Ctrl+Y, Tab order, multi/shift/ctrl selection, tooltips, rename-in-place) live once in zui.js and are reused by every component.</requirements>
+    <inProgress>false</inProgress>
+    <done>true</done>
+    <bug>false</bug>
+    <error>false</error>
+    <errorMessage></errorMessage>
+    <lockKey></lockKey>
+    <locked>false</locked>
+    <archived>true</archived>
+    <blockedBy></blockedBy>
+    <dateStarted></dateStarted>
+    <dueDate></dueDate>
+    <commit>true</commit>
+    <build>false</build>
+    <release>false</release>
+    <tags>ui,coding</tags>
+    <notes>Added the interaction layer to zui.js: global keydown handler (capture) with a combo normaliser; zui.shortcuts(map)-&gt;unregister; zui.history (push/undo/redo/clear/canUndo/canRedo) with Ctrl+Z / Ctrl+Y / Ctrl+Shift+Z wired by default and 'history'/'undo'/'redo' channels; field-typing guarded (needs Ctrl/Alt/Meta). Declarative data-zui-shortcut (clicks el) and data-zui-dblclick (emits). The other behaviours were already centralised (menus, drag/drop+reorder, selection helpers, tooltips, cursor manager, renameInPlace) - now documented together in core/PROTOCOL.md. Showcase: reversible 'Add item' + Ctrl+K demo. Verified via headless (history, Ctrl+Z, declarative + programmatic shortcuts). 10/10 + token check pass.</notes>
+    <filesChanged>core/js/zui.js, core/PROTOCOL.md, showcase/index.html, showcase/showcase.js</filesChanged>
+    <image></image>
+  </task>
   <task id="ZU-27">
     <name>theme system and design tokens</name>
     <prompt>Formalise the theming layer: document every token in tokens.css, the data-zui-theme contract, a theme-authoring guide, and runtime zui.setTheme with a host theme channel. Ship holo (light) complete and a holo-dark draft. Requirement: a new theme can be added as one CSS file with zero component changes.</prompt>

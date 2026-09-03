@@ -43,6 +43,18 @@ zui.receive("drop", function (info) {
   zui.toast("Added " + (info.files.length || 0) + " file(s) to " + info.target);
 });
 
+/* Interaction demo: reversible "add item" wired to the undo history. */
+document.addEventListener("DOMContentLoaded", function () {
+  var btn = document.getElementById("ixAdd"), count = document.getElementById("ixCount");
+  if (!btn || !window.zui) return;
+  var n = 0;
+  var render = function () { count.textContent = n; };
+  btn.addEventListener("click", function () {
+    n++; render();
+    zui.history.push({ label: "Add item", undo: function () { n--; render(); }, redo: function () { n++; render(); } });
+  });
+});
+
 /* Virtualised 10k-row list. */
 window.bigListApi = null;
 document.addEventListener("DOMContentLoaded", function () {
