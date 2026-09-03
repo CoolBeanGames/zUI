@@ -176,6 +176,38 @@
       });
     });
 
+    /* Splitters: a .zui-splitter between two flex siblings resizes the pane on
+       its "primary" side (previous sibling for --v, previous for --h) by setting
+       an explicit flex-basis. Double-click resets. */
+    root.querySelectorAll(".zui-splitter").forEach(function (sp) {
+      if (sp.__zuiSplit) return; sp.__zuiSplit = true;
+      var vertical = !sp.classList.contains("zui-splitter--h"); // --v = column resize
+      var prev = sp.previousElementSibling;
+      if (!prev) return;
+      var startBasis = null;
+      sp.addEventListener("mousedown", function (e) {
+        e.preventDefault();
+        var rect = prev.getBoundingClientRect();
+        var start = vertical ? e.clientX : e.clientY;
+        var base = vertical ? rect.width : rect.height;
+        document.body.classList.add(vertical ? "zui-cursor-col" : "zui-cursor-row");
+        function move(ev) {
+          var delta = (vertical ? ev.clientX : ev.clientY) - start;
+          var next = Math.max(48, base + delta);
+          prev.style.flex = "0 0 " + next + "px";
+        }
+        function up() {
+          document.removeEventListener("mousemove", move);
+          document.removeEventListener("mouseup", up);
+          document.body.classList.remove("zui-cursor-col", "zui-cursor-row");
+          zui.send("splitter", { basis: parseInt(prev.style.flexBasis || prev.style.flex, 10) || null });
+        }
+        document.addEventListener("mousemove", move);
+        document.addEventListener("mouseup", up);
+      });
+      sp.addEventListener("dblclick", function () { prev.style.flex = startBasis || ""; });
+    });
+
     /* Context menus: any element with data-zui-context (JSON menu spec). */
     root.querySelectorAll("[data-zui-context]").forEach(function (el) {
       if (el.__zuiCtx) return; el.__zuiCtx = true;

@@ -32,11 +32,24 @@
 .zui-sidebar__item:hover { background: var(--zui-bg-hover); }
 .zui-sidebar__item.zui-active { background: var(--zui-bg-selected); }
 
-/* Splitter handle between two resizable panes. */
-.zui-splitter { flex: 0 0 auto; background: var(--zui-border); }
+/* Splitter handle between two resizable panes. Thin line, larger hit area. */
+.zui-splitter {
+  flex: 0 0 auto;
+  position: relative;
+  background: var(--zui-border);
+  z-index: 1;
+}
 .zui-splitter--v { width: var(--zui-border-w); cursor: col-resize; }
 .zui-splitter--h { height: var(--zui-border-w); cursor: row-resize; }
-.zui-splitter:hover { background: var(--zui-accent); }
+.zui-splitter::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+}
+.zui-splitter--v::before { left: -3px; right: -3px; }
+.zui-splitter--h::before { top: -3px; bottom: -3px; }
+.zui-splitter:hover,
+.zui-splitter:active { background: var(--zui-accent); }
 
 /* Grid of cards/thumbnails (album grid etc.) - restrained, not big cards. */
 .zui-grid {
