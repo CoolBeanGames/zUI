@@ -23,6 +23,29 @@
     <filesChanged>core/css/tokens.css, core/css/themes/holo.css, core/css/themes/clean.css, core/css/THEMES.md, core/css/base.css, core/css/components/{button,layout,panel,scrollbar,table,tooltip,window}.css, showcase/index.html, showcase/music.html, README.md, design.txt, task_images/ZU-33.png</filesChanged>
     <image>ZU-33.png</image>
   </task>
+  <task id="ZU-30">
+    <name>host integration examples</name>
+    <prompt>Add runnable minimal host samples: a WinForms/WPF C# app and a Win32 C++ app that each open the showcase through their binding and round-trip a few messages (theme, device, selection, save). Requirement: both samples build via build.ps1 and show identical UI.</prompt>
+    <requirements>A runnable C# host sample and a C++ host sample that each open showcase/index.html through their binding and round-trip messages; C# builds via build.ps1; C++ documented + build-wired (needs the WebView2 SDK).</requirements>
+    <inProgress>false</inProgress>
+    <done>true</done>
+    <bug>false</bug>
+    <error>false</error>
+    <errorMessage></errorMessage>
+    <lockKey></lockKey>
+    <locked>false</locked>
+    <archived>true</archived>
+    <blockedBy></blockedBy>
+    <dateStarted></dateStarted>
+    <dueDate></dueDate>
+    <commit>true</commit>
+    <build>false</build>
+    <release>false</release>
+    <tags>ui,coding</tags>
+    <notes>samples/csharp: WinForms + WebView2 app (ZuiSample.csproj refs bindings/csharp/ZUI.csproj), initialises ZuiHost, loads showcase/index.html, subscribes selection/theme-changed/save/transport, pushes device + now-playing. Builds clean via build.ps1 -&gt; builds/&lt;cfg&gt;/sample-csharp/ZuiSample.exe (verified). samples/cpp: Win32 + WebView2 main.cpp doing the identical round-trip; wrote the missing bindings/cpp/zui_webview2.cpp WebView2 backend (env/controller creation, WebMessageReceived, virtual-host mapping, pending-op queue) that make_default_backend() returns; CMakeLists takes -DWEBVIEW2_DIR/-DWIL_DIR. build.ps1 builds the C# sample always and the C++ sample when cmake + WEBVIEW2_DIR/WIL_DIR are present (skips with a pointer to samples/README.md otherwise - this machine has no cmake). Both embed the same core/ assets so the UI is identical.</notes>
+    <filesChanged>samples/csharp/{ZuiSample.csproj,Program.cs}, samples/cpp/{main.cpp,CMakeLists.txt}, samples/README.md, bindings/cpp/zui_webview2.cpp, build.ps1</filesChanged>
+    <image></image>
+  </task>
   <task id="ZU-29">
     <name>showcase app: full component gallery</name>
     <prompt>Expand the showcase into a complete navigable gallery: one section per component with live examples, all states, code snippets, a theme switcher, and a realistic music-browser mock screen assembled only from zUI parts. Requirement: every shipped component appears in the showcase and matches design.txt.</prompt>

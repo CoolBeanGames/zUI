@@ -75,11 +75,12 @@ if ($Config -eq 'test') {
   }
 }
 
-# 4. C# binding
+# 4. C# binding + sample
 if (Get-Command dotnet -ErrorAction SilentlyContinue) {
   $csConf = if ($Config -eq 'release') { 'Release' } else { 'Debug' }
   dotnet build (Join-Path $root 'bindings/csharp/ZUI.csproj') -c $csConf -o (Join-Path $out 'csharp')
-  Write-Host "  built C# binding ($csConf)"
+  dotnet build (Join-Path $root 'samples/csharp/ZuiSample.csproj') -c $csConf -o (Join-Path $out 'sample-csharp')
+  Write-Host "  built C# binding + sample ($csConf)"
 } else {
   Write-Warning "dotnet not found - skipping C# binding"
 }
@@ -92,6 +93,14 @@ if (Get-Command cmake -ErrorAction SilentlyContinue) {
   cmake --build $cppOut
   if ($Config -eq 'test') { ctest --test-dir $cppOut --output-on-failure }
   Write-Host "  built C++ binding"
+  if ($env:WEBVIEW2_DIR -and $env:WIL_DIR) {
+    $scOut = Join-Path $out 'sample-cpp'
+    cmake -S (Join-Path $root 'samples/cpp') -B $scOut "-DWEBVIEW2_DIR=$env:WEBVIEW2_DIR" "-DWIL_DIR=$env:WIL_DIR"
+    cmake --build $scOut
+    Write-Host "  built C++ sample"
+  } else {
+    Write-Warning "WEBVIEW2_DIR / WIL_DIR not set - skipping C++ sample (see samples/README.md)"
+  }
 } else {
   Write-Warning "cmake not found - skipping C++ binding"
 }

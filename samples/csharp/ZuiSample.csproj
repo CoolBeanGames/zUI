@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <UseWindowsForms>true</UseWindowsForms>
+    <Nullable>enable</Nullable>
+    <LangVersion>latest</LangVersion>
+    <AssemblyName>ZuiSample</AssemblyName>
+    <RootNamespace>ZuiSample</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\bindings\csharp\ZUI.csproj" />
+  </ItemGroup>
+
+  <!-- Ship the showcase next to the exe so the sample has something to load. -->
+  <ItemGroup>
+    <None Include="..\..\showcase\**\*" Link="showcase\%(RecursiveDir)%(Filename)%(Extension)">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+</Project>
