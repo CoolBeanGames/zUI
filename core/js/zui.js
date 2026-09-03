@@ -118,11 +118,16 @@
         var t = e.target.closest("[data-zui-tab]");
         if (!t || !group.contains(t)) return;
         var id = t.getAttribute("data-zui-tab");
-        group.querySelectorAll("[data-zui-tab]").forEach(function (x) { x.classList.toggle("zui-active", x === t); });
+        var owned = Array.prototype.map.call(
+          group.querySelectorAll("[data-zui-tab]"),
+          function (x) { return x.getAttribute("data-zui-tab"); });
+        group.querySelectorAll("[data-zui-tab]").forEach(function (x) {
+          x.classList.toggle("zui-active", x === t);
+        });
         document.querySelectorAll("[data-zui-tabpanel]").forEach(function (p) {
-          if (p.getAttribute("data-zui-tabpanel") === id || group.contains(p) === false) {
-            p.classList.toggle("zui-active", p.getAttribute("data-zui-tabpanel") === id);
-          }
+          var pid = p.getAttribute("data-zui-tabpanel");
+          if (owned.indexOf(pid) === -1) return;      // not controlled by this group
+          p.classList.toggle("zui-active", pid === id);
         });
         zui.send("tab", id);
       });

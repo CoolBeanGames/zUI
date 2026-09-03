@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en" data-zui-theme="holo">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>zUI - holo</title>
+  <link rel="stylesheet" href="../core/css/zui.css">
+  <link rel="stylesheet" href="../core/css/themes/holo.css">
+  <style>
+    /* Layout only - no new visual language. */
+    .mb-cols { display: flex; min-height: 0; }
+    .mb-cols .zui-panel { flex: 1; overflow: auto; }
+    .mb-cols .zui-panel:not(:first-child) { border-left: 0; }
+    .mb-art { width: 34px; height: 34px; background: var(--zui-bg-surface-alt);
+              border: var(--zui-border-w) solid var(--zui-border); flex: 0 0 auto; }
+    .mb-player { display: flex; align-items: center; gap: var(--zui-space-3);
+                 height: 44px; padding: 0 var(--zui-space-3);
+                 background: var(--zui-bg-surface-alt);
+                 border-top: var(--zui-border-w) solid var(--zui-border); }
+    .mb-player__meta { display: flex; flex-direction: column; line-height: 1.25; }
+    .mb-player__title { font-weight: var(--zui-fw-medium); }
+    .mb-player__sub { color: var(--zui-text-secondary); font-size: var(--zui-fs-small); }
+    .mb-player .zui-progress { flex: 1; max-width: 420px; }
+    .mb-time { font-variant-numeric: tabular-nums; color: var(--zui-text-secondary);
+               font-size: var(--zui-fs-small); }
+  </style>
+</head>
+<body>
+<div class="zui-window">
+
+  <div class="zui-titlebar">
+    <span>zUI &mdash; holo theme</span>
+    <div class="zui-titlebar__controls">
+      <div class="zui-titlebar__btn">&#8211;</div>
+      <div class="zui-titlebar__btn">&#9633;</div>
+      <div class="zui-titlebar__btn zui-titlebar__btn--close">&#10005;</div>
+    </div>
+  </div>
+
+  <div class="zui-menubar" data-zui="menubar">
+    <div class="zui-menubar__item" data-menu='[{"label":"Add files to library...","shortcut":"Ctrl+O"},{"label":"New playlist","shortcut":"Ctrl+N"},"-",{"label":"Exit"}]'>File</div>
+    <div class="zui-menubar__item" data-menu='[{"label":"Undo","shortcut":"Ctrl+Z","disabled":true},{"label":"Redo","shortcut":"Ctrl+Y","disabled":true},"-",{"label":"Select all","shortcut":"Ctrl+A"}]'>Edit</div>
+    <div class="zui-menubar__item" data-menu='[{"label":"Holo (light)","checked":true,"channel":"view.theme","payload":"holo"},{"label":"Holo (dark)","channel":"view.theme","payload":"holo-dark"}]'>View</div>
+    <div class="zui-menubar__item" data-menu='[{"label":"Play","shortcut":"Space"},{"label":"Shuffle"},{"label":"Repeat"}]'>Playback</div>
+    <div class="zui-menubar__item" data-menu='[{"label":"About zUI"}]'>Help</div>
+  </div>
+
+  <div class="zui-nav" data-zui="tabs">
+    <div class="zui-nav__item zui-active" data-zui-tab="music">Music</div>
+    <div class="zui-nav__item" data-zui-tab="podcasts">Podcasts</div>
+    <div class="zui-nav__item" data-zui-tab="download">Download</div>
+    <div class="zui-nav__item" data-zui-tab="device">iPod</div>
+  </div>
+
+  <div class="zui-workspace">
+    <nav class="zui-sidebar">
+      <div class="zui-section-label">Library</div>
+      <div class="zui-sidebar__item zui-active">Artists</div>
+      <div class="zui-sidebar__item">Albums</div>
+      <div class="zui-sidebar__item">Genres</div>
+      <div class="zui-sidebar__item">Songs</div>
+      <div class="zui-section-label">Playlists</div>
+      <div class="zui-sidebar__item">Recently Added</div>
+      <div class="zui-sidebar__item">Focus</div>
+      <div class="zui-sidebar__item">Long Drives</div>
+    </nav>
+
+    <div class="zui-fill zui-col">
+      <div class="zui-tabs" data-zui="tabs">
+        <div class="zui-tab" data-zui-tab="mb-t1">Browse</div>
+        <div class="zui-tab zui-active" data-zui-tab="mb-t2">Now Playing</div>
+      </div>
+
+      <div class="mb-cols zui-fill">
+        <div class="zui-panel">
+          <div class="zui-panel__header">Artist</div>
+          <ul class="zui-list" style="padding:var(--zui-space-1)">
+            <li class="zui-list__item zui-selected">Aria Kane</li>
+            <li class="zui-list__item">Møller</li>
+            <li class="zui-list__item">The Fieldworks</li>
+            <li class="zui-list__item">Halcyon Bloom</li>
+            <li class="zui-list__item">Sable</li>
+          </ul>
+        </div>
+        <div class="zui-panel">
+          <div class="zui-panel__header">Album</div>
+          <ul class="zui-list" style="padding:var(--zui-space-1)">
+            <li class="zui-list__item zui-selected">Long Exposure</li>
+            <li class="zui-list__item">Paper Cities</li>
+            <li class="zui-list__item">Field Notes EP</li>
+          </ul>
+        </div>
+        <div class="zui-panel" style="flex:2">
+          <div class="zui-panel__header">Tracks</div>
+          <table class="zui-table" data-zui="selectable">
+            <thead><tr><th>#</th><th>Name</th><th>Artist</th><th>Album</th><th>Genre</th><th class="zui-num">Plays</th></tr></thead>
+            <tbody>
+              <tr data-zui-row="1" class="zui-selected"><td>1</td><td>Nightdrive</td><td>Aria Kane</td><td>Long Exposure</td><td>Ambient</td><td class="zui-num">42</td></tr>
+              <tr data-zui-row="2"><td>2</td><td>Paper Cranes</td><td>Aria Kane</td><td>Long Exposure</td><td>Ambient</td><td class="zui-num">17</td></tr>
+              <tr data-zui-row="3" class="zui-row-warn"><td>3</td><td>Untitled</td><td class="zui-text-secondary">Unknown</td><td class="zui-text-secondary">&mdash;</td><td class="zui-text-secondary">&mdash;</td><td class="zui-num">0</td></tr>
+              <tr data-zui-row="4"><td>4</td><td>Coastline</td><td>Aria Kane</td><td>Long Exposure</td><td>Ambient</td><td class="zui-num">55</td></tr>
+              <tr data-zui-row="5"><td>5</td><td>Quartz</td><td>Aria Kane</td><td>Long Exposure</td><td>Downtempo</td><td class="zui-num">89</td></tr>
+              <tr data-zui-row="6"><td>6</td><td>Slow Signal</td><td>Aria Kane</td><td>Long Exposure</td><td>Ambient</td><td class="zui-num">12</td></tr>
+              <tr data-zui-row="7"><td>7</td><td>Afterimage</td><td>Aria Kane</td><td>Long Exposure</td><td>Ambient</td><td class="zui-num">31</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="zui-row zui-gap-2" style="padding:var(--zui-space-2) var(--zui-space-3); border-top:1px solid var(--zui-border)">
+        <button class="zui-btn">Edit metadata</button>
+        <button class="zui-btn">Add to playlist</button>
+        <div class="zui-fill"></div>
+        <div class="zui-search">
+          <span class="zui-search__icon">&#128269;</span>
+          <input class="zui-input" placeholder="Search library">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- device / status bar -->
+  <div class="zui-statusbar zui-statusbar--connected">
+    <span class="zui-statusbar__dot"></span>
+    <span>HAPTICS' IPOD</span>
+    <span>238.2 GB capacity</span>
+    <span>234.6 GB free</span>
+    <span class="zui-statusbar__spacer"></span>
+    <button class="zui-btn">Eject</button>
+    <button class="zui-btn">Sync all</button>
+  </div>
+
+  <!-- playback bar -->
+  <div class="mb-player">
+    <div class="zui-btn-group">
+      <button class="zui-btn zui-btn--icon" data-zui-tip="Previous">&#9198;</button>
+      <button class="zui-btn zui-btn--icon" data-zui-tip="Pause">&#10074;&#10074;</button>
+      <button class="zui-btn zui-btn--icon" data-zui-tip="Next">&#9197;</button>
+    </div>
+    <div class="mb-art"></div>
+    <div class="mb-player__meta">
+      <span class="mb-player__title">Nightdrive</span>
+      <span class="mb-player__sub">Aria Kane &mdash; Long Exposure</span>
+    </div>
+    <span class="mb-time">1:48</span>
+    <div class="zui-progress"><div class="zui-progress__bar" style="width:38%"></div></div>
+    <span class="mb-time">4:41</span>
+    <div class="zui-btn-group">
+      <button class="zui-btn zui-btn--icon zui-active" data-zui-tip="Shuffle">&#128256;</button>
+      <button class="zui-btn zui-btn--icon" data-zui-tip="Repeat">&#128257;</button>
+    </div>
+    <span class="mb-time">3 of 7</span>
+  </div>
+
+</div>
+
+<script src="../core/js/zui.js"></script>
+<script>
+  zui.receive("view.theme", function (n) { zui.setTheme(n); });
+  document.querySelectorAll(".zui-list__item, .zui-sidebar__item").forEach(function (el) {
+    el.addEventListener("click", function () {
+      var sibs = el.parentElement.children;
+      for (var i = 0; i < sibs.length; i++) sibs[i].classList.remove("zui-selected", "zui-active");
+      el.classList.add(el.classList.contains("zui-sidebar__item") ? "zui-active" : "zui-selected");
+    });
+  });
+</script>
+</body>
+</html>

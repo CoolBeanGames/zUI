@@ -25,7 +25,7 @@ references `ZUI.dll` ships the assets automatically.
 
 ## Notes
 
-- `net8.0-windows` and `net472` are both targeted.
+- Targets `net8.0-windows` (uses `System.Text.Json` / `IAsyncDisposable`).
 - Requires the WebView2 runtime (evergreen) on the target machine.
 - Channels are plain JSON `{ "channel": string, "payload": any }`.
 

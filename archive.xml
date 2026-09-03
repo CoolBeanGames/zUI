@@ -1,5 +1,28 @@
 <?xml version="1.0" encoding="utf-8"?>
 <tasks project="zUI" nextIndex="31">
+  <task id="ZU-4">
+    <name>implement holo</name>
+    <prompt>actually implement the holo design so we can SEE the ui</prompt>
+    <requirements>The holo design is implemented and visibly renders: a themed component showcase plus a realistic music-browser screen built only from zUI parts; project builds to builds/debug and builds/release.</requirements>
+    <inProgress>false</inProgress>
+    <done>true</done>
+    <bug>false</bug>
+    <error>false</error>
+    <errorMessage></errorMessage>
+    <lockKey></lockKey>
+    <locked>false</locked>
+    <archived>true</archived>
+    <blockedBy></blockedBy>
+    <dateStarted></dateStarted>
+    <dueDate></dueDate>
+    <commit>true</commit>
+    <build>true</build>
+    <release>true</release>
+    <tags></tags>
+    <notes>Implemented the holo theme end-to-end and made it visible. core/css/themes/holo.css completed (light palette + holo-dark scaffold). Fixed tabpanel visibility (attribute-based rule) and rewrote the tabs runtime so nested tab groups only control their own panels. Added showcase/music.html: a full holo music-browser screen (title bar, File/Edit/View/Playback/Help menu, Music/Podcasts/Download/iPod nav, library+playlists sidebar, Artist|Album|Tracks list/table panels, connected device/status bar, compact playback bar) assembled entirely from zUI components per design.txt. Dropped net472 from the C# binding (System.Text.Json unavailable there); fixed build.ps1 staging (clean before copy; stage core as both zui/ and core/ so the bundled showcase resolves). Verified by headless-Chrome screenshots of builds/release output: showcase, music browser, and the ZSL-compiled counter all render correctly in holo. Built to builds/debug and builds/release (C++ binding skipped - cmake not installed on this machine; core is source-only + has its own test).</notes>
+    <filesChanged>core/css/themes/holo.css, core/css/components/tabs.css, core/js/zui.js, showcase/music.html, bindings/csharp/ZUI.csproj, bindings/csharp/README.md, build.ps1, task_images/ZU-4.png</filesChanged>
+    <image>ZU-4.png</image>
+  </task>
   <task id="ZU-3">
     <name>create a scripting language</name>
     <prompt>the ui itself will be defined by a scripting language, this will compile down to native code for performance</prompt>

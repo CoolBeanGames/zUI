@@ -22,10 +22,16 @@ Write-Host "zUI build ($Config) -> $out"
 New-Item -ItemType Directory -Force -Path $out | Out-Null
 
 # 1. Shared core (CSS + JS) - the heart of the library.
-$coreDst = Join-Path $out 'zui'
-if (Test-Path $coreDst) { Remove-Item -Recurse -Force $coreDst }
-Copy-Item -Recurse (Join-Path $root 'core') $coreDst
-Copy-Item -Recurse (Join-Path $root 'showcase') (Join-Path $out 'showcase')
+# Staged twice: 'zui/' is the canonical name host bindings map a virtual host to;
+# 'core/' keeps the bundled showcase's ../core/... links resolving.
+foreach ($name in 'zui', 'core') {
+  $dst = Join-Path $out $name
+  if (Test-Path $dst) { Remove-Item -Recurse -Force $dst }
+  Copy-Item -Recurse (Join-Path $root 'core') $dst
+}
+$showDst = Join-Path $out 'showcase'
+if (Test-Path $showDst) { Remove-Item -Recurse -Force $showDst }
+Copy-Item -Recurse (Join-Path $root 'showcase') $showDst
 Write-Host "  staged core + showcase"
 
 # 2. Compile the ZSL examples (and run compiler tests in the test config).

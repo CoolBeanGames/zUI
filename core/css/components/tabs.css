@@ -38,5 +38,7 @@
 .zui-tab__close { margin-left: var(--zui-space-2); color: var(--zui-text-secondary); }
 .zui-tab__close:hover { color: var(--zui-error); }
 
-.zui-tabpanel { display: none; }
-.zui-tabpanel.zui-active { display: block; }
+.zui-tabpanel,
+[data-zui-tabpanel] { display: none; }
+.zui-tabpanel.zui-active,
+[data-zui-tabpanel].zui-active { display: block; }
