@@ -23,6 +23,29 @@
     <filesChanged>core/css/tokens.css, core/css/themes/holo.css, core/css/themes/clean.css, core/css/THEMES.md, core/css/base.css, core/css/components/{button,layout,panel,scrollbar,table,tooltip,window}.css, showcase/index.html, showcase/music.html, README.md, design.txt, task_images/ZU-33.png</filesChanged>
     <image>ZU-33.png</image>
   </task>
+  <task id="ZU-21">
+    <name>sliders and range controls</name>
+    <prompt>Add a slider/range component (CSS and zui.js): horizontal value slider, dual-thumb range, tick support, keyboard steps; used for playback scrub and volume. Requirement: restrained desktop styling, token-driven, emits value on the message bus.</prompt>
+    <requirements>Single and dual-thumb sliders, restrained token-driven desktop styling, keyboard-operable (native range), value on the message bus + IO layer.</requirements>
+    <inProgress>false</inProgress>
+    <done>true</done>
+    <bug>false</bug>
+    <error>false</error>
+    <errorMessage></errorMessage>
+    <lockKey></lockKey>
+    <locked>false</locked>
+    <archived>true</archived>
+    <blockedBy></blockedBy>
+    <dateStarted></dateStarted>
+    <dueDate></dueDate>
+    <commit>true</commit>
+    <build>false</build>
+    <release>false</release>
+    <tags>ui,coding</tags>
+    <notes>core/css/components/slider.css (imported in zui.css): .zui-slider on a native &lt;input type=range&gt; - 4px track, 12px accent thumb, WebKit accent-fill via --zui-slider-fill gradient (Firefox uses ::-moz-range-progress), focus ring, disabled; .zui-slider-row with &lt;output&gt;; .zui-range for two stacked thumbs. zui.js: 'range' IO kind (numeric value, syncs fill + output, emits on input); generic .zui-slider wiring keeps fill/output synced without an id; .zui-range wiring stops the thumbs crossing and emits {kind:'range2', value:[lo,hi]}. Compiler: _n_slider node (min/max/step/value, labelled flag -&gt; output, export/bind). Showcase Forms: volume, crossfade, and a year-range dual slider. 10/10 compiler tests pass.</notes>
+    <filesChanged>core/css/components/slider.css, core/css/zui.css, core/js/zui.js, compiler/zslc.py, showcase/index.html</filesChanged>
+    <image></image>
+  </task>
   <task id="ZU-20">
     <name>checkboxes, radios and toggles</name>
     <prompt>Add form-control CSS and behaviour: checkbox (incl. indeterminate), radio groups, and a restrained toggle switch used only where function calls for one. Requirement: controls are compact, accent-driven, keyboard operable, consistent across hosts.</prompt>

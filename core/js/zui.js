@@ -675,6 +675,27 @@
       });
     });
 
+    /* Sliders: keep the accent fill + <output> in sync (IO-independent). */
+    (root || document).querySelectorAll(".zui-slider").forEach(function (sl) {
+      if (sl.__zuiSlider) return; sl.__zuiSlider = true;
+      syncSlider(sl);
+      sl.addEventListener("input", function () { syncSlider(sl); });
+    });
+
+    /* Dual-thumb range: two .zui-slider in a .zui-range, kept from crossing. */
+    (root || document).querySelectorAll(".zui-range").forEach(function (rg) {
+      if (rg.__zuiRange) return; rg.__zuiRange = true;
+      var lo = rg.querySelector(".zui-slider:first-child");
+      var hi = rg.querySelector(".zui-slider:last-child");
+      if (!lo || !hi || lo === hi) return;
+      function clamp() {
+        if (+lo.value > +hi.value - 1) { if (document.activeElement === lo) lo.value = +hi.value - 1; else hi.value = +lo.value + 1; }
+        syncSlider(lo); syncSlider(hi);
+        if (rg.hasAttribute("data-zui-id")) zui.send("value", { id: rg.getAttribute("data-zui-id"), kind: "range2", value: [+lo.value, +hi.value] });
+      }
+      lo.addEventListener("input", clamp); hi.addEventListener("input", clamp); clamp();
+    });
+
     wireIo(root);
   }
 
@@ -702,6 +723,14 @@
   }
   function ioById(id) { return document.querySelector('[data-zui-id="' + (window.CSS ? CSS.escape(id) : id) + '"]'); }
 
+  function syncSlider(el) {
+    var min = parseFloat(el.min || 0), max = parseFloat(el.max || 100);
+    var f = max > min ? ((parseFloat(el.value) - min) / (max - min)) * 100 : 0;
+    el.style.setProperty("--zui-slider-fill", f + "%");
+    var out = el.parentElement && el.parentElement.querySelector("output");
+    if (out) out.textContent = el.value;
+  }
+
   function pct(n, d) { return d > 0 ? Math.round((n / d) * 1000) / 10 : 0; }
   function clampPct(v) { v = parseFloat(v); return isNaN(v) ? 0 : Math.max(0, Math.min(100, v)); }
 
@@ -709,6 +738,7 @@
     if (el.matches('[role="radiogroup"], .zui-choice-group[data-zui-id]') && el.querySelector('input[type=radio]')) return "radio";
     if (el.matches("input[type=checkbox]")) return "boolean";
     if (el.matches("input[type=radio]")) return "boolean";
+    if (el.matches("input[type=range]")) return "range";
     if (el.matches("input, textarea")) return "text";
     if (el.matches("select")) return "select";
     if (el.classList.contains("zui-select")) return "select";
@@ -728,6 +758,7 @@
     if (k === "boolean") {
       return el.matches("input") ? el.checked : el.getAttribute("aria-pressed") === "true";
     }
+    if (k === "range") return parseFloat(el.value);
     if (k === "text" && el.matches("input, textarea")) return el.value;
     if (k === "select") {
       return el.matches("select") ? el.value : el.getAttribute("data-value");
@@ -759,6 +790,9 @@
         if (v === "indeterminate") { el.indeterminate = true; }
         else { el.indeterminate = false; el.checked = !!v; }
       } else el.setAttribute("aria-pressed", String(v === true || (v && v.pressed)));
+    } else if (k === "range") {
+      el.value = v;
+      syncSlider(el);
     } else if (k === "text" && el.matches("input, textarea")) {
       el.value = v == null ? "" : v;
     } else if (k === "select") {
@@ -815,6 +849,9 @@
       if (k === "text" && el.matches("input, textarea")) {
         el.addEventListener("input", function () { ioEmit(el); });
         el.addEventListener("change", function () { ioEmit(el, { committed: true }); });
+      } else if (k === "range") {
+        syncSlider(el);
+        el.addEventListener("input", function () { syncSlider(el); ioEmit(el); });
       } else if (k === "radio") {
         el.addEventListener("change", function () { ioEmit(el); });
       } else if (k === "boolean" && el.matches("input")) {

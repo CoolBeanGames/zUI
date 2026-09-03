@@ -1,0 +1,78 @@
+/* Slider / range - a restrained desktop control (playback scrub, volume, …).
+ * Built on a native <input type="range"> so it is fully keyboard-operable. */
+
+.zui-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 160px;
+  height: 16px;
+  background: transparent;
+  cursor: default;
+}
+.zui-slider:focus { outline: none; }
+
+/* track */
+.zui-slider::-webkit-slider-runnable-track {
+  height: 4px;
+  border-radius: 2px;
+  background: var(--zui-bg-active);
+}
+.zui-slider::-moz-range-track {
+  height: 4px;
+  border-radius: 2px;
+  background: var(--zui-bg-active);
+}
+.zui-slider::-moz-range-progress {
+  height: 4px;
+  border-radius: 2px;
+  background: var(--zui-accent);
+}
+
+/* thumb */
+.zui-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 12px;
+  height: 12px;
+  margin-top: -4px;
+  border-radius: 50%;
+  background: var(--zui-accent);
+  border: var(--zui-border-w) solid var(--zui-bg-app);
+}
+.zui-slider::-moz-range-thumb {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--zui-accent);
+  border: var(--zui-border-w) solid var(--zui-bg-app);
+}
+.zui-slider:focus-visible::-webkit-slider-thumb { box-shadow: 0 0 0 2px var(--zui-accent-weak); }
+.zui-slider:disabled::-webkit-slider-thumb { background: var(--zui-text-disabled); }
+.zui-slider:disabled::-moz-range-thumb { background: var(--zui-text-disabled); }
+
+/* WebKit has no ::-moz-range-progress; fill via a background gradient set from
+   JS as --zui-slider-fill (0-100). */
+.zui-slider {
+  --zui-slider-fill: 0%;
+}
+.zui-slider::-webkit-slider-runnable-track {
+  background: linear-gradient(to right,
+    var(--zui-accent) 0 var(--zui-slider-fill),
+    var(--zui-bg-active) var(--zui-slider-fill) 100%);
+}
+
+/* labelled slider row */
+.zui-slider-row { display: inline-flex; align-items: center; gap: var(--zui-space-2); }
+.zui-slider-row output {
+  min-width: 34px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  color: var(--zui-text-secondary);
+  font-size: var(--zui-fs-small);
+}
+
+/* dual-thumb range: two .zui-slider stacked, JS keeps them from crossing */
+.zui-range { position: relative; display: inline-block; width: 160px; height: 16px; }
+.zui-range .zui-slider { position: absolute; inset: 0; width: 100%; pointer-events: none; }
+.zui-range .zui-slider::-webkit-slider-thumb { pointer-events: auto; }
+.zui-range .zui-slider::-moz-range-thumb { pointer-events: auto; }

@@ -611,6 +611,16 @@ class HtmlGen:
                 f"data-options='{json.dumps(opts)}'><span class=\"zui-select__value\">"
                 f'{self.esc(opts[0] if opts else "")}</span></div>')
 
+    def _n_slider(self, n: Node) -> str:
+        i = n.attrs.get("id") or self.uid("sl")
+        a = "".join(f' {k}="{self.esc(n.attrs[k])}"' for k in ("min", "max", "step", "value") if k in n.attrs)
+        if n.bind:
+            self.binds.append((i, n.bind, "input"))
+        out = '<output></output>' if "labelled" in n.flags else ""
+        cls = "zui-slider-row" if out else ""
+        inner = f'<input type="range" id="{i}" class="zui-slider"{a}{self._zid(n)}>{out}'
+        return f'<span class="{cls}">{inner}</span>' if out else inner
+
     def _n_progress(self, n: Node) -> str:
         i = n.attrs.get("id") or self.uid("p")
         if n.bind:
