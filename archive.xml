@@ -23,6 +23,29 @@
     <filesChanged>core/css/tokens.css, core/css/themes/holo.css, core/css/themes/clean.css, core/css/THEMES.md, core/css/base.css, core/css/components/{button,layout,panel,scrollbar,table,tooltip,window}.css, showcase/index.html, showcase/music.html, README.md, design.txt, task_images/ZU-33.png</filesChanged>
     <image>ZU-33.png</image>
   </task>
+  <task id="ZU-26">
+    <name>iconography set</name>
+    <prompt>Assemble a small consistent monochrome line-icon set (SVG sprite) for nav, menus, buttons, status; document sizing/weight rules; no emoji as app icons. Requirement: all showcase icons come from the sprite and share visual weight per design.txt ICONOGRAPHY.</prompt>
+    <requirements>One consistent monochrome line-icon sprite (16x16, 1.5 stroke, currentColor); all showcase icons come from it; sizing/weight documented; no emoji as UI icons.</requirements>
+    <inProgress>false</inProgress>
+    <done>true</done>
+    <bug>false</bug>
+    <error>false</error>
+    <errorMessage></errorMessage>
+    <lockKey></lockKey>
+    <locked>false</locked>
+    <archived>true</archived>
+    <blockedBy></blockedBy>
+    <dateStarted></dateStarted>
+    <dueDate></dueDate>
+    <commit>true</commit>
+    <build>false</build>
+    <release>false</release>
+    <tags>ui,coding</tags>
+    <notes>core/icons/zui-icons.svg: 30-symbol sprite (transport, nav, list/grid/folder, check/close/plus/minus/chevrons, eject/sync/gear/warning/info/trash/edit/device/download/podcast). core/icons/sprite.js injects it into &lt;body&gt; so &lt;use href=#name&gt; resolves from any origin incl. file:// (host apps may reference the .svg directly). base.css: .zui-icon (14px, currentColor, fill), --sm/--lg/--muted. Showcases: nav items, transport buttons, shuffle/repeat, search field and empty state now use sprite icons instead of emoji; sprite.js loaded before zui.js. core/icons/README.md documents conventions. 10/10 tests pass.</notes>
+    <filesChanged>core/icons/zui-icons.svg, core/icons/sprite.js, core/icons/README.md, core/css/base.css, showcase/index.html, showcase/music.html</filesChanged>
+    <image></image>
+  </task>
   <task id="ZU-25">
     <name>playback / contextual control bar</name>
     <prompt>Build the compact contextual control bar (playback bar for the music app): prev/play/pause/stop/next icon buttons, artwork, track text, time, scrub progress, shuffle/repeat toggles, visually secondary to the workspace. Requirement: matches PLAYBACK BAR in design.txt and is generic enough for non-music hosts.</prompt>

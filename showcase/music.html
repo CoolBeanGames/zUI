@@ -35,10 +35,10 @@
   </div>
 
   <div class="zui-nav" data-zui="tabs">
-    <div class="zui-nav__item zui-active" data-zui-tab="music">Music</div>
-    <div class="zui-nav__item" data-zui-tab="podcasts">Podcasts</div>
-    <div class="zui-nav__item" data-zui-tab="download">Download</div>
-    <div class="zui-nav__item" data-zui-tab="device">iPod</div>
+    <div class="zui-nav__item zui-active" data-zui-tab="music"><svg class="zui-icon zui-nav__icon"><use href="#music"/></svg>Music</div>
+    <div class="zui-nav__item" data-zui-tab="podcasts"><svg class="zui-icon zui-nav__icon"><use href="#podcast"/></svg>Podcasts</div>
+    <div class="zui-nav__item" data-zui-tab="download"><svg class="zui-icon zui-nav__icon"><use href="#download"/></svg>Download</div>
+    <div class="zui-nav__item" data-zui-tab="device"><svg class="zui-icon zui-nav__icon"><use href="#device"/></svg>iPod</div>
   </div>
 
   <div class="zui-workspace">
@@ -107,7 +107,7 @@
         <button class="zui-btn">Add to playlist</button>
         <div class="zui-fill"></div>
         <div class="zui-search">
-          <span class="zui-search__icon">&#128269;</span>
+          <span class="zui-search__icon"><svg class="zui-icon zui-icon--sm"><use href="#search"/></svg></span>
           <input class="zui-input" placeholder="Search library">
         </div>
       </div>
@@ -129,9 +129,9 @@
   <!-- playback bar (contextual control bar) -->
   <div class="zui-contextbar" data-zui="contextbar">
     <div class="zui-contextbar__transport zui-btn-group">
-      <button class="zui-btn zui-btn--icon" data-transport="prev" data-zui-tip="Previous">&#9198;</button>
-      <button class="zui-btn zui-btn--icon" data-transport="playpause" data-zui-tip="Pause">&#10074;&#10074;</button>
-      <button class="zui-btn zui-btn--icon" data-transport="next" data-zui-tip="Next">&#9197;</button>
+      <button class="zui-btn zui-btn--icon" data-transport="prev" data-zui-tip="Previous"><svg class="zui-icon"><use href="#prev"/></svg></button>
+      <button class="zui-btn zui-btn--icon" data-transport="playpause" data-zui-tip="Pause"><svg class="zui-icon"><use href="#pause"/></svg></button>
+      <button class="zui-btn zui-btn--icon" data-transport="next" data-zui-tip="Next"><svg class="zui-icon"><use href="#next"/></svg></button>
     </div>
     <div class="zui-contextbar__art"></div>
     <div class="zui-contextbar__meta">
@@ -142,14 +142,15 @@
     <div class="zui-contextbar__scrub zui-progress"><div class="zui-progress__bar" style="width:38%"></div></div>
     <span class="zui-contextbar__time">4:41</span>
     <div class="zui-contextbar__opts zui-btn-group">
-      <button class="zui-btn zui-btn--icon" data-zui="toggle" aria-pressed="true" data-name="shuffle" data-transport="shuffle" data-zui-tip="Shuffle">&#128256;</button>
-      <button class="zui-btn zui-btn--icon" data-zui="toggle" data-name="repeat" data-transport="repeat" data-zui-tip="Repeat">&#128257;</button>
+      <button class="zui-btn zui-btn--icon" data-zui="toggle" aria-pressed="true" data-name="shuffle" data-transport="shuffle" data-zui-tip="Shuffle"><svg class="zui-icon"><use href="#shuffle"/></svg></button>
+      <button class="zui-btn zui-btn--icon" data-zui="toggle" data-name="repeat" data-transport="repeat" data-zui-tip="Repeat"><svg class="zui-icon"><use href="#repeat"/></svg></button>
     </div>
     <span class="zui-contextbar__time">3 of 7</span>
   </div>
 
 </div>
 
+<script src="../core/icons/sprite.js"></script>
 <script src="../core/js/zui.js"></script>
 <script>
   zui.receive("view.theme", function (n) { zui.setTheme(n); });

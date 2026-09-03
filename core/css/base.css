@@ -50,5 +50,20 @@ a:hover { text-decoration: underline; }
   outline-offset: -1px;
 }
 
+/* Icons: <svg class="zui-icon"><use href="zui/icons/zui-icons.svg#name"/></svg>
+   Monochrome, follow currentColor, consistent 14px weight (design.txt). */
+.zui-icon {
+  width: 14px;
+  height: 14px;
+  flex: 0 0 auto;
+  display: inline-block;
+  vertical-align: -2px;
+  color: inherit;
+  fill: currentColor;
+}
+.zui-icon--sm { width: 12px; height: 12px; }
+.zui-icon--lg { width: 18px; height: 18px; }
+.zui-icon--muted { color: var(--zui-text-secondary); }
+
 [hidden] { display: none !important; }
 [disabled], .zui-disabled { color: var(--zui-text-disabled); pointer-events: none; }

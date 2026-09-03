@@ -32,9 +32,9 @@
 
   <!-- 3. primary navigation -->
   <div class="zui-nav" data-zui="tabs">
-    <div class="zui-nav__item zui-active" data-zui-tab="components">Components</div>
-    <div class="zui-nav__item" data-zui-tab="forms">Forms</div>
-    <div class="zui-nav__item" data-zui-tab="data">Data</div>
+    <div class="zui-nav__item zui-active" data-zui-tab="components"><svg class="zui-icon zui-nav__icon"><use href="#grid"/></svg>Components</div>
+    <div class="zui-nav__item" data-zui-tab="forms"><svg class="zui-icon zui-nav__icon"><use href="#edit"/></svg>Forms</div>
+    <div class="zui-nav__item" data-zui-tab="data"><svg class="zui-icon zui-nav__icon"><use href="#list"/></svg>Data</div>
   </div>
 
   <!-- 4. workspace -->
@@ -63,9 +63,9 @@
             <button class="zui-btn zui-btn--primary">+ New playlist</button>
             <button class="zui-btn" disabled>Sync all</button>
             <div class="zui-btn-group">
-              <button class="zui-btn zui-btn--icon" data-zui-tip="Previous">&#9198;</button>
-              <button class="zui-btn zui-btn--icon" data-zui-tip="Play">&#9654;</button>
-              <button class="zui-btn zui-btn--icon" data-zui-tip="Next">&#9197;</button>
+              <button class="zui-btn zui-btn--icon" data-zui-tip="Previous"><svg class="zui-icon"><use href="#prev"/></svg></button>
+              <button class="zui-btn zui-btn--icon" data-zui-tip="Play"><svg class="zui-icon"><use href="#play"/></svg></button>
+              <button class="zui-btn zui-btn--icon" data-zui-tip="Next"><svg class="zui-icon"><use href="#next"/></svg></button>
             </div>
           </div>
           <div class="zui-row zui-gap-2" style="margin-top:var(--zui-space-2)">
@@ -154,7 +154,7 @@
           <h3>Drop target &amp; empty state</h3>
           <div class="zui-drop" data-name="library" style="padding:var(--zui-space-6)">
             <div class="zui-empty">
-              <div class="zui-empty__icon">&#9834;</div>
+              <svg class="zui-icon zui-icon--lg zui-empty__icon"><use href="#music"/></svg>
               <div>Drop music here to add it</div>
               <div class="zui-text-secondary">or choose File &rarr; Add files to library</div>
             </div>
@@ -226,7 +226,7 @@
         </div>
         <div class="sc-block">
           <div class="zui-search">
-            <span class="zui-search__icon">&#128269;</span>
+            <span class="zui-search__icon"><svg class="zui-icon zui-icon--sm"><use href="#search"/></svg></span>
             <input class="zui-input" placeholder="Search library">
           </div>
         </div>
@@ -301,6 +301,7 @@
 
 </div>
 
+<script src="../core/icons/sprite.js"></script>
 <script src="../core/js/zui.js"></script>
 <script src="showcase.js"></script>
 </body>
