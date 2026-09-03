@@ -781,6 +781,18 @@
       }
     });
 
+    /* Rename-in-place: dblclick (or F2 when focused) an element carrying
+       data-zui-rename="channel"; commit emits {channel, value}. */
+    (root || document).querySelectorAll("[data-zui-rename]").forEach(function (el) {
+      if (el.__zuiRename) return; el.__zuiRename = true;
+      el.setAttribute("tabindex", el.getAttribute("tabindex") || "0");
+      var start = function () {
+        zui.renameInPlace(el, function (val) { zui.send(el.getAttribute("data-zui-rename"), { value: val }); });
+      };
+      el.addEventListener("dblclick", start);
+      el.addEventListener("keydown", function (e) { if (e.key === "F2") { e.preventDefault(); start(); } });
+    });
+
     /* [data-zui-submit] button -> emit the enclosing form's values. */
     (root || document).querySelectorAll("[data-zui-submit]").forEach(function (btn) {
       if (btn.__zuiSubmit) return; btn.__zuiSubmit = true;
@@ -806,6 +818,71 @@
     var el = ioById(id);
     if (el) ioSet(el, value);
   };
+  /* Mark a field valid/invalid/warn with an optional message under it.
+     zui.mark(id, "error", "Name is required")  |  zui.mark(id, "ok") */
+  zui.mark = function (id, level, message) {
+    var el = ioById(id);
+    if (!el) return;
+    var ctl = el.matches(".zui-input, .zui-textarea, .zui-select") ? el
+      : el.closest(".zui-input, .zui-textarea, .zui-select") || el;
+    ctl.classList.remove("zui-invalid", "zui-warn");
+    if (level === "error") ctl.classList.add("zui-invalid");
+    else if (level === "warn") ctl.classList.add("zui-warn");
+    var field = ctl.closest(".zui-field");
+    if (field) {
+      var msg = field.querySelector(".zui-field__msg");
+      if (message) {
+        if (!msg) { msg = document.createElement("div"); msg.className = "zui-field__msg"; field.appendChild(msg); }
+        msg.textContent = message;
+        msg.className = "zui-field__msg" + (level === "error" ? " zui-field__msg--error" : level === "warn" ? " zui-field__msg--warn" : "");
+      } else if (msg) { msg.remove(); }
+    }
+    return level !== "error";
+  };
+
+  /* Validate a scope against {id: rule}. rule: {required, pattern, min, max,
+     validate:fn}. Returns true if all pass; marks each field. */
+  zui.validate = function (scope, rules) {
+    var ok = true;
+    Object.keys(rules || {}).forEach(function (id) {
+      var r = rules[id], v = zui.field(id), err = null;
+      if (r.required && (v === "" || v == null || v === false)) err = r.requiredMessage || "Required";
+      else if (r.pattern && v && !new RegExp(r.pattern).test(v)) err = r.message || "Invalid format";
+      else if (r.min != null && parseFloat(v) < r.min) err = "Must be ≥ " + r.min;
+      else if (r.max != null && parseFloat(v) > r.max) err = "Must be ≤ " + r.max;
+      else if (typeof r.validate === "function") err = r.validate(v) || null;
+      zui.mark(id, err ? "error" : "ok", err || "");
+      if (err) ok = false;
+    });
+    return ok;
+  };
+
+  /* Rename-in-place: replace an element's text with an input; commit on
+     Enter/blur, cancel on Escape. onCommit(newValue) -> truthy to accept. */
+  zui.renameInPlace = function (el, onCommit) {
+    if (el.__renaming) return; el.__renaming = true;
+    var original = el.textContent.trim();
+    var input = document.createElement("input");
+    input.className = "zui-rename";
+    input.value = original;
+    el.textContent = "";
+    el.appendChild(input);
+    input.focus(); input.select();
+    var done = function (commit) {
+      if (el.__done) return; el.__done = true;
+      var val = input.value.trim();
+      el.__renaming = false;
+      if (commit && val && val !== original && (!onCommit || onCommit(val) !== false)) el.textContent = val;
+      else el.textContent = original;
+      delete el.__done;
+    };
+    input.addEventListener("keydown", function (e) {
+      if (e.key === "Enter") { e.preventDefault(); done(true); }
+      else if (e.key === "Escape") { e.preventDefault(); done(false); }
+    });
+    input.addEventListener("blur", function () { done(true); });
+  };
+
   zui.bind = function (id, handler) {
     (ioBinds[id] || (ioBinds[id] = [])).push(handler);
     return function () { ioBinds[id] = (ioBinds[id] || []).filter(function (h) { return h !== handler; }); };

@@ -64,7 +64,13 @@ zui.values(scope?)      // { id: value, ... }
 zui.field(id)           // one value
 zui.set(id, value)      // write; zui.set({id: value, ...}) for many
 zui.bind(id, fn)        // fn(value, msg) on every change; returns an unbind fn
+zui.mark(id, level, msg?)         // "error" | "warn" | "ok" - border + field message
+zui.validate(scope, {id: rule})   // rule: {required, pattern, min, max, validate:fn}
+zui.renameInPlace(el, onCommit)   // swap text for an input; Enter/blur commit, Esc cancel
 ```
+
+An element with `data-zui-rename="channel"` renames on double-click / F2 and
+emits `{channel, {value}}` on commit.
 
 ---
 

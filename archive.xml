@@ -23,6 +23,29 @@
     <filesChanged>core/css/tokens.css, core/css/themes/holo.css, core/css/themes/clean.css, core/css/THEMES.md, core/css/base.css, core/css/components/{button,layout,panel,scrollbar,table,tooltip,window}.css, showcase/index.html, showcase/music.html, README.md, design.txt, task_images/ZU-33.png</filesChanged>
     <image>ZU-33.png</image>
   </task>
+  <task id="ZU-18">
+    <name>text inputs and form fields</name>
+    <prompt>Flesh out input.css and zui.js: text/search/number inputs, textarea, labelled fields, validation states (error/warn) with messages, inline rename-in-place, compact desktop sizing. Requirement: forms match design.txt (no giant/mobile inputs); validation is token-driven.</prompt>
+    <requirements>Compact desktop inputs (text/search/number/textarea, readonly) matching design.txt; token-driven validation states with messages; rename-in-place. Value read/write via the IO layer.</requirements>
+    <inProgress>false</inProgress>
+    <done>true</done>
+    <bug>false</bug>
+    <error>false</error>
+    <errorMessage></errorMessage>
+    <lockKey></lockKey>
+    <locked>false</locked>
+    <archived>true</archived>
+    <blockedBy></blockedBy>
+    <dateStarted></dateStarted>
+    <dueDate></dueDate>
+    <commit>true</commit>
+    <build>false</build>
+    <release>false</release>
+    <tags>ui,coding</tags>
+    <notes>input.css: validation classes (.zui-invalid/.zui-warn on input/textarea/select) + .zui-field__msg(--error/--warn), readonly style, number input width, .zui-rename. zui.js: zui.mark(id,level,msg) sets border+message, zui.validate(scope,rules) with required/pattern/min/max/validate-fn returning pass/fail and marking each field, zui.renameInPlace(el,onCommit) (Enter/blur commit, Esc cancel), and data-zui-rename wiring (dblclick/F2 -&gt; emits {channel,{value}}). Text values themselves round-trip through the ZU-35 IO layer. Showcase Forms: required+range validation on Create, rename-in-place list. Verified via headless test (validation + rename).</notes>
+    <filesChanged>core/css/components/input.css, core/js/zui.js, core/PROTOCOL.md, showcase/index.html</filesChanged>
+    <image></image>
+  </task>
   <task id="ZU-17">
     <name>notification glyphs and toasts</name>
     <prompt>Complete notification.css: badges (count/dot/warn/error), inline status glyphs, and an understated toast stack with kinds (ok/warn/error) and auto-dismiss. zui.js toast queue and host push channel. Requirement: notifications never dominate the UI; toast stack is compact and corner-anchored.</prompt>

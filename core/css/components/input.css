@@ -13,11 +13,39 @@
 .zui-textarea { padding: var(--zui-space-1) var(--zui-space-2); min-height: 60px; resize: vertical; }
 .zui-input:focus,
 .zui-textarea:focus { outline: none; border-color: var(--zui-accent); }
-.zui-input:disabled { background: var(--zui-bg-surface-alt); color: var(--zui-text-disabled); }
-.zui-input::placeholder { color: var(--zui-text-disabled); }
+.zui-input:disabled,
+.zui-textarea:disabled { background: var(--zui-bg-surface-alt); color: var(--zui-text-disabled); }
+.zui-input::placeholder,
+.zui-textarea::placeholder { color: var(--zui-text-disabled); }
+.zui-input[readonly] { background: var(--zui-bg-surface-alt); }
+
+/* Validation states - token-driven, border + optional message. */
+.zui-input.zui-invalid,
+.zui-textarea.zui-invalid,
+.zui-select.zui-invalid { border-color: var(--zui-error); }
+.zui-input.zui-warn,
+.zui-textarea.zui-warn { border-color: var(--zui-warn); }
+.zui-input.zui-invalid:focus { border-color: var(--zui-error); }
 
 .zui-field { display: flex; flex-direction: column; gap: var(--zui-space-1); }
 .zui-field > label { font-size: var(--zui-fs-small); color: var(--zui-text-secondary); }
+.zui-field__msg { font-size: var(--zui-fs-small); color: var(--zui-text-secondary); }
+.zui-field__msg--error { color: var(--zui-error); }
+.zui-field__msg--warn  { color: var(--zui-warn); }
+
+/* Small number input with steppers stays compact. */
+.zui-input[type="number"] { width: 88px; }
+
+/* Rename-in-place: a text node swaps to this borderless input. */
+.zui-rename {
+  font: inherit;
+  color: inherit;
+  background: var(--zui-bg-surface);
+  border: var(--zui-border-w) solid var(--zui-accent);
+  border-radius: var(--zui-radius);
+  padding: 0 2px;
+  min-width: 40px;
+}
 
 .zui-search { position: relative; display: inline-flex; }
 .zui-search .zui-input { padding-left: var(--zui-space-6); width: 220px; }

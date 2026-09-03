@@ -160,20 +160,28 @@
 
       <section data-zui-tabpanel="forms" class="sc-page">
         <h1>Forms</h1>
-        <div class="sc-block" style="max-width:380px">
+        <div class="sc-block" style="max-width:400px" data-zui-form>
           <div class="zui-form-grid">
             <label>Playlist name</label>
-            <input class="zui-input" placeholder="Untitled playlist">
+            <div class="zui-field"><input class="zui-input" data-zui-id="pl-name" placeholder="Untitled playlist"></div>
+            <label>Max tracks</label>
+            <div class="zui-field"><input class="zui-input" type="number" data-zui-id="pl-max" value="50"></div>
             <label>Description</label>
-            <textarea class="zui-textarea"></textarea>
+            <textarea class="zui-textarea" data-zui-id="pl-desc"></textarea>
             <span></span>
-            <label class="zui-check"><input type="checkbox" checked> Public</label>
-            <span></span>
-            <label class="zui-check"><input type="checkbox"> Smart playlist</label>
+            <label class="zui-check"><input type="checkbox" data-zui-id="pl-public" checked> Public</label>
             <div class="zui-form-grid__full zui-row zui-gap-2 zui-justify-end">
               <button class="zui-btn">Cancel</button>
-              <button class="zui-btn zui-btn--primary">Create</button>
+              <button class="zui-btn zui-btn--primary" data-zui-submit="playlist"
+                onclick="if(zui.validate('body',{'pl-name':{required:true,requiredMessage:'Enter a name'},'pl-max':{min:1,max:500}})) zui.toast('Created', {kind:'ok'})">Create</button>
             </div>
+          </div>
+        </div>
+        <div class="sc-block">
+          <h3>Rename in place (double-click)</h3>
+          <div class="zui-list" style="max-width:220px;border:1px solid var(--zui-border)">
+            <div class="zui-list__item" data-zui-rename="playlist.rename">Focus</div>
+            <div class="zui-list__item" data-zui-rename="playlist.rename">Long Drives</div>
           </div>
         </div>
         <div class="sc-block">
