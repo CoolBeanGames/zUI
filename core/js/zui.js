@@ -401,8 +401,52 @@
       });
       el.addEventListener("drop", function (e) {
         e.preventDefault();
-        var files = Array.prototype.map.call(e.dataTransfer.files || [], function (f) { return f.name; });
-        zui.send("drop", { target: el.getAttribute("data-name") || null, files: files });
+        var list = Array.prototype.map.call(e.dataTransfer.files || [], function (f) {
+          return { name: f.name, path: f.path || null, size: f.size, type: f.type };
+        });
+        zui.send("drop", {
+          target: el.getAttribute("data-name") || null,
+          files: list,
+          paths: list.map(function (f) { return f.path || f.name; })
+        });
+      });
+    });
+
+    /* Internal list reordering: [data-zui="reorder"] container whose direct
+       children are the items. Drag an item to move it; a thin line marks the
+       insertion point; on drop the new order is emitted on "reorder". */
+    root.querySelectorAll('[data-zui="reorder"]').forEach(function (list) {
+      if (list.__zuiReorder) return; list.__zuiReorder = true;
+      var dragging = null;
+
+      Array.prototype.forEach.call(list.children, function (it) { it.draggable = true; });
+
+      list.addEventListener("dragstart", function (e) {
+        dragging = e.target.closest("[data-zui-row], li, .zui-list__item");
+        if (dragging) { dragging.classList.add("zui-reorder-ghost"); e.dataTransfer.effectAllowed = "move"; }
+      });
+      list.addEventListener("dragend", function () {
+        if (dragging) dragging.classList.remove("zui-reorder-ghost");
+        list.querySelectorAll(".zui-reorder-into").forEach(function (n) { n.classList.remove("zui-reorder-into"); });
+        dragging = null;
+      });
+      list.addEventListener("dragover", function (e) {
+        if (!dragging) return;
+        e.preventDefault();
+        var over = e.target.closest("[data-zui-row], li, .zui-list__item");
+        if (!over || over === dragging) return;
+        var r = over.getBoundingClientRect();
+        var after = (e.clientY - r.top) / r.height > 0.5;
+        list.querySelectorAll(".zui-reorder-into").forEach(function (n) { n.classList.remove("zui-reorder-into"); });
+        over.classList.add("zui-reorder-into");
+        list.insertBefore(dragging, after ? over.nextSibling : over);
+      });
+      list.addEventListener("drop", function (e) {
+        e.preventDefault();
+        var ids = Array.prototype.map.call(list.children, function (c) {
+          return c.getAttribute("data-zui-row") || c.getAttribute("data-id") || c.textContent.trim();
+        });
+        zui.send("reorder", { name: list.getAttribute("data-name") || null, order: ids });
       });
     });
 

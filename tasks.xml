@@ -1,28 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <tasks project="zUI" nextIndex="31">
-  <task id="ZU-13">
-    <name>drop targets and drag/drop</name>
-    <prompt>Flesh out drop-target.css and zui.js drag/drop: file drops, internal item drag with drop indicators, hover state, invalid-drop cursor, host file-path integration over the message bus. Requirement: dropping files emits a drop message with paths; internal list reordering works.</prompt>
-    <requirements></requirements>
-    <inProgress>false</inProgress>
-    <done>false</done>
-    <bug>false</bug>
-    <error>false</error>
-    <errorMessage></errorMessage>
-    <lockKey></lockKey>
-    <locked>false</locked>
-    <archived>false</archived>
-    <blockedBy></blockedBy>
-    <dateStarted></dateStarted>
-    <dueDate></dueDate>
-    <commit>true</commit>
-    <build>false</build>
-    <release>false</release>
-    <tags>ui,coding</tags>
-    <notes></notes>
-    <filesChanged></filesChanged>
-    <image></image>
-  </task>
   <task id="ZU-14">
     <name>cursor indicators</name>
     <prompt>Complete tooltip.css cursor classes and a zui.js cursor manager: drag/resize/busy/forbidden/text/link cursors applied per-pane and globally, busy-cursor helper tied to async host calls. Requirement: cursor state is centrally controlled and reset reliably.</prompt>
