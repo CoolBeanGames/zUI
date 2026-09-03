@@ -15,6 +15,19 @@
 .zui-badge--warn  { background: var(--zui-warn); }
 .zui-badge--error { background: var(--zui-error); }
 .zui-badge--dot   { min-width: 8px; height: 8px; padding: 0; border-radius: 50%; }
+.zui-badge--muted { background: var(--zui-bg-active); color: var(--zui-text-secondary); }
+
+/* Inline status glyph next to a label (● connected, ▲ warning, ✕ error…). */
+.zui-glyph {
+  display: inline-block;
+  width: 1em;
+  text-align: center;
+  color: var(--zui-text-secondary);
+}
+.zui-glyph--ok    { color: var(--zui-ok); }
+.zui-glyph--warn  { color: var(--zui-warn); }
+.zui-glyph--error { color: var(--zui-error); }
+.zui-glyph--accent { color: var(--zui-accent); }
 
 .zui-toasts {
   position: fixed;
@@ -41,3 +54,35 @@
 .zui-toast--warn  { border-left-color: var(--zui-warn); }
 .zui-toast--error { border-left-color: var(--zui-error); }
 .zui-toast--ok    { border-left-color: var(--zui-ok); }
+
+.zui-toast__glyph { flex: 0 0 auto; }
+.zui-toast--ok    .zui-toast__glyph { color: var(--zui-ok); }
+.zui-toast--warn  .zui-toast__glyph { color: var(--zui-warn); }
+.zui-toast--error .zui-toast__glyph { color: var(--zui-error); }
+.zui-toast__msg { flex: 1 1 auto; }
+.zui-toast__action {
+  flex: 0 0 auto;
+  font: inherit;
+  color: var(--zui-accent);
+  background: none;
+  border: 0;
+  padding: 0 var(--zui-space-1);
+  cursor: default;
+}
+.zui-toast__action:hover { text-decoration: underline; }
+.zui-toast__close {
+  flex: 0 0 auto;
+  font: inherit;
+  line-height: 1;
+  color: var(--zui-text-secondary);
+  background: none;
+  border: 0;
+  padding: 0 2px;
+  cursor: default;
+}
+.zui-toast__close:hover { color: var(--zui-text); }
+
+@media (prefers-reduced-motion: no-preference) {
+  .zui-toast { animation: zui-toast-in var(--zui-dur-fast) var(--zui-ease); }
+  @keyframes zui-toast-in { from { opacity: 0; transform: translateY(4px); } }
+}

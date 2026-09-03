@@ -104,15 +104,38 @@
       zui.send("theme-changed", name);
     },
 
+    /* Compact corner toast. opts: {kind:"ok|warn|error", timeout, action:{label,channel|onClick}}.
+       Stack is capped so notifications never take over the screen. */
     toast: function (message, opts) {
       opts = opts || {};
+      var MAX = 4;
       var host = document.querySelector(".zui-toasts");
       if (!host) { host = document.createElement("div"); host.className = "zui-toasts"; document.body.appendChild(host); }
+
       var el = document.createElement("div");
       el.className = "zui-toast" + (opts.kind ? " zui-toast--" + opts.kind : "");
-      el.textContent = message;
+      var GLYPH = { ok: "✓", warn: "⚠", error: "✕" };
+      if (GLYPH[opts.kind]) {
+        var g = document.createElement("span"); g.className = "zui-toast__glyph"; g.textContent = GLYPH[opts.kind]; el.appendChild(g);
+      }
+      var msg = document.createElement("span"); msg.className = "zui-toast__msg"; msg.textContent = message; el.appendChild(msg);
+
+      var dismiss = function () { el.remove(); };
+      if (opts.action) {
+        var a = document.createElement("button"); a.className = "zui-toast__action"; a.textContent = opts.action.label;
+        a.addEventListener("click", function () {
+          if (typeof opts.action.onClick === "function") opts.action.onClick();
+          else if (opts.action.channel) zui.send(opts.action.channel, opts.action.payload);
+          dismiss();
+        });
+        el.appendChild(a);
+      }
+      var x = document.createElement("button"); x.className = "zui-toast__close"; x.textContent = "×";
+      x.addEventListener("click", dismiss); el.appendChild(x);
+
       host.appendChild(el);
-      setTimeout(function () { el.remove(); }, opts.timeout || 4000);
+      while (host.children.length > MAX) host.firstChild.remove();
+      if (opts.timeout !== 0) setTimeout(dismiss, opts.timeout || 4000);
       return el;
     },
 
@@ -790,6 +813,11 @@
 
   /* inbound channels (registered once) */
   zui.receive("theme", function (name) { if (name) zui.setTheme(typeof name === "string" ? name : name.name); });
+  zui.receive("toast", function (p) {
+    if (!p) return;
+    if (typeof p === "string") zui.toast(p);
+    else zui.toast(p.message, p);
+  });
   zui.receive("set", function (p) { if (p) zui.set(p.id, p.value); });
   zui.receive("set-many", function (p) { if (p) zui.set(p); });
   zui.receive("query", function (p) {

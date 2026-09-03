@@ -23,6 +23,29 @@
     <filesChanged>core/css/tokens.css, core/css/themes/holo.css, core/css/themes/clean.css, core/css/THEMES.md, core/css/base.css, core/css/components/{button,layout,panel,scrollbar,table,tooltip,window}.css, showcase/index.html, showcase/music.html, README.md, design.txt, task_images/ZU-33.png</filesChanged>
     <image>ZU-33.png</image>
   </task>
+  <task id="ZU-17">
+    <name>notification glyphs and toasts</name>
+    <prompt>Complete notification.css: badges (count/dot/warn/error), inline status glyphs, and an understated toast stack with kinds (ok/warn/error) and auto-dismiss. zui.js toast queue and host push channel. Requirement: notifications never dominate the UI; toast stack is compact and corner-anchored.</prompt>
+    <requirements>Badges (count/dot/warn/error/muted) + inline status glyphs + a compact corner toast stack (capped at 4, kind glyphs, optional action, dismiss, auto-timeout) driven by zui.toast or the 'toast' host channel; never dominates the UI.</requirements>
+    <inProgress>false</inProgress>
+    <done>true</done>
+    <bug>false</bug>
+    <error>false</error>
+    <errorMessage></errorMessage>
+    <lockKey></lockKey>
+    <locked>false</locked>
+    <archived>true</archived>
+    <blockedBy></blockedBy>
+    <dateStarted></dateStarted>
+    <dueDate></dueDate>
+    <commit>true</commit>
+    <build>false</build>
+    <release>false</release>
+    <tags>ui,coding</tags>
+    <notes>zui.toast rebuilt: kind glyph (checkmark/warn/x), optional {action:{label,channel|onClick}}, close button, timeout:0 = sticky, stack capped at 4 (oldest dropped), subtle slide-in (motion-safe). New 'toast' inbound channel (string or {message,kind,action,...}). notification.css: .zui-badge--muted, .zui-glyph(+--ok/warn/error/accent) inline status marks, toast action/close/glyph styling, keyframe. Showcase: ok + actionable error toast, status glyphs.</notes>
+    <filesChanged>core/js/zui.js, core/css/components/notification.css, showcase/index.html</filesChanged>
+    <image></image>
+  </task>
   <task id="ZU-16">
     <name>loading and progress indicators</name>
     <prompt>Finalise loading.css: small spinner (sizes), determinate and indeterminate thin progress bars, skeleton placeholder rows, reduced-motion support, zui.js helpers to bind progress to host events. Requirement: no flashy animation; matches design.txt restraint.</prompt>

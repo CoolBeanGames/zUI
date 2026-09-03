@@ -112,7 +112,11 @@
             <span class="zui-loading"><span class="zui-spinner"></span> Loading…</span>
             <span class="zui-badge">3</span>
             <span class="zui-badge zui-badge--error">!</span>
-            <button class="zui-btn" onclick="zui.toast('Library scan complete', {kind:'ok'})">Toast</button>
+            <button class="zui-btn" onclick="zui.toast('Library scan complete', {kind:'ok'})">Toast ok</button>
+            <button class="zui-btn" onclick="zui.toast('Could not read 2 files', {kind:'error', action:{label:'Retry', onClick:function(){zui.toast('Retrying…')}}})">Toast + action</button>
+            <span class="zui-glyph zui-glyph--ok">&#9679;</span>
+            <span class="zui-glyph zui-glyph--warn">&#9650;</span>
+            <span class="zui-badge zui-badge--muted">12</span>
           </div>
           <div class="zui-progress-labelled" style="max-width:280px;margin-top:var(--zui-space-3)">
             <div class="zui-progress-labelled__text"><span>Importing</span><span>42 of 300</span></div>
