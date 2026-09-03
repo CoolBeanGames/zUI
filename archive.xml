@@ -1,5 +1,44 @@
 <?xml version="1.0" encoding="utf-8"?>
-<tasks project="zUI" nextIndex="5">
+<tasks project="zUI" nextIndex="31">
+  <task id="ZU-2">
+    <name>create tasks for all nessesary elements</name>
+    <prompt>create what we need for barebones stuff, make as many tasks as nessesary</prompt>
+    <requirements>tasks created</requirements>
+    <inProgress>false</inProgress>
+    <done>true</done>
+    <bug>false</bug>
+    <error>false</error>
+    <errorMessage></errorMessage>
+    <lockKey></lockKey>
+    <locked>false</locked>
+    <archived>true</archived>
+    <blockedBy></blockedBy>
+    <dateStarted></dateStarted>
+    <dueDate></dueDate>
+    <commit>true</commit>
+    <build>false</build>
+    <release>false</release>
+    <tags></tags>
+    <notes>Created 26 barebones-element tasks (ZU-5..ZU-30), one per widget/subsystem: fonts, panels, window shell, dropdowns, scroll bars, buttons, layout groups, tabbed displays, drop targets, cursor indicators, menu bars, loading/progress, notifications/toasts, plus identified additions: text inputs/forms, tables/lists, checkboxes-radios-toggles, sliders, tree navigation, modal dialogs/popovers, status-device bar, playback/contextual bar, iconography set, theme system, interaction/keyboard layer, showcase gallery expansion, host integration samples. All tagged commit=true. All 14 subtasks ticked.</notes>
+    <filesChanged>tasks.xml (via operator)</filesChanged>
+    <image></image>
+    <subtasks>
+      <subtask done="true">fonts</subtask>
+      <subtask done="true">panels</subtask>
+      <subtask done="true">windows</subtask>
+      <subtask done="true">drop downs</subtask>
+      <subtask done="true">scroll bars</subtask>
+      <subtask done="true">buttons</subtask>
+      <subtask done="true">layou groups</subtask>
+      <subtask done="true">tabbed displays</subtask>
+      <subtask done="true">drop targets</subtask>
+      <subtask done="true">cursor indicators</subtask>
+      <subtask done="true">menu bars</subtask>
+      <subtask done="true">loading icons</subtask>
+      <subtask done="true">notification glyphs</subtask>
+      <subtask done="true">anything else you identify</subtask>
+    </subtasks>
+  </task>
   <task id="ZU-1">
     <name>project overview</name>
     <prompt>your task is to create a visual UI subsystem that will sit on top of my other apps providing a consistent UI experience, at the start we will base the visual design on googles holoUI however other themes may be added later. Plan to add widgets, forms, dropdowns, buttons, fonts, colors, etc. I will leave infrastructure up to you but perhaps use css and build plugins for both C++ and C# so that either language can use the library and get an identical experience. For now build the base systems to get everything up and running, and create a seperate app that showcases any forms and ui elements we make. keep in mind we will be using this in a music app, a game engine, and a project managment app so make the scalable, universal, and effecient.</prompt>

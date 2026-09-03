@@ -1,44 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<tasks project="zUI" nextIndex="5">
-  <task id="ZU-2">
-    <name>create tasks for all nessesary elements</name>
-    <prompt>create what we need for barebones stuff, make as many tasks as nessesary</prompt>
-    <requirements>tasks created</requirements>
-    <inProgress>false</inProgress>
-    <done>false</done>
-    <bug>false</bug>
-    <error>false</error>
-    <errorMessage></errorMessage>
-    <lockKey></lockKey>
-    <locked>false</locked>
-    <archived>false</archived>
-    <blockedBy></blockedBy>
-    <dateStarted></dateStarted>
-    <dueDate></dueDate>
-    <commit>true</commit>
-    <build>false</build>
-    <release>false</release>
-    <tags></tags>
-    <notes></notes>
-    <filesChanged></filesChanged>
-    <image></image>
-    <subtasks>
-      <subtask done="false">fonts</subtask>
-      <subtask done="false">panels</subtask>
-      <subtask done="false">windows</subtask>
-      <subtask done="false">drop downs</subtask>
-      <subtask done="false">scroll bars</subtask>
-      <subtask done="false">buttons</subtask>
-      <subtask done="false">layou groups</subtask>
-      <subtask done="false">tabbed displays</subtask>
-      <subtask done="false">drop targets</subtask>
-      <subtask done="false">cursor indicators</subtask>
-      <subtask done="false">menu bars</subtask>
-      <subtask done="false">loading icons</subtask>
-      <subtask done="false">notification glyphs</subtask>
-      <subtask done="false">anything else you identify</subtask>
-    </subtasks>
-  </task>
+<tasks project="zUI" nextIndex="31">
   <task id="ZU-3">
     <name>create a scripting language</name>
     <prompt>the ui itself will be defined by a scripting language, this will compile down to native code for performance</prompt>
@@ -81,6 +42,604 @@
     <build>true</build>
     <release>true</release>
     <tags></tags>
+    <notes></notes>
+    <filesChanged></filesChanged>
+    <image></image>
+  </task>
+  <task id="ZU-5">
+    <name>fonts &amp; typography</name>
+    <prompt>Finalise the zUI type system: a Segoe UI-first font stack with system-ui fallbacks, type scale tokens (small/normal/medium/heading), weights and line-height in core/css/tokens.css, and a fonts.css setting platform-native defaults. Requirement: typography tokens documented and used by every component; no hard-coded font sizes remain.</prompt>
+    <requirements></requirements>
+    <inProgress>false</inProgress>
+    <done>false</done>
+    <bug>false</bug>
+    <error>false</error>
+    <errorMessage></errorMessage>
+    <lockKey></lockKey>
+    <locked>false</locked>
+    <archived>false</archived>
+    <blockedBy></blockedBy>
+    <dateStarted></dateStarted>
+    <dueDate></dueDate>
+    <commit>true</commit>
+    <build>false</build>
+    <release>false</release>
+    <tags>ui,coding</tags>
+    <notes></notes>
+    <filesChanged></filesChanged>
+    <image></image>
+  </task>
+  <task id="ZU-6">
+    <name>panels &amp; separators</name>
+    <prompt>Harden core/css/components/panel.css: shared-background panels divided by thin borders (never floating cards), panel header/body, collapsing shared borders in rows/stacks, horizontal and vertical separators. Add resizable panel and splitter behaviour to zui.js. Requirement: a multi-panel browser layout renders per design.txt with draggable splitters.</prompt>
+    <requirements></requirements>
+    <inProgress>false</inProgress>
+    <done>false</done>
+    <bug>false</bug>
+    <error>false</error>
+    <errorMessage></errorMessage>
+    <lockKey></lockKey>
+    <locked>false</locked>
+    <archived>false</archived>
+    <blockedBy></blockedBy>
+    <dateStarted></dateStarted>
+    <dueDate></dueDate>
+    <commit>true</commit>
+    <build>false</build>
+    <release>false</release>
+    <tags>ui,coding</tags>
+    <notes></notes>
+    <filesChanged></filesChanged>
+    <image></image>
+  </task>
+  <task id="ZU-7">
+    <name>window shell &amp; chrome</name>
+    <prompt>Complete core/css/components/window.css plus JS: title bar, menu row, primary nav strip, workspace, status/device bar, contextual/playback bar as one horizontal hierarchy with subtle separators. Wire title-bar buttons and app-region drag for host integration. Requirement: showcase window matches the WINDOW STRUCTURE section of design.txt.</prompt>
+    <requirements></requirements>
+    <inProgress>false</inProgress>
+    <done>false</done>
+    <bug>false</bug>
+    <error>false</error>
+    <errorMessage></errorMessage>
+    <lockKey></lockKey>
+    <locked>false</locked>
+    <archived>false</archived>
+    <blockedBy></blockedBy>
+    <dateStarted></dateStarted>
+    <dueDate></dueDate>
+    <commit>true</commit>
+    <build>false</build>
+    <release>false</release>
+    <tags>ui,coding</tags>
+    <notes></notes>
+    <filesChanged></filesChanged>
+    <image></image>
+  </task>
+  <task id="ZU-8">
+    <name>dropdowns and selects</name>
+    <prompt>Flesh out dropdown.css and zui.js select behaviour: single/multi select, keyboard nav (arrows/home/end/type-ahead), disabled and checked items, submenu support, popover positioning that stays on screen. Requirement: keyboard-operable select and a shared popover menu used by menubar and context menus.</prompt>
+    <requirements></requirements>
+    <inProgress>false</inProgress>
+    <done>false</done>
+    <bug>false</bug>
+    <error>false</error>
+    <errorMessage></errorMessage>
+    <lockKey></lockKey>
+    <locked>false</locked>
+    <archived>false</archived>
+    <blockedBy></blockedBy>
+    <dateStarted></dateStarted>
+    <dueDate></dueDate>
+    <commit>true</commit>
+    <build>false</build>
+    <release>false</release>
+    <tags>ui,coding</tags>
+    <notes></notes>
+    <filesChanged></filesChanged>
+    <image></image>
+  </task>
+  <task id="ZU-9">
+    <name>scroll bars</name>
+    <prompt>Refine scrollbar.css: thin neutral desktop scrollbars (WebKit and Firefox), overlay vs stable gutter option, corner treatment, optional custom-scrollbar JS fallback. Requirement: scrollbars match design.txt weight and look identical in the C# and C++ hosts.</prompt>
+    <requirements></requirements>
+    <inProgress>false</inProgress>
+    <done>false</done>
+    <bug>false</bug>
+    <error>false</error>
+    <errorMessage></errorMessage>
+    <lockKey></lockKey>
+    <locked>false</locked>
+    <archived>false</archived>
+    <blockedBy></blockedBy>
+    <dateStarted></dateStarted>
+    <dueDate></dueDate>
+    <commit>true</commit>
+    <build>false</build>
+    <release>false</release>
+    <tags>ui,coding</tags>
+    <notes></notes>
+    <filesChanged></filesChanged>
+    <image></image>
+  </task>
+  <task id="ZU-10">
+    <name>buttons</name>
+    <prompt>Complete button.css: default/primary/icon-only/toggle/split-button, button groups, disabled and busy (spinner) states, compact sizing. Add toggle and split-button behaviour to zui.js. Requirement: all button variants restrained (no web CTA styling) and keyboard/AT operable.</prompt>
+    <requirements></requirements>
+    <inProgress>false</inProgress>
+    <done>false</done>
+    <bug>false</bug>
+    <error>false</error>
+    <errorMessage></errorMessage>
+    <lockKey></lockKey>
+    <locked>false</locked>
+    <archived>false</archived>
+    <blockedBy></blockedBy>
+    <dateStarted></dateStarted>
+    <dueDate></dueDate>
+    <commit>true</commit>
+    <build>false</build>
+    <release>false</release>
+    <tags>ui,coding</tags>
+    <notes></notes>
+    <filesChanged></filesChanged>
+    <image></image>
+  </task>
+  <task id="ZU-11">
+    <name>layout groups</name>
+    <prompt>Expand layout.css and a small layout helper API in zui.js: row/column/fill, gap and padding scale, sidebar, splitter, responsive grid, form grid, scroll containers. Requirement: layouts are token-driven and compose without custom CSS in host apps.</prompt>
+    <requirements></requirements>
+    <inProgress>false</inProgress>
+    <done>false</done>
+    <bug>false</bug>
+    <error>false</error>
+    <errorMessage></errorMessage>
+    <lockKey></lockKey>
+    <locked>false</locked>
+    <archived>false</archived>
+    <blockedBy></blockedBy>
+    <dateStarted></dateStarted>
+    <dueDate></dueDate>
+    <commit>true</commit>
+    <build>false</build>
+    <release>false</release>
+    <tags>ui,coding</tags>
+    <notes></notes>
+    <filesChanged></filesChanged>
+    <image></image>
+  </task>
+  <task id="ZU-12">
+    <name>tabbed displays</name>
+    <prompt>Complete tabs.css and zui.js: primary nav strip and secondary/document tab strips, closeable tabs, overflow handling, keyboard nav, ARIA tab semantics, tabpanel show/hide. Requirement: nav and tab strips behave like native desktop tabs and drive the tab channel.</prompt>
+    <requirements></requirements>
+    <inProgress>false</inProgress>
+    <done>false</done>
+    <bug>false</bug>
+    <error>false</error>
+    <errorMessage></errorMessage>
+    <lockKey></lockKey>
+    <locked>false</locked>
+    <archived>false</archived>
+    <blockedBy></blockedBy>
+    <dateStarted></dateStarted>
+    <dueDate></dueDate>
+    <commit>true</commit>
+    <build>false</build>
+    <release>false</release>
+    <tags>ui,coding</tags>
+    <notes></notes>
+    <filesChanged></filesChanged>
+    <image></image>
+  </task>
+  <task id="ZU-13">
+    <name>drop targets and drag/drop</name>
+    <prompt>Flesh out drop-target.css and zui.js drag/drop: file drops, internal item drag with drop indicators, hover state, invalid-drop cursor, host file-path integration over the message bus. Requirement: dropping files emits a drop message with paths; internal list reordering works.</prompt>
+    <requirements></requirements>
+    <inProgress>false</inProgress>
+    <done>false</done>
+    <bug>false</bug>
+    <error>false</error>
+    <errorMessage></errorMessage>
+    <lockKey></lockKey>
+    <locked>false</locked>
+    <archived>false</archived>
+    <blockedBy></blockedBy>
+    <dateStarted></dateStarted>
+    <dueDate></dueDate>
+    <commit>true</commit>
+    <build>false</build>
+    <release>false</release>
+    <tags>ui,coding</tags>
+    <notes></notes>
+    <filesChanged></filesChanged>
+    <image></image>
+  </task>
+  <task id="ZU-14">
+    <name>cursor indicators</name>
+    <prompt>Complete tooltip.css cursor classes and a zui.js cursor manager: drag/resize/busy/forbidden/text/link cursors applied per-pane and globally, busy-cursor helper tied to async host calls. Requirement: cursor state is centrally controlled and reset reliably.</prompt>
+    <requirements></requirements>
+    <inProgress>false</inProgress>
+    <done>false</done>
+    <bug>false</bug>
+    <error>false</error>
+    <errorMessage></errorMessage>
+    <lockKey></lockKey>
+    <locked>false</locked>
+    <archived>false</archived>
+    <blockedBy></blockedBy>
+    <dateStarted></dateStarted>
+    <dueDate></dueDate>
+    <commit>true</commit>
+    <build>false</build>
+    <release>false</release>
+    <tags>ui,coding</tags>
+    <notes></notes>
+    <filesChanged></filesChanged>
+    <image></image>
+  </task>
+  <task id="ZU-15">
+    <name>menu bars and context menus</name>
+    <prompt>Complete menubar.css and zui.js: traditional File/Edit/View/Help menu, keyboard access (Alt, arrows), accelerators/mnemonics, checkable and disabled items, submenus, right-click context menus sharing the same renderer. Requirement: menus are fully keyboard-operable and emit channel messages.</prompt>
+    <requirements></requirements>
+    <inProgress>false</inProgress>
+    <done>false</done>
+    <bug>false</bug>
+    <error>false</error>
+    <errorMessage></errorMessage>
+    <lockKey></lockKey>
+    <locked>false</locked>
+    <archived>false</archived>
+    <blockedBy></blockedBy>
+    <dateStarted></dateStarted>
+    <dueDate></dueDate>
+    <commit>true</commit>
+    <build>false</build>
+    <release>false</release>
+    <tags>ui,coding</tags>
+    <notes></notes>
+    <filesChanged></filesChanged>
+    <image></image>
+  </task>
+  <task id="ZU-16">
+    <name>loading and progress indicators</name>
+    <prompt>Finalise loading.css: small spinner (sizes), determinate and indeterminate thin progress bars, skeleton placeholder rows, reduced-motion support, zui.js helpers to bind progress to host events. Requirement: no flashy animation; matches design.txt restraint.</prompt>
+    <requirements></requirements>
+    <inProgress>false</inProgress>
+    <done>false</done>
+    <bug>false</bug>
+    <error>false</error>
+    <errorMessage></errorMessage>
+    <lockKey></lockKey>
+    <locked>false</locked>
+    <archived>false</archived>
+    <blockedBy></blockedBy>
+    <dateStarted></dateStarted>
+    <dueDate></dueDate>
+    <commit>true</commit>
+    <build>false</build>
+    <release>false</release>
+    <tags>ui,coding</tags>
+    <notes></notes>
+    <filesChanged></filesChanged>
+    <image></image>
+  </task>
+  <task id="ZU-17">
+    <name>notification glyphs and toasts</name>
+    <prompt>Complete notification.css: badges (count/dot/warn/error), inline status glyphs, and an understated toast stack with kinds (ok/warn/error) and auto-dismiss. zui.js toast queue and host push channel. Requirement: notifications never dominate the UI; toast stack is compact and corner-anchored.</prompt>
+    <requirements></requirements>
+    <inProgress>false</inProgress>
+    <done>false</done>
+    <bug>false</bug>
+    <error>false</error>
+    <errorMessage></errorMessage>
+    <lockKey></lockKey>
+    <locked>false</locked>
+    <archived>false</archived>
+    <blockedBy></blockedBy>
+    <dateStarted></dateStarted>
+    <dueDate></dueDate>
+    <commit>true</commit>
+    <build>false</build>
+    <release>false</release>
+    <tags>ui,coding</tags>
+    <notes></notes>
+    <filesChanged></filesChanged>
+    <image></image>
+  </task>
+  <task id="ZU-18">
+    <name>text inputs and form fields</name>
+    <prompt>Flesh out input.css and zui.js: text/search/number inputs, textarea, labelled fields, validation states (error/warn) with messages, inline rename-in-place, compact desktop sizing. Requirement: forms match design.txt (no giant/mobile inputs); validation is token-driven.</prompt>
+    <requirements></requirements>
+    <inProgress>false</inProgress>
+    <done>false</done>
+    <bug>false</bug>
+    <error>false</error>
+    <errorMessage></errorMessage>
+    <lockKey></lockKey>
+    <locked>false</locked>
+    <archived>false</archived>
+    <blockedBy></blockedBy>
+    <dateStarted></dateStarted>
+    <dueDate></dueDate>
+    <commit>true</commit>
+    <build>false</build>
+    <release>false</release>
+    <tags>ui,coding</tags>
+    <notes></notes>
+    <filesChanged></filesChanged>
+    <image></image>
+  </task>
+  <task id="ZU-19">
+    <name>tables and lists</name>
+    <prompt>Complete table.css and zui.js: compact rows, subtle separators, sortable and resizable columns, single/multi/shift/ctrl selection, functional row states only, a virtualised rendering hook for large datasets. Requirement: a 10000-row track table scrolls smoothly and matches design.txt.</prompt>
+    <requirements></requirements>
+    <inProgress>false</inProgress>
+    <done>false</done>
+    <bug>false</bug>
+    <error>false</error>
+    <errorMessage></errorMessage>
+    <lockKey></lockKey>
+    <locked>false</locked>
+    <archived>false</archived>
+    <blockedBy></blockedBy>
+    <dateStarted></dateStarted>
+    <dueDate></dueDate>
+    <commit>true</commit>
+    <build>false</build>
+    <release>false</release>
+    <tags>ui,coding</tags>
+    <notes></notes>
+    <filesChanged></filesChanged>
+    <image></image>
+  </task>
+  <task id="ZU-20">
+    <name>checkboxes, radios and toggles</name>
+    <prompt>Add form-control CSS and behaviour: checkbox (incl. indeterminate), radio groups, and a restrained toggle switch used only where function calls for one. Requirement: controls are compact, accent-driven, keyboard operable, consistent across hosts.</prompt>
+    <requirements></requirements>
+    <inProgress>false</inProgress>
+    <done>false</done>
+    <bug>false</bug>
+    <error>false</error>
+    <errorMessage></errorMessage>
+    <lockKey></lockKey>
+    <locked>false</locked>
+    <archived>false</archived>
+    <blockedBy></blockedBy>
+    <dateStarted></dateStarted>
+    <dueDate></dueDate>
+    <commit>true</commit>
+    <build>false</build>
+    <release>false</release>
+    <tags>ui,coding</tags>
+    <notes></notes>
+    <filesChanged></filesChanged>
+    <image></image>
+  </task>
+  <task id="ZU-21">
+    <name>sliders and range controls</name>
+    <prompt>Add a slider/range component (CSS and zui.js): horizontal value slider, dual-thumb range, tick support, keyboard steps; used for playback scrub and volume. Requirement: restrained desktop styling, token-driven, emits value on the message bus.</prompt>
+    <requirements></requirements>
+    <inProgress>false</inProgress>
+    <done>false</done>
+    <bug>false</bug>
+    <error>false</error>
+    <errorMessage></errorMessage>
+    <lockKey></lockKey>
+    <locked>false</locked>
+    <archived>false</archived>
+    <blockedBy></blockedBy>
+    <dateStarted></dateStarted>
+    <dueDate></dueDate>
+    <commit>true</commit>
+    <build>false</build>
+    <release>false</release>
+    <tags>ui,coding</tags>
+    <notes></notes>
+    <filesChanged></filesChanged>
+    <image></image>
+  </task>
+  <task id="ZU-22">
+    <name>tree view navigation</name>
+    <prompt>Add a tree/outline component for sidebar hierarchies (LIBRARY, PLAYLISTS): expand/collapse, keyboard nav, single/multi select, drag to reorder, rename-in-place. Requirement: the showcase sidebar uses the tree component and matches design.txt SIDEBAR rules.</prompt>
+    <requirements></requirements>
+    <inProgress>false</inProgress>
+    <done>false</done>
+    <bug>false</bug>
+    <error>false</error>
+    <errorMessage></errorMessage>
+    <lockKey></lockKey>
+    <locked>false</locked>
+    <archived>false</archived>
+    <blockedBy></blockedBy>
+    <dateStarted></dateStarted>
+    <dueDate></dueDate>
+    <commit>true</commit>
+    <build>false</build>
+    <release>false</release>
+    <tags>ui,coding</tags>
+    <notes></notes>
+    <filesChanged></filesChanged>
+    <image></image>
+  </task>
+  <task id="ZU-23">
+    <name>modal dialogs and popovers</name>
+    <prompt>Add dialog/popover primitives (CSS and zui.js): modal dialog with title/body/footer buttons, non-modal anchored popover, focus trap, Esc/Enter handling, overlay. Requirement: dialogs are compact native-style (not large rounded web cards) and manage focus correctly.</prompt>
+    <requirements></requirements>
+    <inProgress>false</inProgress>
+    <done>false</done>
+    <bug>false</bug>
+    <error>false</error>
+    <errorMessage></errorMessage>
+    <lockKey></lockKey>
+    <locked>false</locked>
+    <archived>false</archived>
+    <blockedBy></blockedBy>
+    <dateStarted></dateStarted>
+    <dueDate></dueDate>
+    <commit>true</commit>
+    <build>false</build>
+    <release>false</release>
+    <tags>ui,coding</tags>
+    <notes></notes>
+    <filesChanged></filesChanged>
+    <image></image>
+  </task>
+  <task id="ZU-24">
+    <name>status / device bar</name>
+    <prompt>Build the persistent status/device bar as a reusable component: disconnected (neutral) vs connected (accent) states, device name/capacity/free, consistently aligned Eject/Sync actions, driven by a device host channel. Requirement: matches the STATUS / DEVICE BAR example in design.txt.</prompt>
+    <requirements></requirements>
+    <inProgress>false</inProgress>
+    <done>false</done>
+    <bug>false</bug>
+    <error>false</error>
+    <errorMessage></errorMessage>
+    <lockKey></lockKey>
+    <locked>false</locked>
+    <archived>false</archived>
+    <blockedBy></blockedBy>
+    <dateStarted></dateStarted>
+    <dueDate></dueDate>
+    <commit>true</commit>
+    <build>false</build>
+    <release>false</release>
+    <tags>ui,coding</tags>
+    <notes></notes>
+    <filesChanged></filesChanged>
+    <image></image>
+  </task>
+  <task id="ZU-25">
+    <name>playback / contextual control bar</name>
+    <prompt>Build the compact contextual control bar (playback bar for the music app): prev/play/pause/stop/next icon buttons, artwork, track text, time, scrub progress, shuffle/repeat toggles, visually secondary to the workspace. Requirement: matches PLAYBACK BAR in design.txt and is generic enough for non-music hosts.</prompt>
+    <requirements></requirements>
+    <inProgress>false</inProgress>
+    <done>false</done>
+    <bug>false</bug>
+    <error>false</error>
+    <errorMessage></errorMessage>
+    <lockKey></lockKey>
+    <locked>false</locked>
+    <archived>false</archived>
+    <blockedBy></blockedBy>
+    <dateStarted></dateStarted>
+    <dueDate></dueDate>
+    <commit>true</commit>
+    <build>false</build>
+    <release>false</release>
+    <tags>ui,coding</tags>
+    <notes></notes>
+    <filesChanged></filesChanged>
+    <image></image>
+  </task>
+  <task id="ZU-26">
+    <name>iconography set</name>
+    <prompt>Assemble a small consistent monochrome line-icon set (SVG sprite) for nav, menus, buttons, status; document sizing/weight rules; no emoji as app icons. Requirement: all showcase icons come from the sprite and share visual weight per design.txt ICONOGRAPHY.</prompt>
+    <requirements></requirements>
+    <inProgress>false</inProgress>
+    <done>false</done>
+    <bug>false</bug>
+    <error>false</error>
+    <errorMessage></errorMessage>
+    <lockKey></lockKey>
+    <locked>false</locked>
+    <archived>false</archived>
+    <blockedBy></blockedBy>
+    <dateStarted></dateStarted>
+    <dueDate></dueDate>
+    <commit>true</commit>
+    <build>false</build>
+    <release>false</release>
+    <tags>ui,coding</tags>
+    <notes></notes>
+    <filesChanged></filesChanged>
+    <image></image>
+  </task>
+  <task id="ZU-27">
+    <name>theme system and design tokens</name>
+    <prompt>Formalise the theming layer: document every token in tokens.css, the data-zui-theme contract, a theme-authoring guide, and runtime zui.setTheme with a host theme channel. Ship holo (light) complete and a holo-dark draft. Requirement: a new theme can be added as one CSS file with zero component changes.</prompt>
+    <requirements></requirements>
+    <inProgress>false</inProgress>
+    <done>false</done>
+    <bug>false</bug>
+    <error>false</error>
+    <errorMessage></errorMessage>
+    <lockKey></lockKey>
+    <locked>false</locked>
+    <archived>false</archived>
+    <blockedBy></blockedBy>
+    <dateStarted></dateStarted>
+    <dueDate></dueDate>
+    <commit>true</commit>
+    <build>false</build>
+    <release>false</release>
+    <tags>ui,coding</tags>
+    <notes></notes>
+    <filesChanged></filesChanged>
+    <image></image>
+  </task>
+  <task id="ZU-28">
+    <name>interaction and keyboard layer</name>
+    <prompt>Implement the shared interaction behaviours from design.txt: context menus, double-click actions, drag and drop, global shortcuts incl. Ctrl+Z/Ctrl+Y, Tab order, multi/shift/ctrl selection helpers, tooltips, rename-in-place. Requirement: behaviours are centralised in zui.js and reused by every component.</prompt>
+    <requirements></requirements>
+    <inProgress>false</inProgress>
+    <done>false</done>
+    <bug>false</bug>
+    <error>false</error>
+    <errorMessage></errorMessage>
+    <lockKey></lockKey>
+    <locked>false</locked>
+    <archived>false</archived>
+    <blockedBy></blockedBy>
+    <dateStarted></dateStarted>
+    <dueDate></dueDate>
+    <commit>true</commit>
+    <build>false</build>
+    <release>false</release>
+    <tags>ui,coding</tags>
+    <notes></notes>
+    <filesChanged></filesChanged>
+    <image></image>
+  </task>
+  <task id="ZU-29">
+    <name>showcase app: full component gallery</name>
+    <prompt>Expand the showcase into a complete navigable gallery: one section per component with live examples, all states, code snippets, a theme switcher, and a realistic music-browser mock screen assembled only from zUI parts. Requirement: every shipped component appears in the showcase and matches design.txt.</prompt>
+    <requirements></requirements>
+    <inProgress>false</inProgress>
+    <done>false</done>
+    <bug>false</bug>
+    <error>false</error>
+    <errorMessage></errorMessage>
+    <lockKey></lockKey>
+    <locked>false</locked>
+    <archived>false</archived>
+    <blockedBy></blockedBy>
+    <dateStarted></dateStarted>
+    <dueDate></dueDate>
+    <commit>true</commit>
+    <build>false</build>
+    <release>false</release>
+    <tags>ui,coding</tags>
+    <notes></notes>
+    <filesChanged></filesChanged>
+    <image></image>
+  </task>
+  <task id="ZU-30">
+    <name>host integration examples</name>
+    <prompt>Add runnable minimal host samples: a WinForms/WPF C# app and a Win32 C++ app that each open the showcase through their binding and round-trip a few messages (theme, device, selection, save). Requirement: both samples build via build.ps1 and show identical UI.</prompt>
+    <requirements></requirements>
+    <inProgress>false</inProgress>
+    <done>false</done>
+    <bug>false</bug>
+    <error>false</error>
+    <errorMessage></errorMessage>
+    <lockKey></lockKey>
+    <locked>false</locked>
+    <archived>false</archived>
+    <blockedBy></blockedBy>
+    <dateStarted></dateStarted>
+    <dueDate></dueDate>
+    <commit>true</commit>
+    <build>false</build>
+    <release>false</release>
+    <tags>ui,coding</tags>
     <notes></notes>
     <filesChanged></filesChanged>
     <image></image>
