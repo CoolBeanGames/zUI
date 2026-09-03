@@ -23,6 +23,31 @@
     <filesChanged>core/css/tokens.css, core/css/themes/holo.css, core/css/themes/clean.css, core/css/THEMES.md, core/css/base.css, core/css/components/{button,layout,panel,scrollbar,table,tooltip,window}.css, showcase/index.html, showcase/music.html, README.md, design.txt, task_images/ZU-33.png</filesChanged>
     <image>ZU-33.png</image>
   </task>
+  <task id="ZU-32">
+    <name>Create documentation wiki HTML</name>
+    <prompt>Create an HTML file with click through links in a sub folder with full documentation on how to script and how to steam this engine
+
+Any changes in the future should be reflected in this document</prompt>
+    <requirements></requirements>
+    <inProgress>false</inProgress>
+    <done>true</done>
+    <bug>false</bug>
+    <error>false</error>
+    <errorMessage></errorMessage>
+    <lockKey></lockKey>
+    <locked>false</locked>
+    <archived>true</archived>
+    <blockedBy></blockedBy>
+    <dateStarted></dateStarted>
+    <dueDate></dueDate>
+    <commit>false</commit>
+    <build>false</build>
+    <release>false</release>
+    <tags>Documentation</tags>
+    <notes>Built docs/index.html - a click-through documentation site styled with zUI itself (dogfooding: window shell, tree TOC nav, theme switcher, hash deep-links). Sections: Overview, Getting started, Embedding (C#/C++), ZSL/ZML language, Layout &amp; components, Message bus &amp; IO, Interaction &amp; keyboard, Theming &amp; tokens, Icons, Building &amp; tests - covering both how to script (ZSL/ZML) and how to use/stream the engine from a host. Each section summarises and links the authoritative markdown (PROTOCOL.md, THEMES.md, GRAMMAR.md, etc). docs/README.md notes the sync obligation. build.ps1 stages docs/ alongside showcase/; README links it. All test suites green.</notes>
+    <filesChanged>docs/index.html, docs/README.md, build.ps1, README.md</filesChanged>
+    <image></image>
+  </task>
   <task id="ZU-31">
     <name>Design.txt</name>
     <prompt>Please redesign your own design.TXT file to explain how to use the tool set how to download it from GitHub, so that agents know how to utilize this tool chain

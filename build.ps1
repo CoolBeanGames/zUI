@@ -29,10 +29,12 @@ foreach ($name in 'zui', 'core') {
   if (Test-Path $dst) { Remove-Item -Recurse -Force $dst }
   Copy-Item -Recurse (Join-Path $root 'core') $dst
 }
-$showDst = Join-Path $out 'showcase'
-if (Test-Path $showDst) { Remove-Item -Recurse -Force $showDst }
-Copy-Item -Recurse (Join-Path $root 'showcase') $showDst
-Write-Host "  staged core + showcase"
+foreach ($sub in 'showcase', 'docs') {
+  $d = Join-Path $out $sub
+  if (Test-Path $d) { Remove-Item -Recurse -Force $d }
+  Copy-Item -Recurse (Join-Path $root $sub) $d
+}
+Write-Host "  staged core + showcase + docs"
 
 # 2. Compile the ZSL examples (and run compiler tests in the test config).
 $pyExe = $null

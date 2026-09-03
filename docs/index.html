@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en" data-zui-theme="holo">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>zUI Documentation</title>
+<link rel="stylesheet" href="../core/css/zui.css">
+<link rel="stylesheet" href="../core/css/themes/holo.css">
+<link rel="stylesheet" href="../core/css/themes/clean.css">
+<style>
+  .doc { display: flex; height: 100%; }
+  .doc__nav { width: 232px; flex: 0 0 auto; }
+  .doc__main { flex: 1; overflow: auto; }
+  .doc__page { max-width: 760px; padding: var(--zui-space-6); }
+  .doc__page h1 { margin-bottom: var(--zui-space-4); }
+  .doc__page h2 { margin: var(--zui-space-6) 0 var(--zui-space-2); font-size: var(--zui-fs-medium); }
+  .doc__page h3 { margin: var(--zui-space-4) 0 var(--zui-space-1); color: var(--zui-text-secondary); font-size: var(--zui-fs-small); text-transform: uppercase; letter-spacing: .05em; }
+  .doc__page p, .doc__page li { line-height: 1.55; }
+  .doc__page ul { margin: 0 0 var(--zui-space-3); padding-left: var(--zui-space-4); }
+  .doc__page code { font-family: var(--zui-font-mono); font-size: 12px; background: var(--zui-bg-surface-alt); padding: 1px 4px; border-radius: 2px; }
+  .doc__page pre { background: var(--zui-bg-surface); border: 1px solid var(--zui-border); border-radius: var(--zui-radius); padding: var(--zui-space-3); overflow-x: auto; margin: 0 0 var(--zui-space-3); }
+  .doc__page pre code { background: none; padding: 0; font-size: 12px; }
+  .doc__page table { border-collapse: collapse; width: 100%; margin: 0 0 var(--zui-space-3); font-size: var(--zui-fs-normal); }
+  .doc__page th, .doc__page td { border: 1px solid var(--zui-border); padding: 4px 8px; text-align: left; }
+  .doc__page th { background: var(--zui-bg-surface-alt); }
+  .doc__page a { color: var(--zui-accent); }
+</style>
+</head>
+<body>
+<div class="zui-window">
+  <div class="zui-titlebar">
+    <span>zUI Documentation</span>
+    <span class="zui-spacer"></span>
+    <div class="zui-row zui-gap-2 zui-items-center" style="padding:0 var(--zui-space-3)">
+      <a href="https://github.com/CoolBeanGames/zUI">GitHub</a>
+      <span class="zui-sep--v" style="height:14px"></span>
+      <label class="zui-t-small zui-text-secondary">Theme</label>
+      <div class="zui-select" data-zui="select" data-name="theme" data-value="holo" data-options='["holo","clean"]'>
+        <span class="zui-select__value">holo</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="doc">
+    <nav class="zui-sidebar doc__nav">
+      <div class="zui-tree" data-zui="tree" data-name="toc" style="width:100%">
+        <div class="zui-tree__section">Guide</div>
+        <div class="zui-tree__item zui-selected" data-id="overview" data-depth="0"><span class="zui-tree__label">Overview</span></div>
+        <div class="zui-tree__item" data-id="start" data-depth="0"><span class="zui-tree__label">Getting started</span></div>
+        <div class="zui-tree__item" data-id="embed" data-depth="0"><span class="zui-tree__label">Embedding (C# / C++)</span></div>
+        <div class="zui-tree__section">Authoring</div>
+        <div class="zui-tree__item" data-id="language" data-depth="0"><span class="zui-tree__label">ZSL / ZML language</span></div>
+        <div class="zui-tree__item" data-id="layout" data-depth="0"><span class="zui-tree__label">Layout &amp; components</span></div>
+        <div class="zui-tree__section">Runtime</div>
+        <div class="zui-tree__item" data-id="protocol" data-depth="0"><span class="zui-tree__label">Message bus &amp; IO</span></div>
+        <div class="zui-tree__item" data-id="interaction" data-depth="0"><span class="zui-tree__label">Interaction &amp; keyboard</span></div>
+        <div class="zui-tree__section">System</div>
+        <div class="zui-tree__item" data-id="theming" data-depth="0"><span class="zui-tree__label">Theming &amp; tokens</span></div>
+        <div class="zui-tree__item" data-id="icons" data-depth="0"><span class="zui-tree__label">Icons</span></div>
+        <div class="zui-tree__item" data-id="building" data-depth="0"><span class="zui-tree__label">Building &amp; tests</span></div>
+      </div>
+    </nav>
+
+    <div class="doc__main">
+      <section class="doc__page" data-page="overview">
+        <h1>zUI</h1>
+        <p>zUI is a themeable UI subsystem that sits on top of native host applications
+        (a music app, a game engine, a project-management app) so they all present one
+        consistent interface. It is <strong>CSS + a small JS runtime</strong> rendered
+        inside a web view the host owns, driven by an ahead-of-time UI language.</p>
+        <h2>Pieces</h2>
+        <table>
+          <tr><th>Path</th><th>What</th></tr>
+          <tr><td><code>core/css/</code></td><td>token system, one stylesheet per component, themes</td></tr>
+          <tr><td><code>core/js/zui.js</code></td><td>runtime: component behaviours + host&harr;UI message bus</td></tr>
+          <tr><td><code>core/icons/</code></td><td>monochrome line-icon sprite</td></tr>
+          <tr><td><code>compiler/zslc.py</code></td><td>the ZSL / ZML compiler (html / csharp / cpp backends)</td></tr>
+          <tr><td><code>bindings/csharp</code>, <code>bindings/cpp</code></td><td>host bindings (WebView2)</td></tr>
+          <tr><td><code>showcase/</code></td><td>gallery + a realistic music-browser mock</td></tr>
+          <tr><td><code>samples/</code></td><td>runnable C# and C++ host apps</td></tr>
+        </table>
+        <h2>Design identity</h2>
+        <p>Default theme <strong>holo</strong> — Google's Android Holo look (dark, Holo-blue
+        <code>#33b5e5</code>). Light alternative <strong>clean</strong>. See
+        <a href="#" data-goto="theming">Theming</a> and <code>design.txt</code>.</p>
+      </section>
+
+      <section class="doc__page" data-page="start" hidden>
+        <h1>Getting started</h1>
+        <h2>1. Vendor it</h2>
+        <pre><code>git submodule add https://github.com/CoolBeanGames/zUI.git third_party/zui</code></pre>
+        <h2>2. A zUI document</h2>
+        <p>A zUI screen is a normal HTML file that links the core:</p>
+        <pre><code>&lt;html data-zui-theme="holo"&gt;
+&lt;link rel="stylesheet" href="zui/css/zui.css"&gt;
+&lt;link rel="stylesheet" href="zui/css/themes/holo.css"&gt;
+&lt;script src="zui/icons/sprite.js"&gt;&lt;/script&gt;
+&lt;script src="zui/js/zui.js"&gt;&lt;/script&gt;</code></pre>
+        <p>Author it by hand, or compile it from ZSL / ZML (next section). Then load it
+        in the host through a binding.</p>
+      </section>
+
+      <section class="doc__page" data-page="embed" hidden>
+        <h1>Embedding</h1>
+        <p>Both bindings embed the identical <code>core/</code> assets, so the result is
+        pixel-identical. Runnable examples: <code>samples/csharp/</code>,
+        <code>samples/cpp/</code>.</p>
+        <h2>C# (WinForms / WPF + WebView2)</h2>
+        <pre><code>var ui = new ZUI.ZuiHost(webView2Control);
+await ui.InitializeAsync();
+await ui.LoadAsync("ui/main.html");
+ui.On("save", json =&gt; Save(json));
+ui.Send("theme", "holo");</code></pre>
+        <h2>C++ (Win32 + WebView2)</h2>
+        <pre><code>zui::Host ui(hwnd);
+ui.set_core_root("zui");
+ui.load("ui/main.html");
+ui.on("save", [](const std::string&amp; j){ save(j); });
+ui.send("theme", "\"holo\"");</code></pre>
+        <p>The C++ WebView2 backend is <code>bindings/cpp/zui_webview2.cpp</code>; it needs
+        the WebView2 SDK + WIL at build time and the evergreen WebView2 runtime to run.</p>
+      </section>
+
+      <section class="doc__page" data-page="language" hidden>
+        <h1>ZSL / ZML language</h1>
+        <p>UI is written in <strong>ZSL</strong> (brace) or <strong>ZML</strong>
+        (angle-bracket) and compiled ahead of time — never interpreted at runtime.
+        <code>zslc.py</code> auto-detects: a source starting with <code>&lt;</code> is ZML.
+        Both build the same tree and produce byte-identical output.</p>
+        <pre><code>panel "Tracks" { button "Play" }
+&lt;panel title="Tracks"&gt;&lt;button&gt;Play&lt;/button&gt;&lt;/panel&gt;</code></pre>
+        <h2>Compile</h2>
+        <pre><code>py compiler/zslc.py ui/main.zml --backend html   -o ui/main.html
+py compiler/zslc.py ui/main.zml --backend csharp -o Ui.g.cs
+py compiler/zslc.py ui/main.zml --backend cpp    -o ui.g.cpp</code></pre>
+        <h3>Bindings &amp; events</h3>
+        <ul>
+          <li><code>bind:x</code> — two-way binding to a <code>state</code> field; also marks the node <code>data-zui-id="x"</code>.</li>
+          <li><code>export="name"</code> — mark any node for the runtime IO layer.</li>
+          <li><code>-&gt; some.event</code> / <code>on="some.event"</code> — runs the matching <code>on { }</code> handler, else <code>emit</code>s it.</li>
+          <li><code>source=items</code> — repeats a table/container per element of <code>state.items</code>.</li>
+        </ul>
+        <p>Full grammar and node list: <code>compiler/GRAMMAR.md</code>.</p>
+      </section>
+
+      <section class="doc__page" data-page="layout" hidden>
+        <h1>Layout &amp; components</h1>
+        <p>Layout is flow/flex — never x/y. Nest <code>row</code> / <code>col</code>, mark
+        the stretchy one <code>fill</code>, use <code>sidebar</code>, <code>splitter</code>,
+        <code>grid</code>, the <code>gap-*</code> / <code>pad-*</code> scale (4/8/12/16/24),
+        and <code>panel</code> for a bordered region.</p>
+        <h2>Component set</h2>
+        <p>window shell &amp; menu bar · nav / tab strips (closeable) · tree · panels &amp;
+        splitters · buttons (default / primary / icon / toggle / split / busy) ·
+        text / search / number inputs &amp; validation · checkbox / radio / switch ·
+        sliders (single + dual) · dropdown &amp; context menus (submenus, mnemonics) ·
+        tables (sortable, resizable, virtualised) &amp; lists · dialog &amp; popover ·
+        toasts &amp; badges &amp; status glyphs · spinner / progress / skeleton ·
+        drop targets · status / device bar · playback / contextual bar.</p>
+        <p>Live examples: open <code>showcase/index.html</code> and
+        <code>showcase/music.html</code>.</p>
+      </section>
+
+      <section class="doc__page" data-page="protocol" hidden>
+        <h1>Message bus &amp; component IO</h1>
+        <p>One JSON channel carries everything: <code>{ channel, payload }</code>.</p>
+        <pre><code>zui.send(channel, payload)          // UI  -> host
+zui.receive(channel, handler)      // host -> UI</code></pre>
+        <h2>Component IO</h2>
+        <p>Any element with <code>data-zui-id</code> (ZSL/ZML <code>export=</code>) is
+        readable and writable both ways — text, checkbox, radio, select, progress,
+        button clicks/state, sliders, scroll positions.</p>
+        <pre><code>zui.values(scope?)   // { id: value, ... }
+zui.field(id)        // one value
+zui.set(id, value)   // write (zui.set({id: value, ...}) for many)
+zui.bind(id, fn)     // fn(value) on every change</code></pre>
+        <table>
+          <tr><th>Direction</th><th>Channels</th></tr>
+          <tr><td>UI &rarr; host</td><td><code>value</code> {id,kind,value} · <code>submit</code> {form,values}</td></tr>
+          <tr><td>host &rarr; UI</td><td><code>set</code> · <code>set-many</code> · <code>query</code></td></tr>
+        </table>
+        <p>Component channels: <code>tab</code>, <code>selection</code>, <code>select</code>,
+        <code>toggle</code>, <code>drop</code>, <code>reorder</code>, <code>tree</code>,
+        <code>splitter</code>, <code>window</code>, <code>transport</code>,
+        <code>device-action</code>, <code>theme-changed</code>. Host can push
+        <code>theme</code>, <code>toast</code>, <code>dialog</code>, <code>device</code>,
+        <code>now-playing</code>, <code>state</code>. Full contract:
+        <code>core/PROTOCOL.md</code>.</p>
+      </section>
+
+      <section class="doc__page" data-page="interaction" hidden>
+        <h1>Interaction &amp; keyboard</h1>
+        <p>All shared behaviour is centralised in <code>core/js/zui.js</code> — reuse it,
+        never reimplement.</p>
+        <pre><code>zui.shortcuts({ "Ctrl+K": fn })            // global shortcuts
+zui.history.push({ label, undo(), redo() }) // Ctrl+Z / Ctrl+Y wired by default
+zui.cursor.while(name, promise)             // scoped cursor state
+zui.renameInPlace(el, onCommit)             // Enter/blur commit, Esc cancel
+zui.dialog({title, body, buttons})          // -> Promise; zui.confirm(msg)
+zui.popover(anchor, content)</code></pre>
+        <p>Declarative: <code>data-zui-shortcut="Ctrl+K"</code>,
+        <code>data-zui-dblclick="channel"</code>, <code>data-zui-context='[…]'</code>,
+        <code>data-zui-tip="…"</code>, <code>data-zui-rename="channel"</code>.</p>
+        <p>Menus, tabs, tree and tables are fully keyboard-operable (arrows, Home/End,
+        type-ahead, mnemonics). Selection helpers support ctrl / shift multi-select.</p>
+      </section>
+
+      <section class="doc__page" data-page="theming" hidden>
+        <h1>Theming &amp; tokens</h1>
+        <p>Every component is styled <em>only</em> through the custom properties in
+        <code>core/css/tokens.css</code>. A theme is one file that re-declares them under
+        <code>[data-zui-theme="name"]</code> — <strong>no component CSS changes</strong>.</p>
+        <table>
+          <tr><th>Theme</th><th>Look</th></tr>
+          <tr><td><code>holo</code> (default)</td><td>Android Holo — dark, Holo-blue accent, accent caps headers</td></tr>
+          <tr><td><code>clean</code></td><td>light neutral native-Windows-utility palette</td></tr>
+        </table>
+        <pre><code>zui.setTheme("clean");        // in the page
+host.Send("theme", "clean");  // from the host</code></pre>
+        <p>To add a theme: copy <code>themes/clean.css</code>, rename the selector, set
+        every token (list in <code>core/css/THEMES.md</code>), add the
+        <code>&lt;link&gt;</code>. <code>tests/check-tokens.py</code> enforces that no
+        component hard-codes a colour and that themes stay in sync.</p>
+        <p>Typography tokens: <code>core/css/TYPOGRAPHY.md</code>.</p>
+      </section>
+
+      <section class="doc__page" data-page="icons" hidden>
+        <h1>Icons</h1>
+        <p>One consistent monochrome line set (16&times;16, 1.5 stroke,
+        <code>currentColor</code>) in <code>core/icons/zui-icons.svg</code>. No emoji as
+        UI icons.</p>
+        <pre><code>&lt;script src="zui/icons/sprite.js"&gt;&lt;/script&gt;   &lt;!-- inject once --&gt;
+&lt;svg class="zui-icon"&gt;&lt;use href="#play"/&gt;&lt;/svg&gt;</code></pre>
+        <p><code>.zui-icon</code> is 14px and follows text colour; <code>--sm</code> /
+        <code>--lg</code> / <code>--muted</code>. Names and how to add one:
+        <code>core/icons/README.md</code>.</p>
+      </section>
+
+      <section class="doc__page" data-page="building" hidden>
+        <h1>Building &amp; tests</h1>
+        <pre><code>./build.ps1 -Config debug     # -> builds/debug
+./build.ps1 -Config test      # + runs every test suite
+./build.ps1 -Config release   # -> builds/release</code></pre>
+        <p>It stages <code>core/</code>, compiles the ZSL/ZML examples, and builds
+        whichever bindings have a toolchain (missing ones are skipped with a warning).</p>
+        <h3>Test config runs</h3>
+        <ul>
+          <li><code>compiler/tests/test_compile.py</code> — lexer, both parsers, all backends</li>
+          <li><code>tests/io-selftest.html</code> — the runtime component-IO layer (headless)</li>
+          <li><code>tests/check-tokens.py</code> — no hard-coded colours, themes in sync</li>
+          <li><code>bindings/cpp</code> envelope unit test (when CMake is present)</li>
+        </ul>
+        <p><strong>Keep this document current:</strong> when a component, channel, token
+        or CLI flag changes, update the matching section here and in the referenced
+        markdown file.</p>
+      </section>
+    </div>
+  </div>
+</div>
+
+<script src="../core/icons/sprite.js"></script>
+<script src="../core/js/zui.js"></script>
+<script>
+  function show(id) {
+    document.querySelectorAll(".doc__page").forEach(function (s) { s.hidden = s.getAttribute("data-page") !== id; });
+    document.querySelectorAll("[data-id]").forEach(function (r) { r.classList.toggle("zui-selected", r.getAttribute("data-id") === id); });
+    document.querySelector(".doc__main").scrollTop = 0;
+    if (location.hash !== "#" + id) history.replaceState(null, "", "#" + id);
+  }
+  zui.receive("tree", function (p) { if (p && p.name === "toc") show(p.id); });
+  zui.receive("select", function (p) { if (p && p.name === "theme") zui.setTheme(p.value); });
+  document.addEventListener("click", function (e) {
+    var g = e.target.closest("[data-goto]");
+    if (g) { e.preventDefault(); show(g.getAttribute("data-goto")); }
+  });
+  show((location.hash || "#overview").slice(1));
+</script>
+</body>
+</html>

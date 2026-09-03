@@ -100,6 +100,14 @@ ui.send("theme", "holo");
 `build.ps1` copies `core/` into `builds/<debug|test|release>/zui/` and builds the
 bindings. The showcase app is pure static assets - open `showcase/index.html`.
 
+## Documentation
+
+`docs/index.html` — a click-through documentation site (styled with zUI itself)
+covering embedding, the ZSL/ZML language, components, the message-bus/IO
+protocol, theming, icons and building. Each section points at the authoritative
+markdown file. `design.txt` is the integration + visual-standard guide for
+agents working in host projects.
+
 ## Status
 
 Task ZU-1: base systems / "bones". Component CSS, the token system, the JS runtime,
