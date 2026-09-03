@@ -50,5 +50,7 @@ example programs. `build.ps1` runs this in the `test` configuration.
   later line starts the next sibling. This is the only place newlines matter.
 - Expression language is intentionally tiny: literals, `state` refs, and the
   `x.plus1` / `x.minus1` helpers. Richer expressions are a later task.
-- `csharp` / `cpp` backends currently hand the host the compiled HTML plus typed
-  hooks; direct widget-tree construction APIs are a follow-up.
+- `csharp` / `cpp` backends emit a class whose `Attach(host)` wires the typed
+  per-event hooks and then calls `host.LoadDocument(...)` (C#) /
+  `host.load_document(...)` (C++) with the embedded document. Direct
+  widget-tree construction APIs (no HTML string) are a possible follow-up.

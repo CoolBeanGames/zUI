@@ -54,6 +54,11 @@ public:
     // Load a document relative to the core root's parent folder.
     void load(const std::string& relative_path);
 
+    // Render a full compiled document string (from the zslc `cpp` backend).
+    // Written next to the core root and navigated to, so its `zui/...` links
+    // resolve against the same virtual host.
+    void load_document(const std::string& html);
+
     // host -> UI. `payload_json` must be a valid JSON value (or "" for null).
     void send(const std::string& channel, const std::string& payload_json = "");
 

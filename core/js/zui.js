@@ -1377,6 +1377,16 @@
   };
 
   /* inbound channels (registered once) */
+  /* Runtime screen swap: the host pushes a full compiled document string and we
+     replace the live page with it (scripts included). The AOT csharp/cpp
+     backends prefer host.LoadDocument (a real navigation); this is the
+     in-place alternative for swapping screens without re-navigating. */
+  zui.receive("__document", function (html) {
+    if (typeof html !== "string" || !html) return;
+    try { document.open(); document.write(html); document.close(); }
+    catch (e) { console.error("[zui] __document swap failed", e); }
+  });
+
   zui.receive("theme", function (name) { if (name) zui.setTheme(typeof name === "string" ? name : name.name); });
   zui.receive("toast", function (p) {
     if (!p) return;

@@ -34,9 +34,14 @@ internal static class Program
             ui.On("save", p => Console.WriteLine($"save: {p.GetRawText()}"));
             ui.On("transport", p => Console.WriteLine($"transport: {p.GetString()}"));
 
+            // Two ways to render a screen:
+            //  (a) load a hand-authored / html-compiled document:
             await ui.LoadAsync("showcase/index.html");
+            //  (b) render a ZSL/ZML screen compiled with `zslc --backend csharp`:
+            //        new ZuiSample.Generated.ShowcaseUi().Attach(ui);
+            _ = typeof(ZuiSample.Generated.ShowcaseUi);   // keep the generated class compiled
 
-            // host -> UI
+            // host -> UI (buffered until the DOM is ready)
             ui.Send("device", new { name = "HAPTICS' IPOD", capacity = "238.2 GB", free = "234.6 GB" });
             ui.Send("now-playing", new { title = "Nightdrive", sub = "Aria Kane - Long Exposure", position = 108, duration = 281 });
         };

@@ -7,6 +7,7 @@
 #include "zui.h"
 
 #include <cctype>
+#include <fstream>
 
 namespace zui {
 
@@ -98,6 +99,13 @@ void Host::set_core_root(const std::string& path) { core_root_ = path; }
 void Host::load(const std::string& relative_path) {
     backend_->map_virtual_host("zui.app", core_root_ + "/..");
     backend_->navigate("https://zui.app/" + relative_path);
+}
+
+void Host::load_document(const std::string& html) {
+    const std::string parent = core_root_ + "/..";
+    const std::string file = parent + "/__zui_compiled.html";
+    { std::ofstream(file, std::ios::binary) << html; }
+    load("__zui_compiled.html");
 }
 
 void Host::send(const std::string& channel, const std::string& payload_json) {

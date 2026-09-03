@@ -496,8 +496,9 @@ HTML_MAP = {
 
 
 class HtmlGen:
-    def __init__(self, prog: Program):
+    def __init__(self, prog: Program, asset_base: str = "../core"):
         self.prog = prog
+        self.asset_base = asset_base.rstrip("/")
         self.out: list[str] = []
         self.glue_events: dict[str, str] = {}   # dom-id -> handler name / channel
         self.binds: list[tuple[str, str, str]] = []  # (id, field, kind)
@@ -519,6 +520,7 @@ class HtmlGen:
     def gen(self) -> str:
         body = "".join(self.render(n) for n in self.prog.roots)
         return DOC_TEMPLATE.format(
+            base=self.asset_base,
             body=body,
             glue=self.glue(),
             state=json.dumps(self.prog.state, default=lambda o: None),
@@ -818,13 +820,15 @@ DOC_TEMPLATE = """<!DOCTYPE html>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>zUI</title>
-<link rel="stylesheet" href="../core/css/zui.css">
-<link rel="stylesheet" href="../core/css/themes/holo.css">
+<link rel="stylesheet" href="{base}/css/zui.css">
+<link rel="stylesheet" href="{base}/css/themes/holo.css">
+<link rel="stylesheet" href="{base}/css/themes/clean.css">
 </head>
 <body>
 {body}
 <script>window.__zslState = {state};</script>
-<script src="../core/js/zui.js"></script>
+<script src="{base}/icons/sprite.js"></script>
+<script src="{base}/js/zui.js"></script>
 <script>
 {glue}
 </script>
@@ -837,8 +841,8 @@ DOC_TEMPLATE = """<!DOCTYPE html>
 # C# backend  (emits native code that builds the HTML in a ZuiHost)
 # --------------------------------------------------------------------------- #
 
-def gen_csharp(prog: Program, class_name: str, namespace: str) -> str:
-    hg = HtmlGen(prog)
+def gen_csharp(prog: Program, class_name: str, namespace: str, asset_base: str = "zui") -> str:
+    hg = HtmlGen(prog, asset_base=asset_base)   # resolves against the host's virtual root
     doc = hg.gen()
     lit = doc.replace('"', '""')
     handlers = sorted({e for e in hg.glue_events.values()})
@@ -855,11 +859,12 @@ namespace {namespace}
     {{
         public const string Document = @"{lit}";
 
-        /// <summary>Load the compiled UI into a host and wire generated hooks.</summary>
+        /// <summary>Render the compiled UI in the host and wire generated hooks.
+        /// Call after host.InitializeAsync().</summary>
         public void Attach(ZUI.ZuiHost host)
         {{
-            host.Send("__document", Document);
 {wires}
+            host.LoadDocument(Document);
         }}
 
 {hooks}
@@ -872,8 +877,8 @@ namespace {namespace}
 # C++ backend
 # --------------------------------------------------------------------------- #
 
-def gen_cpp(prog: Program, func: str) -> str:
-    hg = HtmlGen(prog)
+def gen_cpp(prog: Program, func: str, asset_base: str = "zui") -> str:
+    hg = HtmlGen(prog, asset_base=asset_base)
     doc = hg.gen()
     handlers = sorted({e for e in hg.glue_events.values()})
     raw = 'R"ZSL(' + doc + ')ZSL"'
@@ -893,10 +898,10 @@ const char* kZslDocument = {raw};
 
 {hooks}
 
+// Call after constructing the host. Wires generated hooks, then renders.
 void {func}(zui::Host& host) {{
-    host.send("__document", std::string("\\"") + "generated" + "\\"");
-    host.send("__document_html", std::string(kZslDocument));
 {wires}
+    host.load_document(kZslDocument);
 }}
 """
 
@@ -920,6 +925,8 @@ def main(argv: list[str]) -> int:
     ap.add_argument("--class", dest="cls", default="CompiledUi")
     ap.add_argument("--namespace", default="ZUI.Generated")
     ap.add_argument("--func", default="build_ui")
+    ap.add_argument("--asset-base", dest="asset_base", default=None,
+                    help="URL/path prefix for zui/ assets (html: default ../core; csharp/cpp: default zui)")
     args = ap.parse_args(argv)
 
     try:
@@ -931,11 +938,11 @@ def main(argv: list[str]) -> int:
         return 1
 
     if args.backend == "html":
-        out = HtmlGen(prog).gen()
+        out = HtmlGen(prog, args.asset_base or "../core").gen()
     elif args.backend == "csharp":
-        out = gen_csharp(prog, args.cls, args.namespace)
+        out = gen_csharp(prog, args.cls, args.namespace, args.asset_base or "zui")
     else:
-        out = gen_cpp(prog, args.func)
+        out = gen_cpp(prog, args.func, args.asset_base or "zui")
 
     if args.output:
         with open(args.output, "w", encoding="utf-8") as fh:

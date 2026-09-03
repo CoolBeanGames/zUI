@@ -15,9 +15,14 @@ namespace ZUI
     /// </summary>
     public sealed class ZuiHost : IAsyncDisposable
     {
+        private const string VirtualHost = "zui.app";
+
         private readonly WebView2 _view;
         private readonly Dictionary<string, List<Action<JsonElement>>> _handlers = new();
+        private readonly Queue<string> _pending = new();
         private bool _ready;
+        private bool _domReady;
+        private string _mappedRoot = "";
 
         public ZuiHost(WebView2 view)
         {
@@ -41,34 +46,53 @@ namespace ZUI
             core.Settings.IsStatusBarEnabled = false;
 
             // Map a virtual host so zUI assets and host documents load over https.
+            _mappedRoot = Path.GetDirectoryName(Path.GetFullPath(CoreRoot))!;
             core.SetVirtualHostNameToFolderMapping(
-                "zui.app", Path.GetDirectoryName(CoreRoot)!,
-                CoreWebView2HostResourceAccessKind.Allow);
+                VirtualHost, _mappedRoot, CoreWebView2HostResourceAccessKind.Allow);
 
-            core.WebMessageReceived += (_, e) => Dispatch(e.WebMessageAsJson);
+            core.WebMessageReceived += (_, e) => Dispatch(e.TryGetWebMessageAsString());
 
+            // Bridge installed before any page script runs.
             await core.AddScriptToExecuteOnDocumentCreatedAsync(
-                "window.__zuiHost = { postMessage: m => window.chrome.webview.postMessage(m) };");
+                "window.__zuiHost={postMessage:function(m){window.chrome.webview.postMessage(m);}};");
+
+            core.DOMContentLoaded += (_, _) => { _domReady = true; FlushPending(); };
+            core.NavigationStarting += (_, _) => _domReady = false;
 
             _ready = true;
             Ready?.Invoke(this, EventArgs.Empty);
         }
 
-        /// <summary>Load a zUI document by path relative to the core root's parent
+        /// <summary>Load a zUI document by path relative to the virtual root
         /// (so "showcase/index.html" resolves next to "zui/").</summary>
         public Task LoadAsync(string relativePath)
         {
             EnsureReady();
-            _view.CoreWebView2.Navigate($"https://zui.app/{relativePath.Replace('\\', '/')}");
+            _domReady = false;
+            _view.CoreWebView2.Navigate($"https://{VirtualHost}/{relativePath.Replace('\\', '/')}");
             return Task.CompletedTask;
         }
 
-        /// <summary>Push a message to the UI (host -&gt; UI).</summary>
+        /// <summary>Render a full compiled document string (from the zslc `csharp`
+        /// backend). Written under the virtual root and navigated to, so its
+        /// <c>zui/...</c> asset links resolve.</summary>
+        public void LoadDocument(string html)
+        {
+            EnsureReady();
+            var name = "__zui_compiled.html";
+            File.WriteAllText(Path.Combine(_mappedRoot, name), html);
+            _domReady = false;
+            _view.CoreWebView2.Navigate($"https://{VirtualHost}/{name}");
+        }
+
+        /// <summary>Push a message to the UI (host -&gt; UI). Buffered until the
+        /// page's DOM is ready so early sends are not lost.</summary>
         public void Send(string channel, object? payload = null)
         {
             EnsureReady();
             var json = JsonSerializer.Serialize(new { channel, payload });
-            _view.CoreWebView2.PostWebMessageAsString(json);
+            if (_domReady) _view.CoreWebView2.PostWebMessageAsString(json);
+            else _pending.Enqueue(json);
         }
 
         /// <summary>Subscribe to a UI channel (UI -&gt; host).</summary>
@@ -82,8 +106,15 @@ namespace ZUI
 
         public void SetTheme(string name) => Send("theme", name);
 
-        private void Dispatch(string webMessageJson)
+        private void FlushPending()
         {
+            while (_pending.Count > 0)
+                _view.CoreWebView2.PostWebMessageAsString(_pending.Dequeue());
+        }
+
+        private void Dispatch(string? webMessageJson)
+        {
+            if (string.IsNullOrEmpty(webMessageJson)) return;
             try
             {
                 using var doc = JsonDocument.Parse(webMessageJson);
@@ -103,10 +134,11 @@ namespace ZUI
                 throw new InvalidOperationException("Call InitializeAsync() before using ZuiHost.");
         }
 
-        public async ValueTask DisposeAsync()
+        public ValueTask DisposeAsync()
         {
             _handlers.Clear();
-            await Task.CompletedTask;
+            _pending.Clear();
+            return ValueTask.CompletedTask;
         }
 
         private sealed class Subscription : IDisposable
