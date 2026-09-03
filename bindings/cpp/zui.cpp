@@ -1,84 +1,17 @@
-// zUI - C++ binding, platform-independent core.
+// zUI - C++ binding, Host orchestration.
 //
-// The web-view backend is platform specific and lives elsewhere
-// (zui_webview2.cpp for Windows). This file implements Host orchestration and a
-// tiny JSON envelope reader/writer so the binding has no external dependency.
+// The {channel,payload} helpers are in zui_envelope.cpp. The web-view backend is
+// platform specific (zui_webview2.cpp for Windows); an executable that
+// constructs `Host(void*)` must link one, or pass its own WebViewBackend.
 
 #include "zui.h"
 
-#include <cctype>
 #include <fstream>
 
 namespace zui {
 
-// Forward-declared factory provided by the platform backend translation unit.
+// Provided by the platform backend translation unit (zui_webview2.cpp).
 std::unique_ptr<WebViewBackend> make_default_backend(void* native_parent);
-
-namespace {
-
-std::string json_escape(const std::string& s) {
-    std::string out;
-    out.reserve(s.size() + 8);
-    for (char c : s) {
-        switch (c) {
-            case '"':  out += "\\\""; break;
-            case '\\': out += "\\\\"; break;
-            case '\n': out += "\\n";  break;
-            case '\r': out += "\\r";  break;
-            case '\t': out += "\\t";  break;
-            default:   out += c;      break;
-        }
-    }
-    return out;
-}
-
-// Extract the raw JSON value for `key` from a flat object. Good enough for the
-// two-field envelope; not a general parser.
-bool extract_value(const std::string& obj, const std::string& key, std::string& out) {
-    const std::string needle = "\"" + key + "\"";
-    auto k = obj.find(needle);
-    if (k == std::string::npos) return false;
-    auto colon = obj.find(':', k + needle.size());
-    if (colon == std::string::npos) return false;
-    size_t i = colon + 1;
-    while (i < obj.size() && std::isspace(static_cast<unsigned char>(obj[i]))) ++i;
-    if (i >= obj.size()) return false;
-
-    if (obj[i] == '"') {
-        size_t j = i + 1;
-        std::string val;
-        while (j < obj.size() && obj[j] != '"') {
-            if (obj[j] == '\\' && j + 1 < obj.size()) { val += obj[j + 1]; j += 2; continue; }
-            val += obj[j++];
-        }
-        out = val;
-        return true;
-    }
-    // Object / array / literal: copy until the matching end at depth 0.
-    int depth = 0;
-    size_t j = i;
-    for (; j < obj.size(); ++j) {
-        char c = obj[j];
-        if (c == '{' || c == '[') ++depth;
-        else if (c == '}' || c == ']') { if (depth == 0) break; --depth; }
-        else if (c == ',' && depth == 0) break;
-    }
-    out = obj.substr(i, j - i);
-    return true;
-}
-
-}  // namespace
-
-std::string make_envelope(const std::string& channel, const std::string& payload_json) {
-    std::string payload = payload_json.empty() ? "null" : payload_json;
-    return "{\"channel\":\"" + json_escape(channel) + "\",\"payload\":" + payload + "}";
-}
-
-bool parse_envelope(const std::string& raw, std::string& channel_out, std::string& payload_out) {
-    if (!extract_value(raw, "channel", channel_out)) return false;
-    if (!extract_value(raw, "payload", payload_out)) payload_out = "null";
-    return true;
-}
 
 Host::Host(void* native_parent)
     : backend_(make_default_backend(native_parent)) {
@@ -102,8 +35,7 @@ void Host::load(const std::string& relative_path) {
 }
 
 void Host::load_document(const std::string& html) {
-    const std::string parent = core_root_ + "/..";
-    const std::string file = parent + "/__zui_compiled.html";
+    const std::string file = core_root_ + "/../__zui_compiled.html";
     { std::ofstream(file, std::ios::binary) << html; }
     load("__zui_compiled.html");
 }

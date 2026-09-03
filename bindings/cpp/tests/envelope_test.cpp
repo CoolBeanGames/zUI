@@ -1,22 +1,31 @@
-// Minimal self-contained check for the envelope reader/writer.
+// Self-contained check for the envelope reader/writer. Uses explicit checks
+// (not assert) so it still runs under NDEBUG / Release.
 #include "../zui.h"
 
-#include <cassert>
 #include <iostream>
+#include <string>
+
+static int failures = 0;
+static void check(bool cond, const char* what) {
+    if (!cond) { std::cerr << "FAIL: " << what << "\n"; ++failures; }
+}
 
 int main() {
     auto env = zui::make_envelope("save", "{\"id\":7}");
-    assert(env == "{\"channel\":\"save\",\"payload\":{\"id\":7}}");
+    check(env == "{\"channel\":\"save\",\"payload\":{\"id\":7}}", "make_envelope object payload");
 
     std::string ch, payload;
-    assert(zui::parse_envelope(env, ch, payload));
-    assert(ch == "save");
-    assert(payload == "{\"id\":7}");
+    check(zui::parse_envelope(env, ch, payload), "parse_envelope ok");
+    check(ch == "save", "channel");
+    check(payload == "{\"id\":7}", "object payload round-trips");
 
-    assert(zui::parse_envelope("{\"channel\":\"tab\",\"payload\":\"music\"}", ch, payload));
-    assert(ch == "tab");
-    assert(payload == "music");
+    check(zui::parse_envelope("{\"channel\":\"tab\",\"payload\":\"music\"}", ch, payload), "parse string payload");
+    check(ch == "tab" && payload == "music", "string payload");
 
-    std::cout << "envelope_test ok\n";
-    return 0;
+    check(zui::make_envelope("x", "") == "{\"channel\":\"x\",\"payload\":null}", "empty payload -> null");
+
+    check(!zui::parse_envelope("not json", ch, payload), "rejects garbage");
+
+    if (failures == 0) std::cout << "envelope_test: all checks passed\n";
+    return failures == 0 ? 0 : 1;
 }
