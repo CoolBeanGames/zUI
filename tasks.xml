@@ -1,5 +1,28 @@
 <?xml version="1.0" encoding="utf-8"?>
-<tasks project="zUI" nextIndex="31">
+<tasks project="zUI" nextIndex="34">
+  <task id="ZU-33">
+    <name>holo theme is a light utility look, not Android Holo</name>
+    <prompt>The holo theme shipped in ZU-4 followed design.txt (light neutral Windows-utility palette). User feedback with reference screenshots: this does not reflect Holo design principles. Real Google Holo = dark chrome, Holo-blue #33b5e5 accent, thin dark dividers, uppercase accent-coloured section headers with an underline rule, blue-tinted selection with a left accent bar, light text on near-black. Repro: open showcase/index.html or music.html, observe light/white UI. Expected: dark Holo look as the default theme; the light design.txt look kept as a separate 'clean' theme.</prompt>
+    <requirements>Default theme (:root + themes/holo.css) renders the dark Android Holo look (Holo-blue accent, dark surfaces, accent caps headers). Light design.txt palette preserved as themes/clean.css. All component CSS remains 100% token-driven. Showcases render in Holo; theme switch to clean works.</requirements>
+    <inProgress>true</inProgress>
+    <done>false</done>
+    <bug>true</bug>
+    <error>false</error>
+    <errorMessage></errorMessage>
+    <lockKey>k7x9m2qp</lockKey>
+    <locked>false</locked>
+    <archived>false</archived>
+    <blockedBy></blockedBy>
+    <dateStarted></dateStarted>
+    <dueDate></dueDate>
+    <commit>false</commit>
+    <build>false</build>
+    <release>false</release>
+    <tags>ui,design,coding</tags>
+    <notes></notes>
+    <filesChanged></filesChanged>
+    <image></image>
+  </task>
   <task id="ZU-15">
     <name>menu bars and context menus</name>
     <prompt>Complete menubar.css and zui.js: traditional File/Edit/View/Help menu, keyboard access (Alt, arrows), accelerators/mnemonics, checkable and disabled items, submenus, right-click context menus sharing the same renderer. Requirement: menus are fully keyboard-operable and emit channel messages.</prompt>
@@ -364,6 +387,56 @@
     <build>false</build>
     <release>false</release>
     <tags>ui,coding</tags>
+    <notes></notes>
+    <filesChanged></filesChanged>
+    <image></image>
+  </task>
+  <task id="ZU-31">
+    <name>Design.txt</name>
+    <prompt>Please redesign your own design.TXT file to explain how to use the tool set how to download it from GitHub, so that agents know how to utilize this tool chain
+
+I will manually populate it to the other agents and projects for now just re-create your own</prompt>
+    <requirements></requirements>
+    <inProgress>false</inProgress>
+    <done>false</done>
+    <bug>false</bug>
+    <error>false</error>
+    <errorMessage></errorMessage>
+    <lockKey></lockKey>
+    <locked>false</locked>
+    <archived>false</archived>
+    <blockedBy></blockedBy>
+    <dateStarted></dateStarted>
+    <dueDate></dueDate>
+    <commit>false</commit>
+    <build>false</build>
+    <release>false</release>
+    <tags>Documentation</tags>
+    <notes></notes>
+    <filesChanged></filesChanged>
+    <image></image>
+  </task>
+  <task id="ZU-32">
+    <name>Create documentation wiki HTML</name>
+    <prompt>Create an HTML file with click through links in a sub folder with full documentation on how to script and how to steam this engine
+
+Any changes in the future should be reflected in this document</prompt>
+    <requirements></requirements>
+    <inProgress>false</inProgress>
+    <done>false</done>
+    <bug>false</bug>
+    <error>false</error>
+    <errorMessage></errorMessage>
+    <lockKey></lockKey>
+    <locked>false</locked>
+    <archived>false</archived>
+    <blockedBy></blockedBy>
+    <dateStarted></dateStarted>
+    <dueDate></dueDate>
+    <commit>false</commit>
+    <build>false</build>
+    <release>false</release>
+    <tags>Documentation</tags>
     <notes></notes>
     <filesChanged></filesChanged>
     <image></image>

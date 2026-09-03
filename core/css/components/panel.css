@@ -24,7 +24,7 @@
   font-size: var(--zui-fs-small);
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: var(--zui-text-secondary);
+  color: var(--zui-label-color);
 }
 
 .zui-panel__body { padding: var(--zui-space-3); overflow: auto; }

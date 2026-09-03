@@ -6,10 +6,17 @@ UI experience.
 
 ## Design
 
-The visual language is defined in [`design.txt`](design.txt): a restrained,
-native-desktop productivity aesthetic. The first shipped theme is **holo**
-(`core/css/themes/holo.css`); additional themes can be dropped in later without
-touching component markup.
+The default theme is **holo** — Google's Android Holo look: dark chrome, the
+Holo-blue `#33b5e5` accent, thin dividers, uppercase accent-coloured section
+headers. It is the `:root` token set in `core/css/tokens.css` and is restated in
+`core/css/themes/holo.css` for explicit selection.
+
+A light, neutral "native Windows utility" alternative — the aesthetic spelled out
+in [`design.txt`](design.txt) — ships as the **clean** theme
+(`core/css/themes/clean.css`). Structure, spacing, typography and interaction are
+identical between themes; only the palette differs. A theme is just a file that
+re-declares tokens — new themes need no component changes. See
+[`core/css/THEMES.md`](core/css/THEMES.md).
 
 ## Architecture
 

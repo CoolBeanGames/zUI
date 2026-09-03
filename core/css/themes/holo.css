@@ -1,52 +1,47 @@
-/* holo theme - the default zUI theme.
+/* holo - the default zUI theme: Google's Android Holo look.
  *
- * A theme only re-declares tokens. This file is applied by adding
- * data-zui-theme="holo" to <html> (it is also the built-in default in
- * tokens.css, so an unthemed document still renders correctly).
- *
- * "holo" here follows design.txt: a restrained, light, native-desktop
- * productivity look - not Android Holo's dark chrome.
+ * Dark chrome, Holo-blue (#33b5e5) accent, thin #2c2c2c dividers, uppercase
+ * accent-coloured section headers with an underline rule, subtle blue-tinted
+ * selection. These values match :root in tokens.css - this file exists so a
+ * document can select holo explicitly with data-zui-theme="holo" and so a
+ * runtime theme switch back to holo works.
  */
 
 [data-zui-theme="holo"] {
-  --zui-bg-app:         #f3f3f3;
-  --zui-bg-surface:     #ffffff;
-  --zui-bg-surface-alt: #ececec;
-  --zui-bg-raised:      #fafafa;
-  --zui-bg-selected:    #e5eef7;
-  --zui-bg-hover:       #e9e9e9;
-  --zui-bg-active:      #dedede;
+  --zui-bg-app:           #0c0c0c;
+  --zui-bg-surface:       #1b1b1b;
+  --zui-bg-surface-alt:   #202020;
+  --zui-bg-raised:        #2b2b2b;
+  --zui-bg-selected:      #12384a;
+  --zui-bg-hover:         #262626;
+  --zui-bg-active:        #313131;
 
-  --zui-border:         #d0d0d0;
-  --zui-border-strong:  #b8b8b8;
+  --zui-border:           #2c2c2c;
+  --zui-border-strong:    #3a3a3a;
 
-  --zui-text:           #1e1e1e;
-  --zui-text-secondary: #6b6b6b;
-  --zui-text-disabled:  #a8a8a8;
+  --zui-text:             #f2f2f2;
+  --zui-text-secondary:   #8c8c8c;
+  --zui-text-disabled:    #4d4d4d;
+  --zui-text-on-accent:   #ffffff;
+  --zui-label-color:      var(--zui-accent);
 
-  --zui-accent:         #3a6ea5;
-  --zui-accent-hover:   #33628f;
-  --zui-accent-weak:    #e5eef7;
+  --zui-accent:           #33b5e5;
+  --zui-accent-hover:     #4fc3ea;
+  --zui-accent-weak:      #12384a;
 
-  --zui-radius:         2px;
-  --zui-control-h:      24px;
-}
+  --zui-warn:             #ffb300;
+  --zui-error:            #ff5252;
+  --zui-ok:               #99cc00;
 
-/* Scaffold for a future dark variant - not wired up yet, kept so component CSS
- * never needs to change when it lands. */
-[data-zui-theme="holo-dark"] {
-  --zui-bg-app:         #1f1f1f;
-  --zui-bg-surface:     #262626;
-  --zui-bg-surface-alt: #2e2e2e;
-  --zui-bg-raised:      #303030;
-  --zui-bg-selected:    #2b3a4a;
-  --zui-bg-hover:       #333333;
-  --zui-bg-active:      #3a3a3a;
-  --zui-border:         #3c3c3c;
-  --zui-border-strong:  #4a4a4a;
-  --zui-text:           #e6e6e6;
-  --zui-text-secondary: #9a9a9a;
-  --zui-text-disabled:  #5f5f5f;
-  --zui-accent:         #4a86c5;
-  --zui-accent-weak:    #2b3a4a;
+  --zui-scrollbar-thumb:       #3a3a3a;
+  --zui-scrollbar-thumb-hover: #4d4d4d;
+  --zui-tooltip-bg:            #4a4a4a;
+  --zui-tooltip-text:          #ffffff;
+  --zui-bg-selected-strong:    #1a4d64;
+  --zui-on-danger:             #ffffff;
+
+  --zui-shadow-pop: 0 2px 8px rgba(0, 0, 0, 0.5);
+  --zui-control-h: 26px;
+
+  color-scheme: dark;
 }

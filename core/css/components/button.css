@@ -26,7 +26,7 @@
   border-color: var(--zui-accent);
   background: var(--zui-accent-weak);
 }
-.zui-btn--primary:hover { background: #d9e6f3; }
+.zui-btn--primary:hover { background: var(--zui-bg-selected-strong); }
 
 /* Icon-only (playback controls etc.) */
 .zui-btn--icon {

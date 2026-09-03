@@ -25,7 +25,7 @@
 }
 .zui-table tbody tr:hover { background: var(--zui-bg-hover); }
 .zui-table tbody tr.zui-selected { background: var(--zui-bg-selected); }
-.zui-table tbody tr.zui-selected:hover { background: #d9e6f3; }
+.zui-table tbody tr.zui-selected:hover { background: var(--zui-bg-selected-strong); }
 
 /* Functional row states only. */
 .zui-table tbody tr.zui-row-warn  td:first-child { box-shadow: inset 2px 0 0 var(--zui-warn); }

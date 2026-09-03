@@ -1,5 +1,12 @@
 # UI DESIGN STANDARD
 
+> NOTE (zUI): zUI's **default theme is `holo`** - Google's Android Holo look
+> (dark chrome, Holo-blue #33b5e5 accent), as directed for this project. The
+> light, neutral "native Windows utility" palette described in the rest of this
+> document is preserved as the **`clean`** theme
+> (`core/css/themes/clean.css`). The structural, spacing, typography, density and
+> interaction rules below apply to BOTH themes; only the palette differs.
+
 This document defines the visual design language for this project.
 
 Treat these rules as requirements whenever creating, modifying, or extending

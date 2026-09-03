@@ -29,14 +29,17 @@ p { margin: 0 0 var(--zui-space-3); }
 a { color: var(--zui-accent); text-decoration: none; }
 a:hover { text-decoration: underline; }
 
-/* Small, subtle, uppercase category label (LIBRARY / PLAYLISTS). */
+/* Small, subtle, uppercase category label (LIBRARY / PLAYLISTS).
+   Holo signature: accent-coloured caps with a thin rule beneath. */
 .zui-section-label {
   font-size: var(--zui-fs-small);
   font-weight: var(--zui-fw-medium);
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: var(--zui-text-secondary);
-  padding: var(--zui-space-2) var(--zui-space-3) var(--zui-space-1);
+  color: var(--zui-label-color);
+  padding: var(--zui-space-3) var(--zui-space-3) var(--zui-space-1);
+  margin-bottom: var(--zui-space-1);
+  border-bottom: var(--zui-border-w) solid var(--zui-border);
 }
 
 .zui-text-secondary { color: var(--zui-text-secondary); }

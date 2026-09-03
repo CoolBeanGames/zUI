@@ -69,7 +69,11 @@
   border-radius: 0;
 }
 .zui-sidebar__item:hover { background: var(--zui-bg-hover); }
-.zui-sidebar__item.zui-active { background: var(--zui-bg-selected); }
+.zui-sidebar__item.zui-active {
+  background: var(--zui-bg-selected);
+  box-shadow: inset 2px 0 0 var(--zui-accent);
+  color: var(--zui-text);
+}
 
 /* Splitter handle between two resizable panes. Thin line, larger hit area. */
 .zui-splitter {
