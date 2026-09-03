@@ -9,13 +9,9 @@ html, body {
 }
 
 body {
+  /* typography is applied in fonts.css */
   background: var(--zui-bg-app);
   color: var(--zui-text);
-  font-family: var(--zui-font);
-  font-size: var(--zui-fs-normal);
-  line-height: var(--zui-lh);
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
   cursor: default;
   user-select: none;
 }

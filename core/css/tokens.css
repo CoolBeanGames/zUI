@@ -44,12 +44,18 @@
   --zui-space-6: 24px;
 
   /* ---- typography ------------------------------------------- */
-  --zui-font: "Segoe UI", -apple-system, "system-ui", "Roboto", sans-serif;
-  --zui-font-mono: "Cascadia Mono", "Consolas", ui-monospace, monospace;
-  --zui-fs-small:   11px;
-  --zui-fs-normal:  13px;
-  --zui-fs-medium:  14px;
-  --zui-fs-heading: 21px;
+  /* Native platform UI font, Windows first. See fonts.css / TYPOGRAPHY.md. */
+  --zui-font:
+    "Segoe UI Variable Text", "Segoe UI", -apple-system, BlinkMacSystemFont,
+    "Inter", "Roboto", "Helvetica Neue", system-ui, sans-serif;
+  --zui-font-mono:
+    "Cascadia Mono", "Cascadia Code", "Consolas", "SF Mono", "Menlo",
+    ui-monospace, monospace;
+  /* Compact, utilitarian scale. Hierarchy comes from WEIGHT, not size jumps. */
+  --zui-fs-small:   11px;  /* section labels, shortcuts, secondary meta   */
+  --zui-fs-normal:  13px;  /* default interface text                      */
+  --zui-fs-medium:  14px;  /* emphasised rows, sub-headings               */
+  --zui-fs-heading: 21px;  /* primary page headings (design.txt: 20-24)   */
   --zui-fw-normal:  400;
   --zui-fw-medium:  600;
   --zui-lh:         1.4;

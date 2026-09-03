@@ -1,0 +1,40 @@
+/* zUI typography layer.
+ *
+ * zUI ships NO web fonts - it uses the platform-native UI font so an embedded
+ * zUI surface matches the host OS exactly (design.txt: "Use the
+ * platform-native/default Windows UI font where practical").
+ *
+ * The font stacks and the type scale live in tokens.css (single source of
+ * truth). This file only applies those tokens to text-bearing elements, sets
+ * rendering defaults, and provides text utilities.
+ * Import after tokens.css, before components.
+ */
+
+body,
+button,
+input,
+select,
+textarea {
+  font-family: var(--zui-font);
+  font-size: var(--zui-fs-normal);
+  line-height: var(--zui-lh);
+  font-weight: var(--zui-fw-normal);
+}
+
+/* Crisp text at UI sizes; align digits in tables/time displays by default. */
+body {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-synthesis: none;
+}
+
+/* ---- text utilities (weight-first hierarchy, never dramatic size jumps) ---- */
+.zui-t-heading   { font-size: var(--zui-fs-heading); font-weight: var(--zui-fw-medium); }
+.zui-t-medium    { font-size: var(--zui-fs-medium); }
+.zui-t-normal    { font-size: var(--zui-fs-normal); }
+.zui-t-small     { font-size: var(--zui-fs-small); }
+.zui-t-strong    { font-weight: var(--zui-fw-medium); }
+.zui-t-mono      { font-family: var(--zui-font-mono); }
+.zui-t-num       { font-variant-numeric: tabular-nums; }
+.zui-t-caps      { text-transform: uppercase; letter-spacing: 0.06em; font-size: var(--zui-fs-small); }
+.zui-t-truncate  { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

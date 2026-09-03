@@ -1,28 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <tasks project="zUI" nextIndex="31">
-  <task id="ZU-5">
-    <name>fonts &amp; typography</name>
-    <prompt>Finalise the zUI type system: a Segoe UI-first font stack with system-ui fallbacks, type scale tokens (small/normal/medium/heading), weights and line-height in core/css/tokens.css, and a fonts.css setting platform-native defaults. Requirement: typography tokens documented and used by every component; no hard-coded font sizes remain.</prompt>
-    <requirements></requirements>
-    <inProgress>false</inProgress>
-    <done>false</done>
-    <bug>false</bug>
-    <error>false</error>
-    <errorMessage></errorMessage>
-    <lockKey></lockKey>
-    <locked>false</locked>
-    <archived>false</archived>
-    <blockedBy></blockedBy>
-    <dateStarted></dateStarted>
-    <dueDate></dueDate>
-    <commit>true</commit>
-    <build>false</build>
-    <release>false</release>
-    <tags>ui,coding</tags>
-    <notes></notes>
-    <filesChanged></filesChanged>
-    <image></image>
-  </task>
   <task id="ZU-6">
     <name>panels &amp; separators</name>
     <prompt>Harden core/css/components/panel.css: shared-background panels divided by thin borders (never floating cards), panel header/body, collapsing shared borders in rows/stacks, horizontal and vertical separators. Add resizable panel and splitter behaviour to zui.js. Requirement: a multi-panel browser layout renders per design.txt with draggable splitters.</prompt>
