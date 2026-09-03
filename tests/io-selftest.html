@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html data-zui-theme="holo">
+<head>
+  <meta charset="utf-8">
+  <title>zUI IO self-test</title>
+  <link rel="stylesheet" href="../core/css/zui.css">
+  <link rel="stylesheet" href="../core/css/themes/holo.css">
+</head>
+<body style="padding:16px">
+<h1>Component IO self-test</h1>
+
+<div data-zui-form id="frm" class="zui-form-grid" style="max-width:420px">
+  <label>Playlist</label>   <input class="zui-input" data-zui-id="playlist" value="Focus">
+  <label>Public</label>     <label class="zui-check"><input type="checkbox" data-zui-id="public" checked> yes</label>
+  <label>Sort</label>
+  <div class="zui-select" data-zui="select" data-zui-id="sort" data-value="Name"
+       data-options='["Name","Artist","Plays"]'><span class="zui-select__value">Name</span></div>
+  <label>Scan</label>
+  <div class="zui-progress" style="width:200px"><div class="zui-progress__bar" data-zui-id="scan" style="width:10%"></div></div>
+  <label>Status</label>     <span data-zui-id="status">idle</span>
+  <label>Action</label>     <button class="zui-btn" data-zui-id="go">Go</button>
+  <div class="zui-form-grid__full">
+    <div class="zui-scroll" data-zui-id="log" style="height:80px;border:1px solid var(--zui-border);overflow:auto">
+      <div style="height:600px;padding:8px">scrollable log…</div>
+    </div>
+  </div>
+  <div class="zui-form-grid__full zui-row zui-gap-2 zui-justify-end">
+    <button class="zui-btn zui-btn--primary" data-zui-submit="playlistForm">Save</button>
+  </div>
+</div>
+
+<pre id="out" class="zui-selectable" style="white-space:pre-wrap">running…</pre>
+
+<script src="../core/js/zui.js"></script>
+<script>
+(function () {
+  var sent = [];
+  window.__zuiHost = { postMessage: function (m) { sent.push(JSON.parse(m)); } };
+  var pass = [], fail = [];
+  function eq(name, a, b) { (JSON.stringify(a) === JSON.stringify(b) ? pass : fail).push(name + "  got=" + JSON.stringify(a)); }
+
+  window.addEventListener("load", function () { try {
+    // --- read ---
+    var v = zui.values("#frm");
+    eq("read text",     v.playlist, "Focus");
+    eq("read checkbox", v.public, true);
+    eq("read select",   v.sort, "Name");
+    eq("read progress", v.scan, 10);
+    eq("read label",    v.status, "idle");
+    eq("field()",       zui.field("scan"), 10);
+
+    // --- write (host -> UI) ---
+    zui.set("playlist", "Long Drives");
+    zui.set({ public: false, scan: 72, status: "scanning" });
+    zui.set("sort", "Plays");
+    eq("write text",     zui.field("playlist"), "Long Drives");
+    eq("write checkbox", zui.field("public"), false);
+    eq("write select",   zui.field("sort"), "Plays");
+    eq("write progress", zui.field("scan"), 72);
+    eq("write label",    zui.field("status"), "scanning");
+
+    zui.set("scan", "indeterminate");
+    eq("progress indeterminate", zui.field("scan"), "indeterminate");
+    zui.set("scan", 40);
+
+    // --- button: out + programmatic in ---
+    var clicks = 0;
+    document.querySelector('[data-zui-id=go]').addEventListener("click", function () { clicks++; });
+    sent.length = 0;
+    document.querySelector('[data-zui-id=go]').click();
+    eq("button emits click", sent[0] && sent[0].payload.event, "click");
+    zui.set("go", "click");
+    eq("programmatic click fires handler", clicks, 2);
+    zui.set("go", { busy: true });
+    eq("button busy", document.querySelector('[data-zui-id=go]').classList.contains("zui-btn--busy"), true);
+    zui.set("go", { busy: false, label: "Run" });
+
+    // --- scroll ---
+    zui.set("log", { topPct: 50 });
+    var sp = zui.field("log");
+    eq("scroll set ~50%", sp.topPct > 40 && sp.topPct < 60, true);
+
+    // --- submit ---
+    sent.length = 0;
+    document.querySelector('[data-zui-submit]').click();
+    eq("submit has form", sent[0] && sent[0].channel, "submit");
+    eq("submit carries values", sent[0] && sent[0].payload.values.playlist, "Long Drives");
+
+    // --- bind() ---
+    var last = null, off = zui.bind("playlist", function (val) { last = val; });
+    var inp = document.querySelector('[data-zui-id=playlist]');
+    inp.value = "Chillout"; inp.dispatchEvent(new Event("input"));
+    eq("bind() fires on change", last, "Chillout");
+    off();
+
+    var ok = fail.length === 0;
+    document.getElementById("out").textContent =
+      (ok ? "ALL " + pass.length + " PASS" : fail.length + " FAILED") +
+      "\n\nPASS:\n" + pass.join("\n") + (fail.length ? "\n\nFAIL:\n" + fail.join("\n") : "");
+    document.title = ok ? "IO SELFTEST OK" : "IO SELFTEST FAIL";
+  } catch (e) {
+    document.getElementById("out").textContent = "ERROR: " + (e && e.stack || e);
+    document.title = "IO SELFTEST ERROR";
+  } });
+})();
+</script>
+</body>
+</html>

@@ -69,6 +69,9 @@
   margin-top: 2px;
 }
 
+/* Brief highlight when a button is clicked programmatically (zui.set(id,"click")). */
+.zui-btn--flash { background: var(--zui-accent) !important; color: var(--zui-text-on-accent) !important; }
+
 .zui-btn-group { display: inline-flex; }
 .zui-btn-group .zui-btn { border-radius: 0; margin-left: -1px; }
 .zui-btn-group .zui-btn:first-child { border-radius: var(--zui-radius) 0 0 var(--zui-radius); margin-left: 0; }

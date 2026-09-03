@@ -524,7 +524,198 @@
           .map(function (r) { return r.getAttribute("data-zui-row"); }));
       });
     });
+
+    wireIo(root);
   }
+
+  /* --------------------------------------------------------------------- */
+  /* Component IO - one two-way value protocol for every component.        */
+  /*                                                                       */
+  /* Any element with data-zui-id is addressable:                          */
+  /*   out (UI -> host): a "value" message {id, kind, value} on each change */
+  /*                     + zui.values(scope) / zui.field(id) / zui.bind()  */
+  /*   in  (host -> UI): "set" {id,value}, "set-many" {id:value}, "query"  */
+  /*                     + zui.set(id, value)                              */
+  /* Programmatic set() never re-emits (loop-safe).                        */
+  /* --------------------------------------------------------------------- */
+
+  var ioBinds = Object.create(null);   // id -> [handler]
+  var scrollThrottle = Object.create(null);
+
+  function asNode(root) {
+    if (!root) return document;
+    if (typeof root === "string") return document.querySelector(root) || document;
+    return root;
+  }
+  function ioEls(root) {
+    return Array.prototype.slice.call(asNode(root).querySelectorAll("[data-zui-id]"));
+  }
+  function ioById(id) { return document.querySelector('[data-zui-id="' + (window.CSS ? CSS.escape(id) : id) + '"]'); }
+
+  function pct(n, d) { return d > 0 ? Math.round((n / d) * 1000) / 10 : 0; }
+  function clampPct(v) { v = parseFloat(v); return isNaN(v) ? 0 : Math.max(0, Math.min(100, v)); }
+
+  function ioKind(el) {
+    if (el.matches("input[type=checkbox]")) return "boolean";
+    if (el.matches("input, textarea")) return "text";
+    if (el.matches("select")) return "select";
+    if (el.classList.contains("zui-select")) return "select";
+    if (el.classList.contains("zui-progress__bar") || el.classList.contains("zui-progress")) return "progress";
+    if (el.matches("button, .zui-btn")) return el.hasAttribute("aria-pressed") ? "boolean" : "button";
+    if (el.classList.contains("zui-scroll") || el.hasAttribute("data-zui-scroll") ||
+        getComputedStyle(el).overflowY === "auto" || getComputedStyle(el).overflowY === "scroll") return "scroll";
+    return "text"; // labels / text nodes
+  }
+
+  function ioGet(el) {
+    var k = ioKind(el);
+    if (k === "boolean") {
+      return el.matches("input") ? el.checked : el.getAttribute("aria-pressed") === "true";
+    }
+    if (k === "text" && el.matches("input, textarea")) return el.value;
+    if (k === "select") {
+      return el.matches("select") ? el.value : el.getAttribute("data-value");
+    }
+    if (k === "progress") {
+      var bar = el.classList.contains("zui-progress__bar") ? el : el.querySelector(".zui-progress__bar");
+      var wrap = bar ? bar.parentElement : el;
+      if (wrap && wrap.classList.contains("zui-progress--indeterminate")) return "indeterminate";
+      return bar ? clampPct(bar.style.width) : 0;
+    }
+    if (k === "button") return null;
+    if (k === "scroll") {
+      return {
+        top: el.scrollTop, left: el.scrollLeft,
+        topPct: pct(el.scrollTop, el.scrollHeight - el.clientHeight),
+        leftPct: pct(el.scrollLeft, el.scrollWidth - el.clientWidth)
+      };
+    }
+    return el.textContent;
+  }
+
+  function ioSet(el, v) {
+    var k = ioKind(el);
+    if (k === "boolean") {
+      if (el.matches("input")) el.checked = !!v;
+      else el.setAttribute("aria-pressed", String(v === true || (v && v.pressed)));
+    } else if (k === "text" && el.matches("input, textarea")) {
+      el.value = v == null ? "" : v;
+    } else if (k === "select") {
+      if (el.matches("select")) el.value = v;
+      else {
+        el.setAttribute("data-value", v);
+        var lbl = el.querySelector(".zui-select__value");
+        if (lbl) lbl.textContent = v;
+      }
+    } else if (k === "progress") {
+      var bar = el.classList.contains("zui-progress__bar") ? el : el.querySelector(".zui-progress__bar");
+      var wrap = bar ? bar.parentElement : el;
+      if (v === "indeterminate") { if (wrap) wrap.classList.add("zui-progress--indeterminate"); }
+      else if (bar) { if (wrap) wrap.classList.remove("zui-progress--indeterminate"); bar.style.width = clampPct(v) + "%"; }
+    } else if (k === "button") {
+      if (v === "click" || (v && v.action === "click")) {
+        el.click();
+        el.classList.add("zui-btn--flash");
+        setTimeout(function () { el.classList.remove("zui-btn--flash"); }, 220);
+      } else if (v && typeof v === "object") {
+        if ("busy" in v) zui.busy(el, v.busy);
+        if ("disabled" in v) el.disabled = !!v.disabled;
+        if ("pressed" in v) el.setAttribute("aria-pressed", String(!!v.pressed));
+        if ("label" in v) {
+          var t = Array.prototype.filter.call(el.childNodes, function (n) { return n.nodeType === 3; })[0];
+          if (t) t.nodeValue = v.label; else el.textContent = v.label;
+        }
+      }
+    } else if (k === "scroll") {
+      if (typeof v === "number") el.scrollTop = v;
+      else if (v && typeof v === "object") {
+        if ("top" in v) el.scrollTop = v.top;
+        if ("left" in v) el.scrollLeft = v.left;
+        if ("topPct" in v) el.scrollTop = (v.topPct / 100) * (el.scrollHeight - el.clientHeight);
+        if ("leftPct" in v) el.scrollLeft = (v.leftPct / 100) * (el.scrollWidth - el.clientWidth);
+      }
+    } else {
+      el.textContent = v == null ? "" : v;
+    }
+  }
+
+  function ioEmit(el, extra) {
+    var id = el.getAttribute("data-zui-id");
+    var msg = { id: id, kind: ioKind(el), value: ioGet(el) };
+    if (extra) for (var kk in extra) msg[kk] = extra[kk];
+    zui.send("value", msg);
+    (ioBinds[id] || []).forEach(function (h) { try { h(msg.value, msg); } catch (e) { console.error(e); } });
+  }
+
+  function wireIo(root) {
+    ioEls(root).forEach(function (el) {
+      if (el.__zuiIo) return; el.__zuiIo = true;
+      var k = ioKind(el);
+      if (k === "text" && el.matches("input, textarea")) {
+        el.addEventListener("input", function () { ioEmit(el); });
+        el.addEventListener("change", function () { ioEmit(el, { committed: true }); });
+      } else if (k === "boolean" && el.matches("input")) {
+        el.addEventListener("change", function () { ioEmit(el); });
+      } else if (k === "boolean") { // toggle button
+        el.addEventListener("click", function () { setTimeout(function () { ioEmit(el); }); });
+      } else if (k === "select" && el.matches("select")) {
+        el.addEventListener("change", function () { ioEmit(el); });
+      } else if (k === "select") {
+        el.addEventListener("click", function () {
+          var seen = el.getAttribute("data-value");
+          var iv = setInterval(function () {
+            if (el.getAttribute("data-value") !== seen) { clearInterval(iv); ioEmit(el); }
+          }, 60);
+          setTimeout(function () { clearInterval(iv); }, 8000);
+        });
+      } else if (k === "button") {
+        el.addEventListener("click", function () { ioEmit(el, { event: "click" }); });
+      } else if (k === "scroll") {
+        el.addEventListener("scroll", function () {
+          var id = el.getAttribute("data-zui-id");
+          if (scrollThrottle[id]) return;
+          scrollThrottle[id] = setTimeout(function () { scrollThrottle[id] = null; ioEmit(el); }, 100);
+        }, { passive: true });
+      }
+    });
+
+    /* [data-zui-submit] button -> emit the enclosing form's values. */
+    (root || document).querySelectorAll("[data-zui-submit]").forEach(function (btn) {
+      if (btn.__zuiSubmit) return; btn.__zuiSubmit = true;
+      btn.addEventListener("click", function () {
+        var scope = (btn.parentElement && btn.parentElement.closest("[data-zui-form]")) || document;
+        zui.send("submit", { form: btn.getAttribute("data-zui-submit") || null, values: zui.values(scope) });
+      });
+    });
+  }
+
+  /* public IO API */
+  zui.values = function (root) {
+    var out = {};
+    ioEls(root).forEach(function (el) {
+      var id = el.getAttribute("data-zui-id");
+      if (ioKind(el) !== "button") out[id] = ioGet(el);
+    });
+    return out;
+  };
+  zui.field = function (id) { var el = ioById(id); return el ? ioGet(el) : undefined; };
+  zui.set = function (id, value) {
+    if (id && typeof id === "object") { Object.keys(id).forEach(function (k) { zui.set(k, id[k]); }); return; }
+    var el = ioById(id);
+    if (el) ioSet(el, value);
+  };
+  zui.bind = function (id, handler) {
+    (ioBinds[id] || (ioBinds[id] = [])).push(handler);
+    return function () { ioBinds[id] = (ioBinds[id] || []).filter(function (h) { return h !== handler; }); };
+  };
+
+  /* inbound channels (registered once) */
+  zui.receive("set", function (p) { if (p) zui.set(p.id, p.value); });
+  zui.receive("set-many", function (p) { if (p) zui.set(p); });
+  zui.receive("query", function (p) {
+    if (p && p.id) zui.send("value", { id: p.id, kind: (ioById(p.id) ? ioKind(ioById(p.id)) : null), value: zui.field(p.id) });
+    else zui.send("values", zui.values());
+  });
 
   zui.wire = wire;
 

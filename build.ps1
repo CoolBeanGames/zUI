@@ -50,6 +50,28 @@ if ($pyExe) {
   Write-Warning "python not found - skipping ZSL compilation"
 }
 
+# 3. Runtime self-tests (test config): drive the headless browser test pages.
+if ($Config -eq 'test') {
+  $chrome = @(
+    "$env:ProgramFiles\Google\Chrome\Application\chrome.exe",
+    "${env:ProgramFiles(x86)}\Google\Chrome\Application\chrome.exe",
+    "$env:ProgramFiles (x86)\Microsoft\Edge\Application\msedge.exe"
+  ) | Where-Object { Test-Path $_ } | Select-Object -First 1
+  if ($chrome) {
+    $tmp = Join-Path $out 'io-selftest.dom.html'
+    & $chrome --headless --disable-gpu --virtual-time-budget=5000 --dump-dom `
+      ("file:///" + (Join-Path $root 'tests/io-selftest.html').Replace('\', '/')) 2>$null |
+      Out-File -Encoding utf8 $tmp
+    if (Select-String -Path $tmp -Pattern 'IO SELFTEST OK' -Quiet) {
+      Write-Host "  IO self-test: OK"
+    } else {
+      Write-Warning "  IO self-test FAILED (see $tmp)"
+    }
+  } else {
+    Write-Warning "no Chrome/Edge - skipping runtime self-tests"
+  }
+}
+
 # 4. C# binding
 if (Get-Command dotnet -ErrorAction SilentlyContinue) {
   $csConf = if ($Config -eq 'release') { 'Release' } else { 'Debug' }

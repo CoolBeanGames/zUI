@@ -1,5 +1,28 @@
 <?xml version="1.0" encoding="utf-8"?>
-<tasks project="zUI" nextIndex="35">
+<tasks project="zUI" nextIndex="37">
+  <task id="ZU-36">
+    <name>wire every component to the IO layer</name>
+    <prompt>Give every stateful/interactive component a get+set adapter through the ZU-35 core: text input / search / textarea (text), label &amp; text nodes (text), progress bar (fill % + indeterminate), button (click events out; programmatic click/flash, busy, disabled, label, pressed in), checkbox &amp; toggle (boolean), select (value), scrolling panels (scrollTop/Left + %, on-scroll export, scrollTo in). Add ZML/ZSL support so data-zui-id is emitted from an id= or a new export= attribute. Showcase: a panel that round-trips every value and a host-echo demo. Document the protocol in a PROTOCOL.md.</prompt>
+    <requirements></requirements>
+    <inProgress>false</inProgress>
+    <done>false</done>
+    <bug>false</bug>
+    <error>false</error>
+    <errorMessage></errorMessage>
+    <lockKey></lockKey>
+    <locked>false</locked>
+    <archived>false</archived>
+    <blockedBy>ZU-35</blockedBy>
+    <dateStarted></dateStarted>
+    <dueDate></dueDate>
+    <commit>true</commit>
+    <build>false</build>
+    <release>false</release>
+    <tags>ui,coding,io</tags>
+    <notes></notes>
+    <filesChanged></filesChanged>
+    <image></image>
+  </task>
   <task id="ZU-15">
     <name>menu bars and context menus</name>
     <prompt>Complete menubar.css and zui.js: traditional File/Edit/View/Help menu, keyboard access (Alt, arrows), accelerators/mnemonics, checkable and disabled items, submenus, right-click context menus sharing the same renderer. Requirement: menus are fully keyboard-operable and emit channel messages.</prompt>
