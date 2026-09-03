@@ -41,9 +41,9 @@ if ($pyExe) {
   if ($Config -eq 'test') { & $pyExe (Join-Path $root 'compiler/tests/test_compile.py') }
   $gen = Join-Path $out 'examples'
   New-Item -ItemType Directory -Force -Path $gen | Out-Null
-  Get-ChildItem (Join-Path $root 'examples') -Filter *.zsl | ForEach-Object {
-    $stem = $_.BaseName
-    & $pyExe (Join-Path $root 'compiler/zslc.py') $_.FullName --backend html -o (Join-Path $gen "$stem.html")
+  Get-ChildItem (Join-Path $root 'examples') -Include *.zsl,*.zml -Recurse | ForEach-Object {
+    $out2 = Join-Path $gen ($_.BaseName + $_.Extension.Replace('.', '-') + '.html')
+    & $pyExe (Join-Path $root 'compiler/zslc.py') $_.FullName --backend html -o $out2
   }
   Write-Host "  compiled ZSL examples"
 } else {

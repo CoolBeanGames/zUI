@@ -11,8 +11,8 @@ window "zUI Showcase" {
       item "Exit" -> file.exit
     }
     menu "View" {
-      item "Holo (light)" -> view.light
-      item "Holo (dark)" -> view.dark
+      item "Holo (dark)" -> view.holo
+      item "Clean (light)" -> view.clean
     }
     menu "Help" {
       item "About zUI" -> help.about

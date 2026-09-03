@@ -76,6 +76,59 @@ Common attributes: `id`, `class`, `value`, `label`, `placeholder`, `icon`,
 - `source=items` on a `table` (with `column` children) or a container repeats its
   children once per element of `state.items`.
 
+## ZML - the angle-bracket syntax
+
+The same UI tree can be written in an XML-style syntax. `zslc` **auto-detects**:
+a source whose first significant character is `<` is parsed as ZML, anything else
+as brace ZSL. Both build the identical AST and produce byte-identical output, so
+the choice is pure preference and the two can coexist in a project.
+
+```xml
+<panel title="Tracks">
+  <tabs>
+    <tab label="Overview" on="tab.overview">
+      <text bind="summary"/>
+    </tab>
+    <tab label="Details">
+      <table source="rows" selectable="true">
+        <column field="name">Name</column>
+      </table>
+    </tab>
+  </tabs>
+</panel>
+```
+
+Mapping:
+
+| ZML                              | meaning                                            |
+|----------------------------------|---------------------------------------------------|
+| `<name …>` / `<name …/>`          | a node (self-closing = no children)               |
+| element text content             | the node's label/text (`<column>Name</column>`)   |
+| `title="…"` or `label="…"`        | also sets the node text                           |
+| `bind="x"`                       | two-way binding to `state.x`                       |
+| `source="x"`                     | list source for a repeating node                  |
+| `on="some.event"`                | event → handler / `emit`                          |
+| `flag` or `flag="true"`          | boolean flag (`selectable`, `active`, `fill`, …)  |
+| `k="v"`                          | plain attribute (`id`, `kind`, `shortcut`, …)     |
+| `<!-- … -->` and `//` line       | comments                                          |
+
+State and handlers:
+
+```xml
+<state>
+  <var name="count" value="0"/>
+</state>
+
+<on event="inc">
+  <set field="count" value="count.plus1"/>
+  <emit channel="count" value="count"/>
+</on>
+```
+
+`value=` is read as an expression: a bare identifier/dotted path is a `state`
+ref, a number/`true`/`false` is a literal, anything else is a string. The
+`x.plus1` / `x.minus1` helpers work the same as in ZSL.
+
 ## Example
 
 ```zsl

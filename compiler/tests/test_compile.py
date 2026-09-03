@@ -58,6 +58,41 @@ def test_parse_error_reported():
     raise AssertionError("expected ParseError")
 
 
+def test_zml_detection_and_parse():
+    src = '<window title="X"><button on="a.b">Go</button></window>'
+    _check(zslc._looks_like_zml(src), "ZML not detected")
+    _check(not zslc._looks_like_zml('window { }'), "brace misdetected as ZML")
+    prog = zslc.compile_source(src)
+    _check(prog.roots[0].name == "window" and prog.roots[0].text == "X", "zml window/title")
+    btn = prog.roots[0].children[0]
+    _check(btn.name == "button" and btn.event == "a.b" and btn.text == "Go", "zml button")
+
+
+def test_zml_equals_zsl():
+    for stem in ("counter", "showcase"):
+        zsl = open(os.path.join(EXAMPLES, stem + ".zsl"), encoding="utf-8").read()
+        zml = open(os.path.join(EXAMPLES, stem + ".zml"), encoding="utf-8").read()
+        for backend in ("html", "csharp", "cpp"):
+            a = _render(zslc.compile_source(zsl), backend)
+            b = _render(zslc.compile_source(zml), backend)
+            _check(a == b, f"{stem}.{backend}: zml output != zsl output")
+
+
+def _render(prog, backend):
+    if backend == "html":
+        return zslc.HtmlGen(prog).gen()
+    if backend == "csharp":
+        return zslc.gen_csharp(prog, "CompiledUi", "ZUI.Generated")
+    return zslc.gen_cpp(prog, "build_ui")
+
+
+def test_zml_comments_and_selfclose():
+    prog = zslc.compile_source('<!-- hi --><col><spinner/><text bind="x"/></col>')
+    col = prog.roots[0]
+    _check(col.name == "col" and len(col.children) == 2, "self-close children")
+    _check(col.children[1].bind == "x", "zml bind attr")
+
+
 def main():
     tests = [v for k, v in sorted(globals().items()) if k.startswith("test_")]
     failed = 0

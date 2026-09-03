@@ -268,6 +268,205 @@ class Parser:
 
 
 # --------------------------------------------------------------------------- #
+# ZML - the XML-style front end (same AST as the brace parser above)
+# --------------------------------------------------------------------------- #
+
+_IDENT_RE = re.compile(r"[A-Za-z_][\w.-]*\Z")
+_NUM_RE = re.compile(r"-?\d+(?:\.\d+)?\Z")
+
+
+def _looks_like_zml(src: str) -> bool:
+    """A source is ZML if its first significant character is '<'."""
+    s = re.sub(r"<!--.*?-->", "", src, flags=re.DOTALL)
+    s = re.sub(r"(?m)^[ \t]*//[^\n]*$", "", s)
+    return s.lstrip().startswith("<")
+
+
+def _coerce_literal(v):
+    if v is None:
+        return True
+    if v in ("true", "false"):
+        return v == "true"
+    if v == "[]":
+        return []
+    if v == "{}":
+        return {}
+    if _NUM_RE.match(v):
+        return float(v) if "." in v else int(v)
+    return v
+
+
+def _coerce_expr(v):
+    """Attribute value used as an expression (<emit value=...>, <set value=...>)."""
+    if v is None:
+        return None
+    if v in ("true", "false"):
+        return v == "true"
+    if _NUM_RE.match(v):
+        return float(v) if "." in v else int(v)
+    if _IDENT_RE.match(v):
+        return {"$ref": v}
+    return v
+
+
+class ZmlParser:
+    """A small, permissive XML-ish parser. Not full XML: no namespaces, PIs,
+    DOCTYPE, CDATA or entities beyond the common five."""
+
+    _ENT = {"&amp;": "&", "&lt;": "<", "&gt;": ">", "&quot;": '"', "&apos;": "'"}
+
+    def __init__(self, src: str):
+        self.s = re.sub(r"<!--.*?-->", "", src, flags=re.DOTALL)
+        self.i = 0
+        self.n = len(self.s)
+        self.line = 1
+
+    # -- low-level ------------------------------------------------------- #
+    def _err(self, msg):
+        raise ParseError(f"line {self.line}: {msg}")
+
+    def _ws(self):
+        while self.i < self.n:
+            c = self.s[self.i]
+            if c == "\n":
+                self.line += 1
+                self.i += 1
+            elif c in " \t\r":
+                self.i += 1
+            elif self.s.startswith("//", self.i):
+                nl = self.s.find("\n", self.i)
+                self.i = self.n if nl == -1 else nl
+            else:
+                break
+
+    def _name(self):
+        m = re.compile(r"[A-Za-z_][\w:.-]*").match(self.s, self.i)
+        if not m:
+            self._err("expected a name")
+        self.i = m.end()
+        return m.group()
+
+    def _string(self):
+        q = self.s[self.i]
+        self.i += 1
+        start = self.i
+        while self.i < self.n and self.s[self.i] != q:
+            if self.s[self.i] == "\n":
+                self.line += 1
+            self.i += 1
+        val = self.s[start:self.i]
+        self.i += 1  # closing quote
+        for k, v in self._ENT.items():
+            val = val.replace(k, v)
+        return val
+
+    def _unescape(self, text):
+        for k, v in self._ENT.items():
+            text = text.replace(k, v)
+        return text
+
+    # -- structure ----------------------------------------------------- #
+    def parse(self) -> Program:
+        prog = Program()
+        self._ws()
+        while self.i < self.n:
+            if not self.s.startswith("<", self.i):
+                self._err("expected an element")
+            self._route(self._element(), prog)
+            self._ws()
+        return prog
+
+    def _element(self) -> Node:
+        assert self.s[self.i] == "<"
+        self.i += 1
+        self._ws()
+        node = Node(name=self._name(), line=self.line)
+
+        # attributes
+        while True:
+            self._ws()
+            if self.s.startswith("/>", self.i):
+                self.i += 2
+                return node
+            if self.s.startswith(">", self.i):
+                self.i += 1
+                break
+            key = self._name()
+            self._ws()
+            if self.s.startswith("=", self.i):
+                self.i += 1
+                self._ws()
+                val = self._string()
+            else:
+                val = None
+            self._apply_attr(node, key, val)
+
+        # content
+        text_parts = []
+        while True:
+            if self.i >= self.n:
+                self._err(f"unclosed <{node.name}>")
+            if self.s.startswith("</", self.i):
+                self.i += 2
+                self._ws()
+                self._name()          # closing name (not verified strictly)
+                self._ws()
+                if self.s.startswith(">", self.i):
+                    self.i += 1
+                break
+            if self.s.startswith("<", self.i):
+                node.children.append(self._element())
+                continue
+            nxt = self.s.find("<", self.i)
+            chunk = self.s[self.i:(self.n if nxt == -1 else nxt)]
+            self.line += chunk.count("\n")
+            text_parts.append(chunk)
+            self.i = self.n if nxt == -1 else nxt
+
+        text = self._unescape("".join(text_parts)).strip()
+        if text and node.text is None:
+            node.text = text
+        return node
+
+    def _apply_attr(self, node: Node, key: str, val):
+        if val is None or val == "true":
+            node.flags.add(key)
+            return
+        if val == "false":
+            return
+        if key == "bind":
+            node.bind = val
+        elif key == "source":
+            node.source = val
+        elif key == "on":
+            node.event = val
+        elif key in ("title", "label") and node.text is None:
+            node.text = val
+        else:
+            node.attrs[key] = val
+
+    def _route(self, node: Node, prog: Program) -> None:
+        if node.name == "state":
+            for c in node.children:
+                if c.name in ("var", "field"):
+                    prog.state[c.attrs.get("name", c.text or "")] = _coerce_literal(c.attrs.get("value"))
+            return
+        if node.name == "on":
+            ev = node.event or node.attrs.get("event") or node.text or ""
+            stmts = []
+            for c in node.children:
+                if c.name in ("emit", "call"):
+                    stmts.append(Stmt(c.name, c.attrs.get("channel") or c.attrs.get("name") or c.text or "",
+                                      _coerce_expr(c.attrs.get("value"))))
+                elif c.name in ("set", "assign"):
+                    stmts.append(Stmt("assign", c.attrs.get("field") or c.attrs.get("name") or "",
+                                      _coerce_expr(c.attrs.get("value"))))
+            prog.handlers.setdefault(ev, []).extend(stmts)
+            return
+        prog.roots.append(node)
+
+
+# --------------------------------------------------------------------------- #
 # HTML backend
 # --------------------------------------------------------------------------- #
 
@@ -637,6 +836,9 @@ void {func}(zui::Host& host) {{
 # --------------------------------------------------------------------------- #
 
 def compile_source(src: str) -> Program:
+    """Parse ZML (angle-bracket) or brace ZSL - auto-detected - to one AST."""
+    if _looks_like_zml(src):
+        return ZmlParser(src).parse()
     return Parser(lex(src)).parse()
 
 

@@ -48,14 +48,21 @@ IPC (`postMessage` / `CoreWebView2.WebMessageReceived`).
 
 ## ZSL - the UI scripting language
 
-UI is written in **ZSL** (`.zsl`) and compiled ahead of time by
-[`compiler/zslc.py`](compiler/README.md) - never interpreted at runtime. Backends:
-`html` (a self-contained zUI document), `csharp` and `cpp` (native source built
-into the host). See [`compiler/GRAMMAR.md`](compiler/GRAMMAR.md) and
+UI is written in **ZSL** and compiled ahead of time by
+[`compiler/zslc.py`](compiler/README.md) - never interpreted at runtime. Two
+interchangeable syntaxes, auto-detected:
+
+```
+panel "Tracks" { button "Play" }                          # brace  .zsl
+<panel title="Tracks"><button>Play</button></panel>       # ZML    .zml
+```
+
+Backends: `html` (a self-contained zUI document), `csharp` and `cpp` (native
+source built into the host). See [`compiler/GRAMMAR.md`](compiler/GRAMMAR.md) and
 [`examples/`](examples/).
 
 ```
-py compiler/zslc.py examples/showcase.zsl --backend html -o showcase.html
+py compiler/zslc.py examples/showcase.zml --backend html -o showcase.html
 ```
 
 ## Using it

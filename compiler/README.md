@@ -1,7 +1,14 @@
 # zslc - the ZSL compiler
 
-`zslc.py` compiles a `.zsl` UI description (see [`GRAMMAR.md`](GRAMMAR.md)) ahead
-of time. Nothing in ZSL is interpreted at runtime.
+`zslc.py` compiles a UI description (see [`GRAMMAR.md`](GRAMMAR.md)) ahead of
+time. Nothing is interpreted at runtime.
+
+Two interchangeable syntaxes, auto-detected (a source starting with `<` is ZML):
+
+- **brace ZSL** (`.zsl`) — `panel "Tracks" { button "Play" }`
+- **ZML** (`.zml`) — `<panel title="Tracks"><button>Play</button></panel>`
+
+Both build the same AST and emit byte-identical output.
 
 ```
 py compiler/zslc.py examples/showcase.zsl --backend html   -o out.html

@@ -1,0 +1,69 @@
+<!-- showcase.zsl expressed in ZML. Same tree, angle-bracket syntax. -->
+
+<window title="zUI Showcase">
+
+  <menubar>
+    <menu label="File">
+      <item label="New" shortcut="Ctrl+N" on="file.new"/>
+      <item label="Open..." shortcut="Ctrl+O" on="file.open"/>
+      <sep/>
+      <item label="Exit" on="file.exit"/>
+    </menu>
+    <menu label="View">
+      <item label="Holo (dark)" on="view.holo"/>
+      <item label="Clean (light)" on="view.clean"/>
+    </menu>
+    <menu label="Help">
+      <item label="About zUI" on="help.about"/>
+    </menu>
+  </menubar>
+
+  <nav bind="section">
+    <item value="components" active="true">Components</item>
+    <item value="forms">Forms</item>
+    <item value="data">Data</item>
+  </nav>
+
+  <workspace>
+    <sidebar>
+      <section-label>Library</section-label>
+      <item active="true">Artists</item>
+      <item>Albums</item>
+      <item>Songs</item>
+      <section-label>Playlists</section-label>
+      <item>Recently Added</item>
+    </sidebar>
+
+    <fill>
+      <panel title="Tracks">
+        <table id="tracks" source="tracks" selectable="true">
+          <column field="index">#</column>
+          <column field="name">Name</column>
+          <column field="artist">Artist</column>
+          <column field="plays">Plays</column>
+        </table>
+      </panel>
+      <row>
+        <button on="track.edit">Edit metadata</button>
+        <button kind="primary" on="playlist.new">New playlist</button>
+        <spinner/>
+        <progress bind="scan"/>
+      </row>
+    </fill>
+  </workspace>
+
+  <statusbar>
+    <text>HAPTICS' IPOD</text>
+    <text>234.6 GB free</text>
+  </statusbar>
+</window>
+
+<state>
+  <var name="section" value="components"/>
+  <var name="scan" value="40"/>
+  <var name="tracks" value="[]"/>
+</state>
+
+<on event="playlist.new">
+  <emit channel="playlist.new"/>
+</on>

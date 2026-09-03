@@ -1,0 +1,26 @@
+<!-- The counter example in ZML (angle-bracket) form. Compiles to exactly the
+     same output as counter.zsl - zslc auto-detects the syntax. -->
+
+<window title="Counter">
+  <panel title="Counter">
+    <row>
+      <button on="dec">-</button>
+      <text bind="count"/>
+      <button kind="primary" on="inc">+</button>
+    </row>
+  </panel>
+</window>
+
+<state>
+  <var name="count" value="0"/>
+</state>
+
+<on event="inc">
+  <set field="count" value="count.plus1"/>
+  <emit channel="count" value="count"/>
+</on>
+
+<on event="dec">
+  <set field="count" value="count.minus1"/>
+  <emit channel="count" value="count"/>
+</on>
