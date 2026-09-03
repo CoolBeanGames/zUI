@@ -49,6 +49,10 @@
   --zui-tooltip-text:           #ffffff;
   --zui-bg-selected-strong:     #1a4d64; /* selected + hover, primary-btn hover */
   --zui-on-danger:              #ffffff;
+  --zui-scrim:                  rgba(0, 0, 0, 0.45);          /* dialog backdrop */
+  --zui-shadow-modal:           0 8px 28px rgba(0, 0, 0, 0.55);
+  --zui-skeleton-sheen:         rgba(255, 255, 255, 0.06);
+  --zui-scrollbar-overlay:      rgba(255, 255, 255, 0.18);
 
   /* ---- spacing scale (design.txt) ----------------------------- */
   --zui-space-1: 4px;

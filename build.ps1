@@ -38,7 +38,10 @@ Write-Host "  staged core + showcase"
 $pyExe = $null
 foreach ($c in 'py','python','python3') { if (Get-Command $c -ErrorAction SilentlyContinue) { $pyExe = $c; break } }
 if ($pyExe) {
-  if ($Config -eq 'test') { & $pyExe (Join-Path $root 'compiler/tests/test_compile.py') }
+  if ($Config -eq 'test') {
+    & $pyExe (Join-Path $root 'compiler/tests/test_compile.py')
+    & $pyExe (Join-Path $root 'tests/check-tokens.py')
+  }
   $gen = Join-Path $out 'examples'
   New-Item -ItemType Directory -Force -Path $gen | Out-Null
   Get-ChildItem (Join-Path $root 'examples') -Include *.zsl,*.zml -Recurse | ForEach-Object {

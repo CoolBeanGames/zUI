@@ -64,7 +64,7 @@
   position: absolute;
   inset: 0;
   transform: translateX(-100%);
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.06), transparent);
+  background: linear-gradient(90deg, transparent, var(--zui-skeleton-sheen), transparent);
   animation: zui-shimmer 1.4s ease-in-out infinite;
 }
 .zui-skeleton--text { height: 10px; margin: 4px 0; }

@@ -37,6 +37,10 @@
   --zui-tooltip-text:          #f0f0f0;
   --zui-bg-selected-strong:    #d9e6f3;
   --zui-on-danger:             #ffffff;
+  --zui-scrim:                 rgba(0, 0, 0, 0.28);
+  --zui-shadow-modal:          0 8px 24px rgba(0, 0, 0, 0.18);
+  --zui-skeleton-sheen:        rgba(0, 0, 0, 0.04);
+  --zui-scrollbar-overlay:     rgba(0, 0, 0, 0.28);
 
   --zui-shadow-pop: 0 2px 6px rgba(0, 0, 0, 0.14);
   --zui-control-h: 24px;

@@ -23,6 +23,29 @@
     <filesChanged>core/css/tokens.css, core/css/themes/holo.css, core/css/themes/clean.css, core/css/THEMES.md, core/css/base.css, core/css/components/{button,layout,panel,scrollbar,table,tooltip,window}.css, showcase/index.html, showcase/music.html, README.md, design.txt, task_images/ZU-33.png</filesChanged>
     <image>ZU-33.png</image>
   </task>
+  <task id="ZU-27">
+    <name>theme system and design tokens</name>
+    <prompt>Formalise the theming layer: document every token in tokens.css, the data-zui-theme contract, a theme-authoring guide, and runtime zui.setTheme with a host theme channel. Ship holo (light) complete and a holo-dark draft. Requirement: a new theme can be added as one CSS file with zero component changes.</prompt>
+    <requirements>A new theme is one CSS file re-declaring tokens - zero component changes; enforced by a check. holo (default) + clean shipped and in sync; runtime zui.setTheme + 'theme' channel.</requirements>
+    <inProgress>false</inProgress>
+    <done>true</done>
+    <bug>false</bug>
+    <error>false</error>
+    <errorMessage></errorMessage>
+    <lockKey></lockKey>
+    <locked>false</locked>
+    <archived>true</archived>
+    <blockedBy></blockedBy>
+    <dateStarted></dateStarted>
+    <dueDate></dueDate>
+    <commit>true</commit>
+    <build>false</build>
+    <release>false</release>
+    <tags>ui,coding</tags>
+    <notes>Tokenised the last colour literals: --zui-scrim, --zui-shadow-modal, --zui-skeleton-sheen, --zui-scrollbar-overlay (dialog.css, loading.css, scrollbar.css now 100% token-driven -&gt; every component is). Added tests/check-tokens.py: fails on any hard-coded colour in component/base CSS, any undefined var(--zui-*), or holo/clean token drift; wired into build.ps1 -Config test (currently: OK, 52 tokens / 19 files). THEMES.md updated with the complete required token set + the check. Runtime zui.setTheme (emits theme-changed) and inbound 'theme' channel already in place; holo is :root + themes/holo.css, clean is themes/clean.css.</notes>
+    <filesChanged>core/css/tokens.css, core/css/themes/holo.css, core/css/themes/clean.css, core/css/components/dialog.css, core/css/components/loading.css, core/css/components/scrollbar.css, core/css/THEMES.md, tests/check-tokens.py, build.ps1</filesChanged>
+    <image></image>
+  </task>
   <task id="ZU-26">
     <name>iconography set</name>
     <prompt>Assemble a small consistent monochrome line-icon set (SVG sprite) for nav, menus, buttons, status; document sizing/weight rules; no emoji as app icons. Requirement: all showcase icons come from the sprite and share visual weight per design.txt ICONOGRAPHY.</prompt>

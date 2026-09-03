@@ -9,9 +9,9 @@
   background: var(--zui-bg-surface);
   border: var(--zui-border-w) solid var(--zui-border-strong);
   border-radius: var(--zui-radius);
-  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.55);
+  box-shadow: var(--zui-shadow-modal);
 }
-.zui-dialog::backdrop { background: rgba(0, 0, 0, 0.45); }
+.zui-dialog::backdrop { background: var(--zui-scrim); }
 
 .zui-dialog__title {
   display: flex;

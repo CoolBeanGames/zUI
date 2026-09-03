@@ -29,20 +29,26 @@ At runtime: `zui.setTheme("clean")` (sets the attribute on `<html>` and emits a
 ## Authoring a new theme
 
 1. Copy `themes/clean.css`, rename the selector to `[data-zui-theme="mytheme"]`.
-2. Set every token. The full list, with roles, is documented in `tokens.css` and
-   `TYPOGRAPHY.md`. The colour hooks a theme must cover:
+2. Set every token `holo.css` / `clean.css` set. Full roles are in `tokens.css`
+   and `TYPOGRAPHY.md`. The set a theme must cover:
 
-   surfaces: `--zui-bg-app --zui-bg-surface --zui-bg-surface-alt --zui-bg-raised
-   --zui-bg-selected --zui-bg-hover --zui-bg-active --zui-bg-selected-strong`
-   lines: `--zui-border --zui-border-strong`
-   text: `--zui-text --zui-text-secondary --zui-text-disabled --zui-text-on-accent
-   --zui-label-color`
-   accent: `--zui-accent --zui-accent-hover --zui-accent-weak`
-   status: `--zui-warn --zui-error --zui-ok --zui-on-danger`
-   parts: `--zui-scrollbar-thumb --zui-scrollbar-thumb-hover --zui-tooltip-bg
-   --zui-tooltip-text`
-   plus `--zui-shadow-pop`, `--zui-control-h`, and `color-scheme`.
+   - surfaces: `--zui-bg-app --zui-bg-surface --zui-bg-surface-alt --zui-bg-raised
+     --zui-bg-selected --zui-bg-hover --zui-bg-active --zui-bg-selected-strong`
+   - lines: `--zui-border --zui-border-strong`
+   - text: `--zui-text --zui-text-secondary --zui-text-disabled
+     --zui-text-on-accent --zui-label-color`
+   - accent: `--zui-accent --zui-accent-hover --zui-accent-weak`
+   - status: `--zui-warn --zui-error --zui-ok --zui-on-danger`
+   - parts: `--zui-scrollbar-thumb --zui-scrollbar-thumb-hover
+     --zui-scrollbar-overlay --zui-tooltip-bg --zui-tooltip-text --zui-scrim
+     --zui-skeleton-sheen`
+   - depth/size: `--zui-shadow-pop --zui-shadow-modal --zui-control-h`
+   - `color-scheme` (`light` / `dark`)
 
 3. Optionally override geometry/motion tokens. Never override the spacing scale
    unless the whole theme is a different density.
 4. Add the `<link>` and you're done — no JS, no component edits.
+
+`py tests/check-tokens.py` (also run by `build.ps1 -Config test`) enforces this:
+it fails if any component CSS hard-codes a colour, uses an undefined token, or if
+`holo.css` and `clean.css` drift out of sync.

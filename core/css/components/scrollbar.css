@@ -55,5 +55,5 @@
 /* Opt-in: overlay scrollbars that sit on top of content (dense grids). */
 .zui-scroll--overlay::-webkit-scrollbar { width: 10px; height: 10px; }
 .zui-scroll--overlay::-webkit-scrollbar-track { background: transparent; border: 0; }
-.zui-scroll--overlay::-webkit-scrollbar-thumb { border-color: transparent; background: rgba(0, 0, 0, 0.28); }
+.zui-scroll--overlay::-webkit-scrollbar-thumb { border-color: transparent; background: var(--zui-scrollbar-overlay); }
 
