@@ -19,12 +19,27 @@
   color: var(--zui-text-secondary);
   -webkit-app-region: drag;
 }
+/* -webkit-app-region lets the host OS treat the bar as the draggable caption
+   when zUI fills a frameless native window; interactive children opt out. */
 .zui-titlebar__controls { margin-left: auto; display: flex; -webkit-app-region: no-drag; }
-.zui-titlebar__btn { width: 40px; height: 30px; display: grid; place-items: center; }
+.zui-titlebar__btn { width: 40px; height: 30px; display: grid; place-items: center; cursor: default; }
 .zui-titlebar__btn:hover { background: var(--zui-bg-hover); }
 .zui-titlebar__btn--close:hover { background: var(--zui-error); color: #fff; }
 
 .zui-workspace { flex: 1; display: flex; min-height: 0; overflow: hidden; }
+
+/* Contextual control bar (used as the playback bar in the music app): compact,
+   visually secondary to the workspace. */
+.zui-contextbar {
+  display: flex;
+  align-items: center;
+  gap: var(--zui-space-3);
+  height: 44px;
+  padding: 0 var(--zui-space-3);
+  background: var(--zui-bg-surface-alt);
+  border-top: var(--zui-border-w) solid var(--zui-border);
+}
+.zui-contextbar__spacer { margin-left: auto; }
 
 .zui-statusbar {
   display: flex;

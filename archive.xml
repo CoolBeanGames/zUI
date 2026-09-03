@@ -1,5 +1,28 @@
 <?xml version="1.0" encoding="utf-8"?>
 <tasks project="zUI" nextIndex="31">
+  <task id="ZU-7">
+    <name>window shell &amp; chrome</name>
+    <prompt>Complete core/css/components/window.css plus JS: title bar, menu row, primary nav strip, workspace, status/device bar, contextual/playback bar as one horizontal hierarchy with subtle separators. Wire title-bar buttons and app-region drag for host integration. Requirement: showcase window matches the WINDOW STRUCTURE section of design.txt.</prompt>
+    <requirements>Showcase window follows design.txt WINDOW STRUCTURE (title bar, menu, nav strip, workspace, status/device bar, contextual bar) with subtle separators; title-bar controls and app-region drag wired for a native host.</requirements>
+    <inProgress>false</inProgress>
+    <done>true</done>
+    <bug>false</bug>
+    <error>false</error>
+    <errorMessage></errorMessage>
+    <lockKey></lockKey>
+    <locked>false</locked>
+    <archived>true</archived>
+    <blockedBy></blockedBy>
+    <dateStarted></dateStarted>
+    <dueDate></dueDate>
+    <commit>true</commit>
+    <build>false</build>
+    <release>false</release>
+    <tags>ui,coding</tags>
+    <notes>zui.js: title-bar buttons carrying data-window (minimize|maximize|restore|close) forward a 'window' channel message to the host. window.css: documented -webkit-app-region drag/no-drag contract, added .zui-contextbar (generic compact contextual/playback bar, visually secondary), tidied titlebar button. showcase/index.html + music.html title bars now use data-window (+ tooltips).</notes>
+    <filesChanged>core/js/zui.js, core/css/components/window.css, showcase/index.html, showcase/music.html</filesChanged>
+    <image></image>
+  </task>
   <task id="ZU-6">
     <name>panels &amp; separators</name>
     <prompt>Harden core/css/components/panel.css: shared-background panels divided by thin borders (never floating cards), panel header/body, collapsing shared borders in rows/stacks, horizontal and vertical separators. Add resizable panel and splitter behaviour to zui.js. Requirement: a multi-panel browser layout renders per design.txt with draggable splitters.</prompt>

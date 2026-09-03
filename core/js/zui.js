@@ -133,6 +133,16 @@
       });
     });
 
+    /* Title-bar window controls: a .zui-titlebar__btn carries data-window with
+       one of minimize|maximize|restore|close. The host performs the action;
+       zUI just forwards it. */
+    root.querySelectorAll(".zui-titlebar__btn[data-window]").forEach(function (btn) {
+      if (btn.__zuiWin) return; btn.__zuiWin = true;
+      btn.addEventListener("click", function () {
+        zui.send("window", btn.getAttribute("data-window"));
+      });
+    });
+
     /* Select / dropdown: <div class="zui-select" data-zui="select"> with a
        nested <template class="zui-menu-items"> or data-options JSON. */
     root.querySelectorAll('[data-zui="select"]').forEach(function (sel) {
