@@ -675,6 +675,113 @@
       });
     });
 
+    /* Tree / outline: [data-zui="tree"] over a flat list of .zui-tree__item rows
+       (data-id, data-depth, aria-expanded on groups). Descendants are the
+       following rows with greater depth. */
+    (root || document).querySelectorAll('[data-zui="tree"]').forEach(function (tree) {
+      if (tree.__zuiTree) return; tree.__zuiTree = true;
+      tree.setAttribute("role", "tree");
+
+      function rows() { return Array.prototype.slice.call(tree.querySelectorAll(".zui-tree__item")); }
+      function depth(r) { return +(r.getAttribute("data-depth") || 0); }
+      function visibleRows() { return rows().filter(function (r) { return !r.hidden; }); }
+      function descendants(r) {
+        var all = rows(), i = all.indexOf(r), d = depth(r), out = [];
+        for (var k = i + 1; k < all.length; k++) { if (depth(all[k]) <= d) break; out.push(all[k]); }
+        return out;
+      }
+      function applyCollapse() {
+        var all = rows();
+        all.forEach(function (r, i) {
+          var hide = false, d = depth(r);
+          for (var j = i - 1; j >= 0 && d > 0; j--) {
+            if (depth(all[j]) < d) {
+              d = depth(all[j]);
+              if (all[j].getAttribute("aria-expanded") === "false") { hide = true; break; }
+            }
+          }
+          r.hidden = hide;
+        });
+      }
+      function toggle(r, want) {
+        if (!r.hasAttribute("aria-expanded")) return;
+        var open = want != null ? want : r.getAttribute("aria-expanded") === "false";
+        r.setAttribute("aria-expanded", String(open));
+        applyCollapse();
+        emit(r, open ? "expand" : "collapse");
+      }
+      function selected() { return rows().filter(function (r) { return r.classList.contains("zui-selected"); }); }
+      function select(r, add, range) {
+        var all = visibleRows();
+        if (range && anchor) {
+          var a = all.indexOf(anchor), b = all.indexOf(r);
+          all.forEach(function (x, i) { x.classList.toggle("zui-selected", i >= Math.min(a, b) && i <= Math.max(a, b)); });
+        } else if (add) {
+          r.classList.toggle("zui-selected"); anchor = r;
+        } else {
+          rows().forEach(function (x) { x.classList.toggle("zui-selected", x === r); }); anchor = r;
+        }
+        rows().forEach(function (x) { x.tabIndex = x === r ? 0 : -1; });
+        emit(r, "select");
+      }
+      function emit(r, action) {
+        zui.send("tree", {
+          name: tree.getAttribute("data-name") || tree.getAttribute("data-zui-id") || null,
+          id: r.getAttribute("data-id") || r.textContent.trim(),
+          action: action,
+          selected: selected().map(function (x) { return x.getAttribute("data-id") || x.textContent.trim(); })
+        });
+      }
+      var anchor = null;
+
+      tree.addEventListener("click", function (e) {
+        var r = e.target.closest(".zui-tree__item");
+        if (!r) return;
+        if (e.target.closest(".zui-tree__twist")) { toggle(r); return; }
+        select(r, e.ctrlKey || e.metaKey, e.shiftKey);
+      });
+      tree.addEventListener("dblclick", function (e) {
+        var r = e.target.closest(".zui-tree__item");
+        if (r && r.hasAttribute("aria-expanded")) toggle(r);
+        else if (r) emit(r, "activate");
+      });
+      tree.addEventListener("keydown", function (e) {
+        var vis = visibleRows();
+        var cur = vis.indexOf(e.target.closest(".zui-tree__item"));
+        if (cur === -1) return;
+        var r = vis[cur], nxt = null;
+        if (e.key === "ArrowDown") nxt = vis[cur + 1];
+        else if (e.key === "ArrowUp") nxt = vis[cur - 1];
+        else if (e.key === "Home") nxt = vis[0];
+        else if (e.key === "End") nxt = vis[vis.length - 1];
+        else if (e.key === "ArrowRight") {
+          if (r.getAttribute("aria-expanded") === "false") { toggle(r, true); }
+          else nxt = vis[cur + 1];
+        } else if (e.key === "ArrowLeft") {
+          if (r.getAttribute("aria-expanded") === "true") { toggle(r, false); }
+          else {
+            for (var k = cur - 1; k >= 0; k--) { if (depth(vis[k]) < depth(r)) { nxt = vis[k]; break; } }
+          }
+        } else if (e.key === "Enter" || e.key === " ") { emit(r, "activate"); e.preventDefault(); }
+        else if (e.key === "F2") { zui.renameInPlace(r.querySelector(".zui-tree__label") || r, function (v) { emit(r, "rename"); }); e.preventDefault(); }
+        if (nxt) { select(nxt, false, e.shiftKey); nxt.focus(); e.preventDefault(); }
+      });
+
+      // init
+      rows().forEach(function (r) {
+        r.style.setProperty("--depth", depth(r));
+        r.setAttribute("role", "treeitem");
+        if (!r.querySelector(".zui-tree__twist") && r.hasAttribute("aria-expanded")) {
+          var t = document.createElement("span"); t.className = "zui-tree__twist";
+          r.insertBefore(t, r.firstChild);
+        }
+        r.tabIndex = -1;
+      });
+      var first = tree.querySelector(".zui-tree__item.zui-selected") || tree.querySelector(".zui-tree__item");
+      if (first) first.tabIndex = 0;
+      applyCollapse();
+    });
+
     /* Sliders: keep the accent fill + <output> in sync (IO-independent). */
     (root || document).querySelectorAll(".zui-slider").forEach(function (sl) {
       if (sl.__zuiSlider) return; sl.__zuiSlider = true;
@@ -735,6 +842,7 @@
   function clampPct(v) { v = parseFloat(v); return isNaN(v) ? 0 : Math.max(0, Math.min(100, v)); }
 
   function ioKind(el) {
+    if (el.matches('[data-zui="tree"]')) return "tree";
     if (el.matches('[role="radiogroup"], .zui-choice-group[data-zui-id]') && el.querySelector('input[type=radio]')) return "radio";
     if (el.matches("input[type=checkbox]")) return "boolean";
     if (el.matches("input[type=radio]")) return "boolean";
@@ -751,6 +859,10 @@
 
   function ioGet(el) {
     var k = ioKind(el);
+    if (k === "tree") {
+      return Array.prototype.map.call(el.querySelectorAll(".zui-tree__item.zui-selected"),
+        function (r) { return r.getAttribute("data-id") || r.textContent.trim(); });
+    }
     if (k === "radio") {
       var on = el.querySelector("input[type=radio]:checked");
       return on ? on.value : null;
@@ -782,7 +894,12 @@
 
   function ioSet(el, v) {
     var k = ioKind(el);
-    if (k === "radio") {
+    if (k === "tree") {
+      var want = Array.isArray(v) ? v : [v];
+      el.querySelectorAll(".zui-tree__item").forEach(function (r) {
+        r.classList.toggle("zui-selected", want.indexOf(r.getAttribute("data-id") || r.textContent.trim()) !== -1);
+      });
+    } else if (k === "radio") {
       var pick = el.querySelector('input[type=radio][value="' + (window.CSS ? CSS.escape(v) : v) + '"]');
       if (pick) pick.checked = true;
     } else if (k === "boolean") {

@@ -669,6 +669,31 @@ class HtmlGen:
                 parts.append(f'<div class="zui-sidebar__item{active}">{self.esc(c.text)}</div>')
         return f'<nav class="zui-sidebar">{"".join(parts)}</nav>'
 
+    def _n_tree(self, n: Node) -> str:
+        out = []
+
+        def walk(node, depth):
+            for c in node.children:
+                if c.name == "section":
+                    out.append(f'<div class="zui-tree__section">{self.esc(c.text)}</div>')
+                    continue
+                gid = c.attrs.get("id") or (c.text or "").lower().replace(" ", "-")
+                has_kids = any(k.name == "treeitem" for k in c.children)
+                exp = ' aria-expanded="true"' if has_kids and "collapsed" not in c.flags else (
+                    ' aria-expanded="false"' if has_kids else "")
+                sel = " zui-selected" if "selected" in c.flags else ""
+                rn = f' data-zui-rename="{self.esc(c.event)}"' if c.event else ""
+                out.append(
+                    f'<div class="zui-tree__item{sel}" data-id="{self.esc(gid)}" data-depth="{depth}"{exp}{rn}>'
+                    f'<span class="zui-tree__label">{self.esc(c.text)}</span></div>')
+                if has_kids:
+                    walk(c, depth + 1)
+
+        walk(n, 0)
+        name = n.attrs.get("export") or n.bind or n.attrs.get("id") or ""
+        nm = f' data-name="{self.esc(name)}"' if name else ""
+        return f'<div class="zui-tree" data-zui="tree"{nm}{self._zid(n)}>{"".join(out)}</div>'
+
     def _n_table(self, n: Node) -> str:
         cols = [c for c in n.children if c.name == "column"]
         sortable = "sortable" in n.flags or "nosort" not in n.flags

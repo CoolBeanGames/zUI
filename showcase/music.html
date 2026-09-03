@@ -55,15 +55,19 @@
 
   <div class="zui-workspace">
     <nav class="zui-sidebar">
-      <div class="zui-section-label">Library</div>
-      <div class="zui-sidebar__item zui-active">Artists</div>
-      <div class="zui-sidebar__item">Albums</div>
-      <div class="zui-sidebar__item">Genres</div>
-      <div class="zui-sidebar__item">Songs</div>
-      <div class="zui-section-label">Playlists</div>
-      <div class="zui-sidebar__item">Recently Added</div>
-      <div class="zui-sidebar__item">Focus</div>
-      <div class="zui-sidebar__item">Long Drives</div>
+      <div class="zui-tree" data-zui="tree" data-name="nav" style="width:100%">
+        <div class="zui-tree__section">Library</div>
+        <div class="zui-tree__item zui-selected" data-id="artists" data-depth="0"><span class="zui-tree__label">Artists</span></div>
+        <div class="zui-tree__item" data-id="albums" data-depth="0"><span class="zui-tree__label">Albums</span></div>
+        <div class="zui-tree__item" data-id="genres" data-depth="0"><span class="zui-tree__label">Genres</span></div>
+        <div class="zui-tree__item" data-id="songs" data-depth="0"><span class="zui-tree__label">Songs</span></div>
+        <div class="zui-tree__section">Playlists</div>
+        <div class="zui-tree__item" data-id="smart" data-depth="0" aria-expanded="true"><span class="zui-tree__label">Smart Playlists</span></div>
+        <div class="zui-tree__item" data-id="recent" data-depth="1"><span class="zui-tree__label">Recently Added</span></div>
+        <div class="zui-tree__item" data-id="top" data-depth="1"><span class="zui-tree__label">Top Rated</span></div>
+        <div class="zui-tree__item" data-id="focus" data-depth="0" data-zui-rename="pl.rename"><span class="zui-tree__label">Focus</span></div>
+        <div class="zui-tree__item" data-id="drives" data-depth="0" data-zui-rename="pl.rename"><span class="zui-tree__label">Long Drives</span></div>
+      </div>
     </nav>
 
     <div class="zui-fill zui-col">

@@ -23,6 +23,29 @@
     <filesChanged>core/css/tokens.css, core/css/themes/holo.css, core/css/themes/clean.css, core/css/THEMES.md, core/css/base.css, core/css/components/{button,layout,panel,scrollbar,table,tooltip,window}.css, showcase/index.html, showcase/music.html, README.md, design.txt, task_images/ZU-33.png</filesChanged>
     <image>ZU-33.png</image>
   </task>
+  <task id="ZU-22">
+    <name>tree view navigation</name>
+    <prompt>Add a tree/outline component for sidebar hierarchies (LIBRARY, PLAYLISTS): expand/collapse, keyboard nav, single/multi select, drag to reorder, rename-in-place. Requirement: the showcase sidebar uses the tree component and matches design.txt SIDEBAR rules.</prompt>
+    <requirements>A tree/outline component with expand/collapse, full keyboard nav, single/multi/shift select and rename-in-place; the showcase sidebar uses it and matches design.txt SIDEBAR (square selection, pale-accent, uppercase section headings).</requirements>
+    <inProgress>false</inProgress>
+    <done>true</done>
+    <bug>false</bug>
+    <error>false</error>
+    <errorMessage></errorMessage>
+    <lockKey></lockKey>
+    <locked>false</locked>
+    <archived>true</archived>
+    <blockedBy></blockedBy>
+    <dateStarted></dateStarted>
+    <dueDate></dueDate>
+    <commit>true</commit>
+    <build>false</build>
+    <release>false</release>
+    <tags>ui,coding</tags>
+    <notes>tree.css: flat-row model (.zui-tree__item with data-depth -&gt; --depth indent, aria-expanded twisty, .zui-tree__section heading, selected = pale accent + inset bar). zui.js [data-zui=tree]: descendants = following rows of greater depth; collapse walks the ancestor chain hiding rows; click/twisty/dblclick toggle; keyboard Up/Down/Home/End, Right expand-or-into, Left collapse-or-out, Enter activate, F2 rename; ctrl/shift multi-select; roving tabindex; emits 'tree' {name,id,action,selected}. IO 'tree' kind get/set selected ids. Compiler _n_tree/_n_treeitem (nesting -&gt; depth, &lt;section&gt;, selected/collapsed flags, event -&gt; data-zui-rename). music.html sidebar rebuilt on the tree (Smart Playlists group with children). 10/10 tests pass.</notes>
+    <filesChanged>core/css/components/tree.css, core/css/zui.css, core/js/zui.js, compiler/zslc.py, showcase/music.html</filesChanged>
+    <image></image>
+  </task>
   <task id="ZU-21">
     <name>sliders and range controls</name>
     <prompt>Add a slider/range component (CSS and zui.js): horizontal value slider, dual-thumb range, tick support, keyboard steps; used for playback scrub and volume. Requirement: restrained desktop styling, token-driven, emits value on the message bus.</prompt>

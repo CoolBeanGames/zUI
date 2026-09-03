@@ -1,0 +1,56 @@
+/* Tree / outline - hierarchical navigation (sidebars, file trees).
+ * Square selection, pale-accent highlight, thin, functional (design.txt SIDEBAR). */
+
+.zui-tree {
+  font-size: var(--zui-fs-normal);
+  user-select: none;
+  overflow: auto;
+}
+
+.zui-tree__item {
+  display: flex;
+  align-items: center;
+  gap: var(--zui-space-1);
+  height: 22px;
+  padding: 0 var(--zui-space-2) 0 var(--zui-space-3);
+  white-space: nowrap;
+  color: var(--zui-text);
+}
+.zui-tree__item:hover { background: var(--zui-bg-hover); }
+.zui-tree__item.zui-selected {
+  background: var(--zui-bg-selected);
+  box-shadow: inset 2px 0 0 var(--zui-accent);
+}
+
+/* indent by depth (set via --depth on the row) */
+.zui-tree__item { padding-left: calc(var(--zui-space-3) + var(--depth, 0) * 14px); }
+
+/* twisty */
+.zui-tree__twist {
+  width: 12px;
+  flex: 0 0 auto;
+  text-align: center;
+  color: var(--zui-text-secondary);
+  transition: transform var(--zui-dur-fast) var(--zui-ease);
+}
+.zui-tree__item[aria-expanded="false"] .zui-tree__twist { transform: rotate(-90deg); }
+.zui-tree__item[aria-expanded] .zui-tree__twist::before { content: "\25BE"; }
+.zui-tree__item:not([aria-expanded]) .zui-tree__twist { visibility: hidden; }
+
+.zui-tree__icon { width: 14px; flex: 0 0 auto; color: var(--zui-text-secondary); }
+.zui-tree__label { overflow: hidden; text-overflow: ellipsis; }
+
+/* section heading inside a tree (LIBRARY / PLAYLISTS) */
+.zui-tree__section {
+  font-size: var(--zui-fs-small);
+  font-weight: var(--zui-fw-medium);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--zui-label-color);
+  padding: var(--zui-space-3) var(--zui-space-3) var(--zui-space-1);
+  border-bottom: var(--zui-border-w) solid var(--zui-border);
+  margin-bottom: var(--zui-space-1);
+}
+
+/* drop indicator while reordering */
+.zui-tree__item.zui-reorder-into { box-shadow: inset 0 -2px 0 var(--zui-accent); }
