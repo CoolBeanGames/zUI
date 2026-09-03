@@ -1,5 +1,28 @@
 <?xml version="1.0" encoding="utf-8"?>
 <tasks project="zUI" nextIndex="31">
+  <task id="ZU-9">
+    <name>scroll bars</name>
+    <prompt>Refine scrollbar.css: thin neutral desktop scrollbars (WebKit and Firefox), overlay vs stable gutter option, corner treatment, optional custom-scrollbar JS fallback. Requirement: scrollbars match design.txt weight and look identical in the C# and C++ hosts.</prompt>
+    <requirements>Thin neutral desktop scrollbars applied to every scroll container in a zUI window; identical across the WebView2-based C# and C++ hosts; stable-gutter and overlay opt-ins available.</requirements>
+    <inProgress>false</inProgress>
+    <done>true</done>
+    <bug>false</bug>
+    <error>false</error>
+    <errorMessage></errorMessage>
+    <lockKey></lockKey>
+    <locked>false</locked>
+    <archived>true</archived>
+    <blockedBy></blockedBy>
+    <dateStarted></dateStarted>
+    <dueDate></dueDate>
+    <commit>true</commit>
+    <build>false</build>
+    <release>false</release>
+    <tags>ui,coding</tags>
+    <notes>Reworked scrollbar.css: styling now applies to all descendants of .zui-window (not just .zui-scroll), 12px thin track/thumb with 3px inset, hover/active thumb states, min thumb length, horizontal track border, step buttons hidden. Added .zui-scroll--stable (scrollbar-gutter: stable) and .zui-scroll--overlay (transparent overlay bars for dense grids). Firefox scrollbar-color fallback for non-Chromium hosts; both bindings use WebView2/Chromium so the WebKit pseudo-elements are the identical path. Dark-theme thumb colour under prefers-color-scheme.</notes>
+    <filesChanged>core/css/components/scrollbar.css</filesChanged>
+    <image></image>
+  </task>
   <task id="ZU-8">
     <name>dropdowns and selects</name>
     <prompt>Flesh out dropdown.css and zui.js select behaviour: single/multi select, keyboard nav (arrows/home/end/type-ahead), disabled and checked items, submenu support, popover positioning that stays on screen. Requirement: keyboard-operable select and a shared popover menu used by menubar and context menus.</prompt>

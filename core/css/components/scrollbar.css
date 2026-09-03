@@ -1,24 +1,65 @@
-/* Scroll bars: thin, neutral, desktop-weight. */
+/* Scroll bars: thin, neutral, desktop-weight.
+ *
+ * Both the C# and C++ bindings host zUI in a Chromium web view (WebView2), so
+ * the WebKit pseudo-elements below render identically in every host. The
+ * Firefox `scrollbar-*` properties are the fallback for a non-Chromium host.
+ */
 
-.zui-scroll { overflow: auto; }
+/* Applies to every scroll container inside a zUI window, plus anything the host
+   opts in with .zui-scroll. */
+.zui-window *,
+.zui-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: #c2c2c2 var(--zui-bg-surface-alt);
+}
 
-.zui-scroll::-webkit-scrollbar,
-.zui-window ::-webkit-scrollbar { width: 12px; height: 12px; }
+.zui-window ::-webkit-scrollbar,
+.zui-scroll::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
 
-.zui-scroll::-webkit-scrollbar-track,
-.zui-window ::-webkit-scrollbar-track {
+.zui-window ::-webkit-scrollbar-track,
+.zui-scroll::-webkit-scrollbar-track {
   background: var(--zui-bg-surface-alt);
   border-left: var(--zui-border-w) solid var(--zui-border);
 }
-.zui-scroll::-webkit-scrollbar-thumb,
-.zui-window ::-webkit-scrollbar-thumb {
+.zui-window ::-webkit-scrollbar-track:horizontal,
+.zui-scroll::-webkit-scrollbar-track:horizontal {
+  border-left: 0;
+  border-top: var(--zui-border-w) solid var(--zui-border);
+}
+
+.zui-window ::-webkit-scrollbar-thumb,
+.zui-scroll::-webkit-scrollbar-thumb {
   background: #c2c2c2;
   border: 3px solid var(--zui-bg-surface-alt);
   border-radius: 6px;
+  min-height: 24px;
 }
-.zui-scroll::-webkit-scrollbar-thumb:hover,
-.zui-window ::-webkit-scrollbar-thumb:hover { background: #a8a8a8; }
+.zui-window ::-webkit-scrollbar-thumb:hover,
+.zui-scroll::-webkit-scrollbar-thumb:hover { background: #a8a8a8; }
+.zui-window ::-webkit-scrollbar-thumb:active,
+.zui-scroll::-webkit-scrollbar-thumb:active { background: #949494; }
+
+.zui-window ::-webkit-scrollbar-corner,
 .zui-scroll::-webkit-scrollbar-corner { background: var(--zui-bg-surface-alt); }
 
-/* Firefox */
-.zui-scroll { scrollbar-width: thin; scrollbar-color: #c2c2c2 var(--zui-bg-surface-alt); }
+/* No up/down step arrows - not a Windows-native look and not in Chromium anyway. */
+.zui-window ::-webkit-scrollbar-button,
+.zui-scroll::-webkit-scrollbar-button { display: none; }
+
+/* Opt-in: reserve the gutter so content doesn't shift when a scrollbar appears. */
+.zui-scroll--stable { scrollbar-gutter: stable; }
+
+/* Opt-in: overlay scrollbars that sit on top of content (dense grids). */
+.zui-scroll--overlay::-webkit-scrollbar { width: 10px; height: 10px; }
+.zui-scroll--overlay::-webkit-scrollbar-track { background: transparent; border: 0; }
+.zui-scroll--overlay::-webkit-scrollbar-thumb { border-color: transparent; background: rgba(0, 0, 0, 0.28); }
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-zui-theme="holo"]) .zui-window *,
+  :root:not([data-zui-theme="holo"]) .zui-scroll {
+    scrollbar-color: #5a5a5a var(--zui-bg-surface-alt);
+  }
+}
