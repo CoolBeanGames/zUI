@@ -1,5 +1,28 @@
 <?xml version="1.0" encoding="utf-8"?>
 <tasks project="zUI" nextIndex="31">
+  <task id="ZU-12">
+    <name>tabbed displays</name>
+    <prompt>Complete tabs.css and zui.js: primary nav strip and secondary/document tab strips, closeable tabs, overflow handling, keyboard nav, ARIA tab semantics, tabpanel show/hide. Requirement: nav and tab strips behave like native desktop tabs and drive the tab channel.</prompt>
+    <requirements>Nav strip and tab strips act as native desktop tabs: click + arrow/Home/End keyboard selection with roving tabindex, ARIA tablist/tab/tabpanel roles, closeable tabs, horizontal overflow; selection emits the 'tab' channel (close emits 'tab-close').</requirements>
+    <inProgress>false</inProgress>
+    <done>true</done>
+    <bug>false</bug>
+    <error>false</error>
+    <errorMessage></errorMessage>
+    <lockKey></lockKey>
+    <locked>false</locked>
+    <archived>true</archived>
+    <blockedBy></blockedBy>
+    <dateStarted></dateStarted>
+    <dueDate></dueDate>
+    <commit>true</commit>
+    <build>false</build>
+    <release>false</release>
+    <tags>ui,coding</tags>
+    <notes>Rewrote the tabs runtime in zui.js: role/aria-selected/roving-tabindex init, activate() toggles class + hidden on owned panels only, keyboard nav (Left/Right/Up/Down/Home/End, Delete/Backspace closes), .zui-tab__close removes tab+panel and re-activates a neighbour. tabs.css: strips scroll horizontally with hidden scrollbar, non-shrinking tabs, styled close affordance. Showcase gains a closeable document-tab example.</notes>
+    <filesChanged>core/js/zui.js, core/css/components/tabs.css, showcase/index.html</filesChanged>
+    <image></image>
+  </task>
   <task id="ZU-11">
     <name>layout groups</name>
     <prompt>Expand layout.css and a small layout helper API in zui.js: row/column/fill, gap and padding scale, sidebar, splitter, responsive grid, form grid, scroll containers. Requirement: layouts are token-driven and compose without custom CSS in host apps.</prompt>

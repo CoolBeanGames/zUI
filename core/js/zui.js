@@ -162,25 +162,75 @@
     root = root || document;
 
     /* Tabs / nav: [data-zui="tabs"] container, [data-zui-tab="id"] triggers,
-       [data-zui-tabpanel="id"] panels. */
+       [data-zui-tabpanel="id"] panels. Behaves as a native desktop tab strip:
+       click / arrow-key selection, roving tabindex, ARIA roles, closeable tabs. */
     root.querySelectorAll('[data-zui="tabs"]').forEach(function (group) {
-      group.addEventListener("click", function (e) {
-        var t = e.target.closest("[data-zui-tab]");
-        if (!t || !group.contains(t)) return;
+      if (group.__zuiTabs) return; group.__zuiTabs = true;
+      group.setAttribute("role", "tablist");
+
+      function tabs() { return Array.prototype.slice.call(group.querySelectorAll("[data-zui-tab]")); }
+
+      function activate(t) {
+        if (!t) return;
         var id = t.getAttribute("data-zui-tab");
-        var owned = Array.prototype.map.call(
-          group.querySelectorAll("[data-zui-tab]"),
-          function (x) { return x.getAttribute("data-zui-tab"); });
-        group.querySelectorAll("[data-zui-tab]").forEach(function (x) {
-          x.classList.toggle("zui-active", x === t);
+        var owned = tabs().map(function (x) { return x.getAttribute("data-zui-tab"); });
+        tabs().forEach(function (x) {
+          var on = x === t;
+          x.classList.toggle("zui-active", on);
+          x.setAttribute("role", "tab");
+          x.setAttribute("aria-selected", String(on));
+          x.tabIndex = on ? 0 : -1;
         });
         document.querySelectorAll("[data-zui-tabpanel]").forEach(function (p) {
           var pid = p.getAttribute("data-zui-tabpanel");
-          if (owned.indexOf(pid) === -1) return;      // not controlled by this group
-          p.classList.toggle("zui-active", pid === id);
+          if (owned.indexOf(pid) === -1) return;
+          var on = pid === id;
+          p.classList.toggle("zui-active", on);
+          p.setAttribute("role", "tabpanel");
+          p.hidden = !on;
         });
         zui.send("tab", id);
+      }
+
+      group.addEventListener("click", function (e) {
+        var close = e.target.closest(".zui-tab__close");
+        if (close) {
+          e.stopPropagation();
+          var tab = close.closest("[data-zui-tab]");
+          var id = tab.getAttribute("data-zui-tab");
+          var wasActive = tab.classList.contains("zui-active");
+          var sibs = tabs();
+          var idx = sibs.indexOf(tab);
+          tab.remove();
+          var panel = document.querySelector('[data-zui-tabpanel="' + CSS.escape(id) + '"]');
+          if (panel) panel.remove();
+          zui.send("tab-close", id);
+          if (wasActive) activate(tabs()[Math.min(idx, tabs().length - 1)]);
+          return;
+        }
+        var t = e.target.closest("[data-zui-tab]");
+        if (t && group.contains(t)) activate(t);
       });
+
+      group.addEventListener("keydown", function (e) {
+        var sibs = tabs();
+        var cur = sibs.indexOf(e.target.closest("[data-zui-tab]"));
+        if (cur === -1) return;
+        var next = null;
+        if (e.key === "ArrowRight" || e.key === "ArrowDown") next = sibs[(cur + 1) % sibs.length];
+        else if (e.key === "ArrowLeft" || e.key === "ArrowUp") next = sibs[(cur - 1 + sibs.length) % sibs.length];
+        else if (e.key === "Home") next = sibs[0];
+        else if (e.key === "End") next = sibs[sibs.length - 1];
+        else if ((e.key === "Delete" || e.key === "Backspace")) {
+          var c = sibs[cur].querySelector(".zui-tab__close"); if (c) { c.click(); e.preventDefault(); }
+          return;
+        }
+        if (next) { activate(next); next.focus(); e.preventDefault(); }
+      });
+
+      // initialise roles / roving tabindex
+      var active = group.querySelector("[data-zui-tab].zui-active") || group.querySelector("[data-zui-tab]");
+      if (active) activate(active);
     });
 
     /* Title-bar window controls: a .zui-titlebar__btn carries data-window with
