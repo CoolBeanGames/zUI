@@ -70,7 +70,12 @@ Common attributes: `id`, `class`, `value`, `label`, `placeholder`, `icon`,
 
 - `bind:foo` on an input/select/check generates glue that (a) writes the control
   from `state.foo` whenever the host pushes a `state` message and (b) sends
-  `{channel:"state", payload:{foo: <value>}}` on change.
+  `{channel:"state", payload:{foo: <value>}}` on change. It also marks the node
+  `data-zui-id="foo"` so the host can address it directly (see below).
+- `export="name"` (any node) marks it `data-zui-id="name"` for the runtime
+  **component IO** layer: the host reads it with `zui.field`/`zui.values` or a
+  `query`, writes it with `zui.set` or a `set` message, and receives a `value`
+  message on every user change. See `core/PROTOCOL.md`.
 - `-> some.action` on a button/item generates a click handler that runs the
   matching `on some.action { ... }` block, or - if none exists - `emit("some.action")`.
 - `source=items` on a `table` (with `column` children) or a container repeats its

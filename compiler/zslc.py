@@ -509,6 +509,12 @@ class HtmlGen:
     def esc(self, s: str) -> str:
         return html.escape(str(s), quote=True)
 
+    def _zid(self, n: Node) -> str:
+        """ data-zui-id="..." for a node that opts into the runtime IO layer via
+        export="name" (or, implicitly, a bind:name binding)."""
+        name = n.attrs.get("export") or n.bind
+        return f' data-zui-id="{self.esc(name)}"' if name else ""
+
     def gen(self) -> str:
         body = "".join(self.render(n) for n in self.prog.roots)
         return DOC_TEMPLATE.format(
@@ -538,6 +544,7 @@ class HtmlGen:
             self.glue_events[eid] = n.event
         if "disabled" in n.flags:
             attrs += " disabled"
+        attrs += self._zid(n)
         attrs += extra
         kids = inner or "".join(self.render(c) for c in n.children)
         text = self.esc(n.text) if n.text else ""
@@ -559,8 +566,8 @@ class HtmlGen:
         if n.bind:
             i = n.attrs.get("id") or self.uid("t")
             self.binds.append((i, n.bind, "text"))
-            return f'<span id="{i}"></span>'
-        return f"<span>{self.esc(n.text or '')}</span>"
+            return f'<span id="{i}"{self._zid(n)}></span>'
+        return f"<span{self._zid(n)}>{self.esc(n.text or '')}</span>"
 
     def _n_button(self, n: Node) -> str:
         cls = "zui-btn"
@@ -575,19 +582,19 @@ class HtmlGen:
         ph = f' placeholder="{self.esc(n.attrs["placeholder"])}"' if "placeholder" in n.attrs else ""
         if n.bind:
             self.binds.append((i, n.bind, "input"))
-        return f'<input id="{i}" class="zui-input"{ph}>'
+        return f'<input id="{i}" class="zui-input"{ph}{self._zid(n)}>'
 
     def _n_textarea(self, n: Node) -> str:
         i = n.attrs.get("id") or self.uid("i")
         if n.bind:
             self.binds.append((i, n.bind, "input"))
-        return f'<textarea id="{i}" class="zui-textarea"></textarea>'
+        return f'<textarea id="{i}" class="zui-textarea"{self._zid(n)}></textarea>'
 
     def _n_check(self, n: Node) -> str:
         i = n.attrs.get("id") or self.uid("c")
         if n.bind:
             self.binds.append((i, n.bind, "check"))
-        return f'<label class="zui-check"><input type="checkbox" id="{i}"> {self.esc(n.text or "")}</label>'
+        return f'<label class="zui-check"><input type="checkbox" id="{i}"{self._zid(n)}> {self.esc(n.text or "")}</label>'
 
     def _n_field(self, n: Node) -> str:
         label = f"<label>{self.esc(n.text)}</label>" if n.text else ""
@@ -599,7 +606,8 @@ class HtmlGen:
         opts = [c.text for c in n.children if c.name == "option"]
         if n.bind:
             self.binds.append((i, n.bind, "select"))
-        return (f'<div class="zui-select" data-zui="select" id="{i}" data-name="{self.esc(n.bind or i)}" '
+        return (f'<div class="zui-select" data-zui="select" id="{i}" data-name="{self.esc(n.bind or i)}"'
+                f'{self._zid(n)} data-value="{self.esc(opts[0] if opts else "")}" '
                 f"data-options='{json.dumps(opts)}'><span class=\"zui-select__value\">"
                 f'{self.esc(opts[0] if opts else "")}</span></div>')
 
@@ -607,7 +615,8 @@ class HtmlGen:
         i = n.attrs.get("id") or self.uid("p")
         if n.bind:
             self.binds.append((i, n.bind, "progress"))
-        return f'<div class="zui-progress"><div class="zui-progress__bar" id="{i}" style="width:0%"></div></div>'
+        return (f'<div class="zui-progress"><div class="zui-progress__bar" id="{i}"'
+                f'{self._zid(n)} style="width:0%"></div></div>')
 
     def _n_menubar(self, n: Node) -> str:
         items = []

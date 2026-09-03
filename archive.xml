@@ -23,6 +23,29 @@
     <filesChanged>core/css/tokens.css, core/css/themes/holo.css, core/css/themes/clean.css, core/css/THEMES.md, core/css/base.css, core/css/components/{button,layout,panel,scrollbar,table,tooltip,window}.css, showcase/index.html, showcase/music.html, README.md, design.txt, task_images/ZU-33.png</filesChanged>
     <image>ZU-33.png</image>
   </task>
+  <task id="ZU-36">
+    <name>wire every component to the IO layer</name>
+    <prompt>Give every stateful/interactive component a get+set adapter through the ZU-35 core: text input / search / textarea (text), label &amp; text nodes (text), progress bar (fill % + indeterminate), button (click events out; programmatic click/flash, busy, disabled, label, pressed in), checkbox &amp; toggle (boolean), select (value), scrolling panels (scrollTop/Left + %, on-scroll export, scrollTo in). Add ZML/ZSL support so data-zui-id is emitted from an id= or a new export= attribute. Showcase: a panel that round-trips every value and a host-echo demo. Document the protocol in a PROTOCOL.md.</prompt>
+    <requirements>Every stateful component get+set-able through the ZU-35 core; ZSL/ZML export= (and bind:) emit data-zui-id; showcase round-trips values with a demo host; protocol documented.</requirements>
+    <inProgress>false</inProgress>
+    <done>true</done>
+    <bug>false</bug>
+    <error>false</error>
+    <errorMessage></errorMessage>
+    <lockKey></lockKey>
+    <locked>false</locked>
+    <archived>true</archived>
+    <blockedBy>ZU-35</blockedBy>
+    <dateStarted></dateStarted>
+    <dueDate></dueDate>
+    <commit>true</commit>
+    <build>false</build>
+    <release>false</release>
+    <tags>ui,coding,io</tags>
+    <notes>The ZU-35 adapters are generic on [data-zui-id] so all components (text/search/textarea, label &amp; text nodes, progress incl. indeterminate, button click-out + programmatic click/flash/busy/disabled/label/pressed, checkbox, toggle, native + .zui-select, scrolling panels top/left/pct + scrollTo) are covered. Compiler: new _zid() helper - export="name" on any node, and any bind:name, now emit data-zui-id; .zui-select also emits data-value for round-trip. zui.js: auto handler for inbound 'theme' channel; tabs runtime honours a #hash to preselect a tab. Showcase: a 'Component IO' panel on the Data tab with a demo host in showcase.js that echoes 'value'/'submit' (type Name -&gt; Host sees; +/- drive the progress bar via zui.set; Go emits clicks, 'trigger from host' calls zui.set(id,'click'); Submit form dumps zui.values). core/PROTOCOL.md documents the full channel + IO contract; GRAMMAR.md/README updated. 10/10 compiler tests + IO self-test pass; debug+release+test build clean.</notes>
+    <filesChanged>compiler/zslc.py, compiler/tests/test_compile.py, compiler/GRAMMAR.md, core/js/zui.js, core/PROTOCOL.md, README.md, showcase/index.html, showcase/showcase.js</filesChanged>
+    <image></image>
+  </task>
   <task id="ZU-35">
     <name>component IO core: two-way value protocol</name>
     <prompt>Build the core of a universal two-way data layer. Any component with data-zui-id is addressable. Outbound (UI-&gt;host): emit {id,kind,value} on the 'value' channel on every user change; zui.values(scope) snapshot; zui.field(id) getter; per-id local subscribe zui.bind(id,fn); [data-zui-submit] buttons emit 'submit' with the enclosing form's values. Inbound (host-&gt;UI): auto-handle 'set' {id,value}, 'set-many' {id:value}, and 'query' (reply with value/values). zui.set(id,value) writer. Scroll position reads throttled. No echo on programmatic set (loop-safe).</prompt>

@@ -39,12 +39,18 @@ bindings/
 showcase/               standalone app demoing every component
 ```
 
-### The message bus
+### The message bus & component IO
 
 UI and host talk over a single JSON channel. From the UI:
 `zui.send(channel, payload)`; the host replies / pushes with
 `zui.receive(channel, handler)`. Bindings map this onto their platform's web-view
 IPC (`postMessage` / `CoreWebView2.WebMessageReceived`).
+
+Any component tagged `data-zui-id` (or ZSL/ZML `export="…"`) is readable and
+writable both ways — text, checkboxes, selects, progress bars, labels, button
+clicks/state, and scroll positions. `zui.values()` / `zui.field(id)` /
+`zui.set(id, value)` in the page; `value` / `set` / `set-many` / `query` /
+`submit` on the bus. Full contract in [`core/PROTOCOL.md`](core/PROTOCOL.md).
 
 ## ZSL - the UI scripting language
 

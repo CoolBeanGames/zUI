@@ -86,6 +86,19 @@ def _render(prog, backend):
     return zslc.gen_cpp(prog, "build_ui")
 
 
+def test_export_emits_zui_id():
+    for src in ('panel { input "x" export=q  button "Go" export=go }',
+                '<panel><input export="q"/><button export="go">Go</button></panel>'):
+        h = zslc.HtmlGen(zslc.compile_source(src)).gen()
+        _check('data-zui-id="q"' in h, f"input export -> data-zui-id ({src[:1]})")
+        _check('data-zui-id="go"' in h, f"button export -> data-zui-id ({src[:1]})")
+
+
+def test_bind_also_exports():
+    h = zslc.HtmlGen(zslc.compile_source('col { text bind:status }')).gen()
+    _check('data-zui-id="status"' in h, "bind: implies data-zui-id")
+
+
 def test_zml_comments_and_selfclose():
     prog = zslc.compile_source('<!-- hi --><col><spinner/><text bind="x"/></col>')
     col = prog.roots[0]

@@ -181,6 +181,31 @@
             </table>
           </div>
         </div>
+
+        <div class="sc-block" data-zui-form data-zui-id="ioForm">
+          <h3>Component IO (live round-trip with a demo host)</h3>
+          <div class="zui-form-grid" style="max-width:460px">
+            <label>Name</label>
+            <input class="zui-input" data-zui-id="io-name" placeholder="type here">
+            <label>Host sees</label>
+            <span data-zui-id="io-echo" class="zui-text-secondary">&mdash;</span>
+            <label>Scan</label>
+            <div class="zui-row zui-gap-2 zui-items-center">
+              <div class="zui-progress" style="width:180px"><div class="zui-progress__bar" data-zui-id="io-scan" style="width:30%"></div></div>
+              <button class="zui-btn" onclick="zui.set('io-scan', Math.max(0,(zui.field('io-scan')||0)-10))">&minus;</button>
+              <button class="zui-btn" onclick="zui.set('io-scan', Math.min(100,(zui.field('io-scan')||0)+10))">+</button>
+            </div>
+            <label>Button</label>
+            <div class="zui-row zui-gap-2 zui-items-center">
+              <button class="zui-btn" data-zui-id="io-go">Go</button>
+              <button class="zui-btn" onclick="zui.set('io-go','click')">trigger from &ldquo;host&rdquo;</button>
+              <span data-zui-id="io-count" class="zui-text-secondary">0 clicks</span>
+            </div>
+            <div class="zui-form-grid__full zui-row zui-justify-end">
+              <button class="zui-btn zui-btn--primary" data-zui-submit="io">Submit form</button>
+            </div>
+          </div>
+        </div>
       </section>
 
     </div>

@@ -1,5 +1,24 @@
 /* Showcase behaviour - exercises the zUI message bus with no host attached. */
 
+/* A tiny demo "host" so the Component IO panel round-trips with no backend:
+   it receives UI->host messages and reacts the way a real host would. */
+(function () {
+  var clicks = 0;
+  window.__zuiHost = {
+    postMessage: function (raw) {
+      var msg = JSON.parse(raw);
+      if (msg.channel === "value") {
+        var p = msg.payload;
+        if (p.id === "io-name") zui.set("io-echo", p.value ? 'Host received: "' + p.value + '"' : "—");
+        if (p.id === "io-go" && p.event === "click") zui.set("io-count", (++clicks) + " clicks");
+      }
+      if (msg.channel === "submit") {
+        zui.toast("submit " + msg.payload.form + ": " + JSON.stringify(msg.payload.values), { kind: "ok" });
+      }
+    }
+  };
+})();
+
 zui.receive("view.theme", function (name) { zui.setTheme(name); });
 zui.receive("help.about", function () {
   zui.toast("zUI " + zui.version + " - holo theme", { kind: "ok" });

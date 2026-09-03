@@ -273,8 +273,11 @@
         if (next) { activate(next); next.focus(); e.preventDefault(); }
       });
 
-      // initialise roles / roving tabindex
-      var active = group.querySelector("[data-zui-tab].zui-active") || group.querySelector("[data-zui-tab]");
+      // initialise roles / roving tabindex; #hash can preselect a tab
+      var hash = (location.hash || "").slice(1);
+      var active = (hash && group.querySelector('[data-zui-tab="' + (window.CSS ? CSS.escape(hash) : hash) + '"]')) ||
+        group.querySelector("[data-zui-tab].zui-active") ||
+        group.querySelector("[data-zui-tab]");
       if (active) activate(active);
     });
 
@@ -710,6 +713,7 @@
   };
 
   /* inbound channels (registered once) */
+  zui.receive("theme", function (name) { if (name) zui.setTheme(typeof name === "string" ? name : name.name); });
   zui.receive("set", function (p) { if (p) zui.set(p.id, p.value); });
   zui.receive("set-many", function (p) { if (p) zui.set(p); });
   zui.receive("query", function (p) {
