@@ -43,6 +43,25 @@ zui.receive("drop", function (info) {
   zui.toast("Added " + (info.files.length || 0) + " file(s) to " + info.target);
 });
 
+/* Virtualised 10k-row list. */
+window.bigListApi = null;
+document.addEventListener("DOMContentLoaded", function () {
+  var host = document.getElementById("bigList");
+  if (!host || !window.zui || !zui.virtualList) return;
+  var NAMES = ["Nightdrive", "Paper Cranes", "Coastline", "Quartz", "Afterimage", "Slow Signal"];
+  window.bigListApi = zui.virtualList(host, {
+    count: 10000, rowHeight: 24,
+    render: function (i) {
+      var row = document.createElement("div");
+      row.className = "zui-list__item zui-t-truncate";
+      row.style.display = "flex";
+      row.innerHTML = '<span style="width:56px;color:var(--zui-text-secondary)">' + (i + 1) +
+        '</span><span>' + NAMES[i % NAMES.length] + " #" + i + "</span>";
+      return row;
+    }
+  });
+});
+
 /* Simulated device connect/disconnect from a host. */
 zui.receive("device", function (dev) {
   var bar = document.getElementById("deviceBar");

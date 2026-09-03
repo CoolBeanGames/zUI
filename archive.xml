@@ -23,6 +23,29 @@
     <filesChanged>core/css/tokens.css, core/css/themes/holo.css, core/css/themes/clean.css, core/css/THEMES.md, core/css/base.css, core/css/components/{button,layout,panel,scrollbar,table,tooltip,window}.css, showcase/index.html, showcase/music.html, README.md, design.txt, task_images/ZU-33.png</filesChanged>
     <image>ZU-33.png</image>
   </task>
+  <task id="ZU-19">
+    <name>tables and lists</name>
+    <prompt>Complete table.css and zui.js: compact rows, subtle separators, sortable and resizable columns, single/multi/shift/ctrl selection, functional row states only, a virtualised rendering hook for large datasets. Requirement: a 10000-row track table scrolls smoothly and matches design.txt.</prompt>
+    <requirements>Compact tables/lists per design.txt: sortable + resizable columns, single/multi/shift/ctrl selection, functional row states only, and a virtualisation helper so a 10k-row list scrolls smoothly (only visible rows in the DOM).</requirements>
+    <inProgress>false</inProgress>
+    <done>true</done>
+    <bug>false</bug>
+    <error>false</error>
+    <errorMessage></errorMessage>
+    <lockKey></lockKey>
+    <locked>false</locked>
+    <archived>true</archived>
+    <blockedBy></blockedBy>
+    <dateStarted></dateStarted>
+    <dueDate></dueDate>
+    <commit>true</commit>
+    <build>false</build>
+    <release>false</release>
+    <tags>ui,coding</tags>
+    <notes>table.css: sort indicator (asc/desc caret), column resize grip styles. zui.js: table[data-zui-table] (or data-zui=selectable) wiring - each &lt;th data-field&gt; sorts the tbody in place (numeric-aware) and emits 'sort'; every &lt;th&gt; gets a drag grip emitting 'column-resize'. zui.virtualList(scrollEl,{count,rowHeight,render,overscan}) -&gt; windowed rendering with a sizer + rAF-throttled relayout, returns refresh/scrollToIndex/destroy. Compiler _n_table now always emits data-zui-table + per-column data-field (+ zui-num from a  column flag, nosort to opt out). Selection unchanged. Showcase: sortable Tracks table + a live 10,000-row virtual list with Jump-to-5000. 10/10 compiler tests pass.</notes>
+    <filesChanged>core/css/components/table.css, core/js/zui.js, compiler/zslc.py, showcase/index.html, showcase/showcase.js</filesChanged>
+    <image></image>
+  </task>
   <task id="ZU-18">
     <name>text inputs and form fields</name>
     <prompt>Flesh out input.css and zui.js: text/search/number inputs, textarea, labelled fields, validation states (error/warn) with messages, inline rename-in-place, compact desktop sizing. Requirement: forms match design.txt (no giant/mobile inputs); validation is token-driven.</prompt>

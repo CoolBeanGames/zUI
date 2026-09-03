@@ -605,6 +605,54 @@
       });
     });
 
+    /* Sortable / resizable table columns: [data-zui="table"] on a <table>.
+       A <th> opts into sorting with data-field; all get a resize grip.
+       Sorting reorders the tbody rows in place and emits "sort". */
+    (root || document).querySelectorAll('table[data-zui-table], table[data-zui="selectable"]').forEach(function (table) {
+      if (table.__zuiTable) return; table.__zuiTable = true;
+      var ths = Array.prototype.slice.call(table.querySelectorAll("thead th"));
+      ths.forEach(function (th, ci) {
+        // resize grip
+        var grip = document.createElement("span");
+        grip.className = "zui-col-resize";
+        th.appendChild(grip);
+        grip.addEventListener("mousedown", function (e) {
+          e.preventDefault(); e.stopPropagation();
+          var startX = e.clientX, startW = th.offsetWidth;
+          var rel = zui.cursor.push("col");
+          function mv(ev) { th.style.width = Math.max(32, startW + ev.clientX - startX) + "px"; }
+          function up() {
+            document.removeEventListener("mousemove", mv); document.removeEventListener("mouseup", up); rel();
+            zui.send("column-resize", { column: th.getAttribute("data-field") || ci, width: th.offsetWidth });
+          }
+          document.addEventListener("mousemove", mv); document.addEventListener("mouseup", up);
+        });
+        // sort
+        var field = th.getAttribute("data-field");
+        if (field == null) return;
+        th.setAttribute("data-sort", "");
+        th.addEventListener("click", function () {
+          var cur = th.getAttribute("data-sort");
+          var dir = cur === "asc" ? "desc" : "asc";
+          ths.forEach(function (o) { if (o !== th) o.setAttribute("data-sort", o.hasAttribute("data-sort") ? "" : null); });
+          th.setAttribute("data-sort", dir);
+          var tb = table.tBodies[0];
+          if (tb) {
+            var rows = Array.prototype.slice.call(tb.rows);
+            rows.sort(function (a, b) {
+              var av = a.cells[ci] ? a.cells[ci].textContent.trim() : "";
+              var bv = b.cells[ci] ? b.cells[ci].textContent.trim() : "";
+              var na = parseFloat(av), nb = parseFloat(bv);
+              var cmp = (!isNaN(na) && !isNaN(nb)) ? na - nb : av.localeCompare(bv);
+              return dir === "asc" ? cmp : -cmp;
+            });
+            rows.forEach(function (r) { tb.appendChild(r); });
+          }
+          zui.send("sort", { column: field, dir: dir });
+        });
+      });
+    });
+
     /* Table / list selection with Ctrl and Shift. */
     root.querySelectorAll('[data-zui="selectable"]').forEach(function (container) {
       if (container.__zuiSel) return; container.__zuiSel = true;
@@ -881,6 +929,47 @@
       else if (e.key === "Escape") { e.preventDefault(); done(false); }
     });
     input.addEventListener("blur", function () { done(true); });
+  };
+
+  /* Windowed rendering for very large lists/tables. Only visible rows exist in
+     the DOM, so 100k rows scroll smoothly.
+       zui.virtualList(scrollEl, {
+         count, rowHeight, render(index) -> HTMLElement, overscan=8 })
+     Returns { refresh(newCount), scrollToIndex(i), destroy() }. */
+  zui.virtualList = function (scrollEl, opts) {
+    scrollEl = asNode(scrollEl);
+    var rowH = opts.rowHeight, overscan = opts.overscan || 8;
+    var count = opts.count;
+    scrollEl.style.position = scrollEl.style.position || "relative";
+    scrollEl.style.overflowY = "auto";
+    var sizer = document.createElement("div");
+    sizer.style.cssText = "position:relative;width:100%";
+    var pool = document.createElement("div");
+    pool.style.cssText = "position:absolute;top:0;left:0;right:0";
+    sizer.appendChild(pool);
+    scrollEl.appendChild(sizer);
+
+    function layout() {
+      sizer.style.height = count * rowH + "px";
+      var top = scrollEl.scrollTop;
+      var first = Math.max(0, Math.floor(top / rowH) - overscan);
+      var last = Math.min(count, Math.ceil((top + scrollEl.clientHeight) / rowH) + overscan);
+      pool.style.transform = "translateY(" + first * rowH + "px)";
+      pool.textContent = "";
+      for (var i = first; i < last; i++) {
+        var el = opts.render(i);
+        el.style.height = rowH + "px";
+        pool.appendChild(el);
+      }
+    }
+    var onScroll = function () { window.requestAnimationFrame(layout); };
+    scrollEl.addEventListener("scroll", onScroll, { passive: true });
+    layout();
+    return {
+      refresh: function (n) { if (n != null) count = n; layout(); },
+      scrollToIndex: function (i) { scrollEl.scrollTop = i * rowH; },
+      destroy: function () { scrollEl.removeEventListener("scroll", onScroll); sizer.remove(); }
+    };
   };
 
   zui.bind = function (id, handler) {

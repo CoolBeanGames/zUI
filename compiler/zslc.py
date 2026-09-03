@@ -661,13 +661,17 @@ class HtmlGen:
 
     def _n_table(self, n: Node) -> str:
         cols = [c for c in n.children if c.name == "column"]
-        head = "".join(f"<th>{self.esc(c.text)}</th>" for c in cols)
+        sortable = "sortable" in n.flags or "nosort" not in n.flags
+        head = "".join(
+            f'<th{(" data-field=" + chr(34) + self.esc(c.attrs.get("field", c.text or "")) + chr(34)) if sortable else ""}'
+            f'{" class=" + chr(34) + "zui-num" + chr(34) if "num" in c.flags else ""}>{self.esc(c.text)}</th>'
+            for c in cols)
         sel = ' data-zui="selectable"' if "selectable" in n.flags else ""
         i = n.attrs.get("id") or self.uid("tbl")
         if n.source:
             self.binds.append((i, n.source, "table:" + json.dumps([c.attrs.get("field", "") for c in cols])))
-        return (f'<table class="zui-table" id="{i}"{sel}><thead><tr>{head}</tr></thead>'
-                f'<tbody></tbody></table>')
+        return (f'<table class="zui-table" id="{i}"{sel} data-zui-table{self._zid(n)}>'
+                f'<thead><tr>{head}</tr></thead><tbody></tbody></table>')
 
     def _n_panel(self, n: Node) -> str:
         header = f'<div class="zui-panel__header">{self.esc(n.text)}</div>' if n.text else ""

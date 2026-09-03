@@ -16,6 +16,26 @@
   padding: var(--zui-space-1) var(--zui-space-3);
   white-space: nowrap;
 }
+/* Sortable column header. */
+.zui-table th[data-sort] { cursor: default; user-select: none; padding-right: 18px; position: relative; }
+.zui-table th[data-sort]:hover { color: var(--zui-text); }
+.zui-table th[data-sort]::after {
+  content: "";
+  position: absolute;
+  right: var(--zui-space-2);
+  top: 50%;
+  border: 4px solid transparent;
+  opacity: 0;
+}
+.zui-table th[data-sort="asc"]::after  { border-bottom-color: var(--zui-accent); margin-top: -6px; opacity: 1; }
+.zui-table th[data-sort="desc"]::after { border-top-color: var(--zui-accent); margin-top: -2px; opacity: 1; }
+/* Column resize grip. */
+.zui-table th .zui-col-resize {
+  position: absolute;
+  right: -3px; top: 0; bottom: 0;
+  width: 6px;
+  cursor: col-resize;
+}
 .zui-table tbody td {
   padding: var(--zui-space-1) var(--zui-space-3);
   border-bottom: var(--zui-border-w) solid var(--zui-bg-surface-alt);

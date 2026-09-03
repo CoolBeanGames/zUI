@@ -197,9 +197,9 @@
         <div class="zui-panel">
           <div class="zui-panel__header">Tracks</div>
           <div class="zui-panel__body zui-panel__body--flush">
-            <table class="zui-table" data-zui="selectable"
+            <table class="zui-table" data-zui="selectable" data-zui-table
                    data-zui-context='[{"label":"Play","channel":"track.play"},{"label":"Add to playlist","items":[{"label":"Focus","channel":"pl.focus"},{"label":"Long Drives","channel":"pl.drives"},"-",{"label":"New playlist...","channel":"pl.new"}]},"-",{"label":"Get info","shortcut":"Ctrl+I","channel":"track.info"},{"label":"Delete","channel":"track.del"}]'>
-              <thead><tr><th>#</th><th>Name</th><th>Artist</th><th>Album</th><th class="zui-num">Plays</th></tr></thead>
+              <thead><tr><th data-field="n">#</th><th data-field="name">Name</th><th data-field="artist">Artist</th><th data-field="album">Album</th><th class="zui-num" data-field="plays">Plays</th></tr></thead>
               <tbody>
                 <tr data-zui-row="1"><td>1</td><td>Nightdrive</td><td>Aria Kane</td><td>Long Exposure</td><td class="zui-num">42</td></tr>
                 <tr data-zui-row="2"><td>2</td><td>Paper Cranes</td><td>Aria Kane</td><td>Long Exposure</td><td class="zui-num">17</td></tr>
@@ -207,6 +207,15 @@
                 <tr data-zui-row="4"><td>4</td><td>Quartz</td><td>Møller</td><td>Cold Rooms</td><td class="zui-num">89</td></tr>
               </tbody>
             </table>
+          </div>
+        </div>
+
+        <div class="sc-block">
+          <h3>Virtualised list — 10,000 rows</h3>
+          <div id="bigList" class="zui-scroll" style="height:200px;border:1px solid var(--zui-border)"></div>
+          <div class="zui-row zui-gap-2" style="margin-top:var(--zui-space-2)">
+            <button class="zui-btn" onclick="bigListApi.scrollToIndex(5000)">Jump to 5000</button>
+            <span class="zui-text-secondary" id="bigListNote">only visible rows are in the DOM</span>
           </div>
         </div>
 
