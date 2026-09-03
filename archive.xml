@@ -23,6 +23,31 @@
     <filesChanged>core/css/tokens.css, core/css/themes/holo.css, core/css/themes/clean.css, core/css/THEMES.md, core/css/base.css, core/css/components/{button,layout,panel,scrollbar,table,tooltip,window}.css, showcase/index.html, showcase/music.html, README.md, design.txt, task_images/ZU-33.png</filesChanged>
     <image>ZU-33.png</image>
   </task>
+  <task id="ZU-31">
+    <name>Design.txt</name>
+    <prompt>Please redesign your own design.TXT file to explain how to use the tool set how to download it from GitHub, so that agents know how to utilize this tool chain
+
+I will manually populate it to the other agents and projects for now just re-create your own</prompt>
+    <requirements></requirements>
+    <inProgress>false</inProgress>
+    <done>true</done>
+    <bug>false</bug>
+    <error>false</error>
+    <errorMessage></errorMessage>
+    <lockKey></lockKey>
+    <locked>false</locked>
+    <archived>true</archived>
+    <blockedBy></blockedBy>
+    <dateStarted></dateStarted>
+    <dueDate></dueDate>
+    <commit>false</commit>
+    <build>false</build>
+    <release>false</release>
+    <tags>Documentation</tags>
+    <notes>Rewrote design.txt as a toolchain guide for agents in other projects. Part 1 (USING zUI): repo URL + doc map; get it as a git submodule; what's under core/ + bindings; embed via C#/C++ (with code) or a plain zUI HTML doc; author screens in ZSL/ZML and compile AOT with zslc.py; the message bus + component-IO in one paragraph pointing at PROTOCOL.md; how to keep it consistent (build.ps1 -Config test, add IO adapter + PROTOCOL row + token-only CSS, themes are one file). Part 2 (VISUAL DESIGN STANDARD): condensed the original rules - identity (holo default / clean alt), structure, type, controls, spacing/borders, iconography, interaction, the consistency rule - all still binding, palette-agnostic.</notes>
+    <filesChanged>design.txt</filesChanged>
+    <image></image>
+  </task>
   <task id="ZU-30">
     <name>host integration examples</name>
     <prompt>Add runnable minimal host samples: a WinForms/WPF C# app and a Win32 C++ app that each open the showcase through their binding and round-trip a few messages (theme, device, selection, save). Requirement: both samples build via build.ps1 and show identical UI.</prompt>
