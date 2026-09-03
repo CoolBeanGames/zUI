@@ -1,5 +1,28 @@
 <?xml version="1.0" encoding="utf-8"?>
 <tasks project="zUI" nextIndex="31">
+  <task id="ZU-11">
+    <name>layout groups</name>
+    <prompt>Expand layout.css and a small layout helper API in zui.js: row/column/fill, gap and padding scale, sidebar, splitter, responsive grid, form grid, scroll containers. Requirement: layouts are token-driven and compose without custom CSS in host apps.</prompt>
+    <requirements>Token-driven layout utilities (flex row/col/fill, full 4-24 gap+padding scale, alignment, scroll containers, divided stack, labelled form grid, sidebar, splitter, responsive grid) that compose host layouts without any custom CSS.</requirements>
+    <inProgress>false</inProgress>
+    <done>true</done>
+    <bug>false</bug>
+    <error>false</error>
+    <errorMessage></errorMessage>
+    <lockKey></lockKey>
+    <locked>false</locked>
+    <archived>true</archived>
+    <blockedBy></blockedBy>
+    <dateStarted></dateStarted>
+    <dueDate></dueDate>
+    <commit>true</commit>
+    <build>false</build>
+    <release>false</release>
+    <tags>ui,coding</tags>
+    <notes>Expanded layout.css: added wrap, items-/justify- alignment helpers, .zui-spacer, gap-6 + pad-1/2/6 to complete the design.txt spacing scale, .zui-scroll-y/-x, .zui-stack (thin-rule-divided children), and .zui-form-grid (label|control grid with right-aligned small labels and __full spanning row). Showcase Forms page rebuilt on .zui-form-grid. All values reference spacing/border/type tokens.</notes>
+    <filesChanged>core/css/components/layout.css, showcase/index.html</filesChanged>
+    <image></image>
+  </task>
   <task id="ZU-10">
     <name>buttons</name>
     <prompt>Complete button.css: default/primary/icon-only/toggle/split-button, button groups, disabled and busy (spinner) states, compact sizing. Add toggle and split-button behaviour to zui.js. Requirement: all button variants restrained (no web CTA styling) and keyboard/AT operable.</prompt>

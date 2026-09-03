@@ -3,13 +3,52 @@
 .zui-row     { display: flex; flex-direction: row; min-width: 0; min-height: 0; }
 .zui-col     { display: flex; flex-direction: column; min-width: 0; min-height: 0; }
 .zui-fill    { flex: 1 1 auto; min-width: 0; min-height: 0; }
+.zui-wrap    { flex-wrap: wrap; }
 .zui-center  { align-items: center; justify-content: center; }
+
+/* alignment (work on .zui-row / .zui-col) */
+.zui-items-start   { align-items: flex-start; }
+.zui-items-center  { align-items: center; }
+.zui-items-end     { align-items: flex-end; }
+.zui-items-stretch { align-items: stretch; }
+.zui-justify-start   { justify-content: flex-start; }
+.zui-justify-center  { justify-content: center; }
+.zui-justify-end     { justify-content: flex-end; }
+.zui-justify-between { justify-content: space-between; }
+.zui-spacer { flex: 1 1 auto; }
+
+/* gap + padding: the full design.txt scale (4/8/12/16/24) */
 .zui-gap-1 { gap: var(--zui-space-1); }
 .zui-gap-2 { gap: var(--zui-space-2); }
 .zui-gap-3 { gap: var(--zui-space-3); }
 .zui-gap-4 { gap: var(--zui-space-4); }
+.zui-gap-6 { gap: var(--zui-space-6); }
+.zui-pad-1 { padding: var(--zui-space-1); }
+.zui-pad-2 { padding: var(--zui-space-2); }
 .zui-pad-3 { padding: var(--zui-space-3); }
 .zui-pad-4 { padding: var(--zui-space-4); }
+.zui-pad-6 { padding: var(--zui-space-6); }
+
+/* scroll containers */
+.zui-scroll-y { overflow-y: auto; overflow-x: hidden; min-height: 0; }
+.zui-scroll-x { overflow-x: auto; overflow-y: hidden; min-width: 0; }
+
+/* vertical stack whose children are divided by a thin rule */
+.zui-stack > * + * { border-top: var(--zui-border-w) solid var(--zui-border); }
+
+/* labelled form grid: label column + control column, compact rows */
+.zui-form-grid {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: var(--zui-space-2) var(--zui-space-3);
+  align-items: center;
+}
+.zui-form-grid > label {
+  font-size: var(--zui-fs-small);
+  color: var(--zui-text-secondary);
+  justify-self: end;
+}
+.zui-form-grid > .zui-form-grid__full { grid-column: 1 / -1; justify-self: stretch; }
 
 /* Sidebar: narrow, functional, square selection. */
 .zui-sidebar {
