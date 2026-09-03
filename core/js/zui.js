@@ -706,7 +706,9 @@
   function clampPct(v) { v = parseFloat(v); return isNaN(v) ? 0 : Math.max(0, Math.min(100, v)); }
 
   function ioKind(el) {
+    if (el.matches('[role="radiogroup"], .zui-choice-group[data-zui-id]') && el.querySelector('input[type=radio]')) return "radio";
     if (el.matches("input[type=checkbox]")) return "boolean";
+    if (el.matches("input[type=radio]")) return "boolean";
     if (el.matches("input, textarea")) return "text";
     if (el.matches("select")) return "select";
     if (el.classList.contains("zui-select")) return "select";
@@ -719,6 +721,10 @@
 
   function ioGet(el) {
     var k = ioKind(el);
+    if (k === "radio") {
+      var on = el.querySelector("input[type=radio]:checked");
+      return on ? on.value : null;
+    }
     if (k === "boolean") {
       return el.matches("input") ? el.checked : el.getAttribute("aria-pressed") === "true";
     }
@@ -745,9 +751,14 @@
 
   function ioSet(el, v) {
     var k = ioKind(el);
-    if (k === "boolean") {
-      if (el.matches("input")) el.checked = !!v;
-      else el.setAttribute("aria-pressed", String(v === true || (v && v.pressed)));
+    if (k === "radio") {
+      var pick = el.querySelector('input[type=radio][value="' + (window.CSS ? CSS.escape(v) : v) + '"]');
+      if (pick) pick.checked = true;
+    } else if (k === "boolean") {
+      if (el.matches("input")) {
+        if (v === "indeterminate") { el.indeterminate = true; }
+        else { el.indeterminate = false; el.checked = !!v; }
+      } else el.setAttribute("aria-pressed", String(v === true || (v && v.pressed)));
     } else if (k === "text" && el.matches("input, textarea")) {
       el.value = v == null ? "" : v;
     } else if (k === "select") {
@@ -804,6 +815,8 @@
       if (k === "text" && el.matches("input, textarea")) {
         el.addEventListener("input", function () { ioEmit(el); });
         el.addEventListener("change", function () { ioEmit(el, { committed: true }); });
+      } else if (k === "radio") {
+        el.addEventListener("change", function () { ioEmit(el); });
       } else if (k === "boolean" && el.matches("input")) {
         el.addEventListener("change", function () { ioEmit(el); });
       } else if (k === "boolean") { // toggle button

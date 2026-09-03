@@ -178,6 +178,27 @@
           </div>
         </div>
         <div class="sc-block">
+          <h3>Checkboxes, radios &amp; toggles</h3>
+          <div class="zui-row zui-gap-6" style="align-items:flex-start">
+            <div class="zui-choice-group">
+              <label class="zui-check"><input type="checkbox" checked> Show artwork</label>
+              <label class="zui-check"><input type="checkbox" id="cbInd"> Include compilations</label>
+              <label class="zui-check zui-disabled"><input type="checkbox" disabled> Beta features</label>
+            </div>
+            <div class="zui-choice-group" role="radiogroup" data-zui-id="quality">
+              <label class="zui-radio"><input type="radio" name="q" value="low"> Low</label>
+              <label class="zui-radio"><input type="radio" name="q" value="med" checked> Medium</label>
+              <label class="zui-radio"><input type="radio" name="q" value="high"> High</label>
+            </div>
+            <div class="zui-choice-group">
+              <label class="zui-switch"><input type="checkbox" data-zui-id="sw-sync" checked><span class="zui-switch__track"></span> Auto-sync</label>
+              <label class="zui-switch"><input type="checkbox"><span class="zui-switch__track"></span> Offline mode</label>
+            </div>
+          </div>
+          <script>document.getElementById('cbInd').indeterminate = true;</script>
+        </div>
+
+        <div class="sc-block">
           <h3>Rename in place (double-click)</h3>
           <div class="zui-list" style="max-width:220px;border:1px solid var(--zui-border)">
             <div class="zui-list__item" data-zui-rename="playlist.rename">Focus</div>

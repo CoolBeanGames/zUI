@@ -51,5 +51,60 @@
 .zui-search .zui-input { padding-left: var(--zui-space-6); width: 220px; }
 .zui-search__icon { position: absolute; left: var(--zui-space-2); top: 50%; transform: translateY(-50%); color: var(--zui-text-secondary); }
 
-.zui-check { display: inline-flex; align-items: center; gap: var(--zui-space-2); }
-.zui-check input { width: 13px; height: 13px; accent-color: var(--zui-accent); }
+/* Checkbox / radio: compact, accent-driven, native for full keyboard support. */
+.zui-check,
+.zui-radio {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--zui-space-2);
+  min-height: var(--zui-control-h);
+}
+.zui-check input,
+.zui-radio input {
+  width: 13px;
+  height: 13px;
+  margin: 0;
+  accent-color: var(--zui-accent);
+}
+.zui-check.zui-disabled,
+.zui-radio.zui-disabled { color: var(--zui-text-disabled); }
+
+/* Vertical group of radios / checkboxes. */
+.zui-choice-group { display: flex; flex-direction: column; gap: var(--zui-space-1); }
+.zui-choice-group--row { flex-direction: row; gap: var(--zui-space-4); }
+
+/* Toggle switch - only where a control genuinely represents on/off state.
+   Built on a native checkbox so it stays keyboard-operable. */
+.zui-switch { display: inline-flex; align-items: center; gap: var(--zui-space-2); min-height: var(--zui-control-h); }
+.zui-switch input { position: absolute; opacity: 0; width: 0; height: 0; }
+.zui-switch__track {
+  width: 28px;
+  height: 16px;
+  border-radius: 8px;
+  background: var(--zui-bg-active);
+  border: var(--zui-border-w) solid var(--zui-border-strong);
+  position: relative;
+  transition: background var(--zui-dur-fast) var(--zui-ease);
+  flex: 0 0 auto;
+}
+.zui-switch__track::after {
+  content: "";
+  position: absolute;
+  top: 1px;
+  left: 1px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--zui-text-secondary);
+  transition: transform var(--zui-dur-fast) var(--zui-ease), background var(--zui-dur-fast) var(--zui-ease);
+}
+.zui-switch input:checked + .zui-switch__track {
+  background: var(--zui-accent-weak);
+  border-color: var(--zui-accent);
+}
+.zui-switch input:checked + .zui-switch__track::after {
+  transform: translateX(12px);
+  background: var(--zui-accent);
+}
+.zui-switch input:focus-visible + .zui-switch__track { outline: 1px solid var(--zui-border-focus); outline-offset: 1px; }
+.zui-switch input:disabled + .zui-switch__track { opacity: 0.5; }
