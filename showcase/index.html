@@ -35,6 +35,17 @@
     <div class="zui-nav__item zui-active" data-zui-tab="components"><svg class="zui-icon zui-nav__icon"><use href="#grid"/></svg>Components</div>
     <div class="zui-nav__item" data-zui-tab="forms"><svg class="zui-icon zui-nav__icon"><use href="#edit"/></svg>Forms</div>
     <div class="zui-nav__item" data-zui-tab="data"><svg class="zui-icon zui-nav__icon"><use href="#list"/></svg>Data</div>
+    <div class="zui-nav__item" data-zui-tab="layout"><svg class="zui-icon zui-nav__icon"><use href="#folder"/></svg>Layout</div>
+    <span class="zui-spacer"></span>
+    <div class="zui-row zui-gap-2 zui-items-center" style="padding:0 var(--zui-space-3)">
+      <a href="music.html">Music-browser mock &rarr;</a>
+      <span class="zui-sep--v" style="height:16px"></span>
+      <label class="zui-t-small zui-text-secondary">Theme</label>
+      <div class="zui-select" data-zui="select" data-name="theme" data-value="holo"
+           data-options='["holo","clean"]'>
+        <span class="zui-select__value">holo</span>
+      </div>
+    </div>
   </div>
 
   <!-- 4. workspace -->
@@ -291,6 +302,55 @@
             <div class="zui-form-grid__full zui-row zui-justify-end">
               <button class="zui-btn zui-btn--primary" data-zui-submit="io">Submit form</button>
             </div>
+          </div>
+        </div>
+      </section>
+
+      <section data-zui-tabpanel="layout" class="sc-page">
+        <h1>Layout</h1>
+        <div class="sc-block">
+          <h3>Panels &amp; draggable splitters</h3>
+          <div class="zui-row" style="height:180px;border:1px solid var(--zui-border)">
+            <div class="zui-panel" style="flex:0 0 160px">
+              <div class="zui-panel__header">Sidebar</div>
+              <ul class="zui-list" style="padding:var(--zui-space-1)">
+                <li class="zui-list__item zui-selected">All</li>
+                <li class="zui-list__item">Recent</li>
+              </ul>
+            </div>
+            <div class="zui-splitter zui-splitter--v"></div>
+            <div class="zui-panel zui-fill">
+              <div class="zui-panel__header">Content</div>
+              <div class="zui-panel__body">Drag the divider on the left.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="sc-block">
+          <h3>Tree</h3>
+          <div class="zui-tree" data-zui="tree" data-name="demo-tree" style="max-width:240px;border:1px solid var(--zui-border)">
+            <div class="zui-tree__item" data-id="lib" data-depth="0" aria-expanded="true"><span class="zui-tree__label">Library</span></div>
+            <div class="zui-tree__item zui-selected" data-id="artists" data-depth="1"><span class="zui-tree__label">Artists</span></div>
+            <div class="zui-tree__item" data-id="albums" data-depth="1"><span class="zui-tree__label">Albums</span></div>
+            <div class="zui-tree__item" data-id="pl" data-depth="0" aria-expanded="false"><span class="zui-tree__label">Playlists</span></div>
+            <div class="zui-tree__item" data-id="focus" data-depth="1"><span class="zui-tree__label">Focus</span></div>
+          </div>
+        </div>
+
+        <div class="sc-block">
+          <h3>Grid</h3>
+          <div class="zui-grid" style="border:1px solid var(--zui-border);max-width:420px">
+            <div class="zui-panel" style="aspect-ratio:1"><div class="zui-panel__body zui-center">Album</div></div>
+            <div class="zui-panel" style="aspect-ratio:1"><div class="zui-panel__body zui-center">Album</div></div>
+            <div class="zui-panel" style="aspect-ratio:1"><div class="zui-panel__body zui-center">Album</div></div>
+          </div>
+        </div>
+
+        <div class="sc-block">
+          <h3>Tooltip &amp; context menu</h3>
+          <div class="zui-row zui-gap-3">
+            <button class="zui-btn" data-zui-tip="A helpful hint appears on hover">Hover me</button>
+            <button class="zui-btn" data-zui-context='[{"label":"Cut"},{"label":"Copy"},{"label":"Paste","disabled":true},"-",{"label":"More","items":[{"label":"Duplicate"},{"label":"Delete"}]}]'>Right-click me</button>
           </div>
         </div>
       </section>

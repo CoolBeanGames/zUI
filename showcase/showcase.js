@@ -20,6 +20,7 @@
 })();
 
 zui.receive("view.theme", function (name) { zui.setTheme(name); });
+zui.receive("select", function (p) { if (p && p.name === "theme") zui.setTheme(p.value); });
 zui.receive("help.about", function () {
   zui.toast("zUI " + zui.version + " - holo theme", { kind: "ok" });
 });

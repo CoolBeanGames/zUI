@@ -23,6 +23,29 @@
     <filesChanged>core/css/tokens.css, core/css/themes/holo.css, core/css/themes/clean.css, core/css/THEMES.md, core/css/base.css, core/css/components/{button,layout,panel,scrollbar,table,tooltip,window}.css, showcase/index.html, showcase/music.html, README.md, design.txt, task_images/ZU-33.png</filesChanged>
     <image>ZU-33.png</image>
   </task>
+  <task id="ZU-29">
+    <name>showcase app: full component gallery</name>
+    <prompt>Expand the showcase into a complete navigable gallery: one section per component with live examples, all states, code snippets, a theme switcher, and a realistic music-browser mock screen assembled only from zUI parts. Requirement: every shipped component appears in the showcase and matches design.txt.</prompt>
+    <requirements>A complete navigable showcase: every shipped component appears, a theme switcher, and a realistic music-browser mock built only from zUI parts, all matching design.txt.</requirements>
+    <inProgress>false</inProgress>
+    <done>true</done>
+    <bug>false</bug>
+    <error>false</error>
+    <errorMessage></errorMessage>
+    <lockKey></lockKey>
+    <locked>false</locked>
+    <archived>true</archived>
+    <blockedBy></blockedBy>
+    <dateStarted></dateStarted>
+    <dueDate></dueDate>
+    <commit>true</commit>
+    <build>false</build>
+    <release>false</release>
+    <tags>ui,coding</tags>
+    <notes>showcase/index.html: added a 'Layout' tab (panels + draggable splitter, tree with collapsed group, responsive grid, tooltip + submenu context menu), a theme switcher select in the nav strip (emits select -&gt; zui.setTheme via showcase.js), and a link to music.html. Combined with existing Components/Forms/Data tabs the gallery now covers buttons (all variants), dropdown, tabs (+closeable), spinner/progress/skeleton, toasts + glyphs, drop target/empty state, reorder list, table (sortable/selectable/context), 10k virtual list, component-IO round-trip panel, form validation, rename-in-place, checkboxes/radios/switches, sliders, dialog/popover, interaction/undo. music.html is the realistic music-browser mock (window shell, menu, nav, tree sidebar, artist|album|track panels+splitters, device bar, playback bar) - all zUI components, Holo. 10/10 tests pass.</notes>
+    <filesChanged>showcase/index.html, showcase/showcase.js</filesChanged>
+    <image></image>
+  </task>
   <task id="ZU-28">
     <name>interaction and keyboard layer</name>
     <prompt>Implement the shared interaction behaviours from design.txt: context menus, double-click actions, drag and drop, global shortcuts incl. Ctrl+Z/Ctrl+Y, Tab order, multi/shift/ctrl selection helpers, tooltips, rename-in-place. Requirement: behaviours are centralised in zui.js and reused by every component.</prompt>
