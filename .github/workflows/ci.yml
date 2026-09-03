@@ -6,6 +6,10 @@ on:
   pull_request:
   workflow_dispatch:
 
+permissions:
+  contents: read
+  issues: write
+
 jobs:
   windows:
     runs-on: windows-latest
@@ -75,6 +79,19 @@ jobs:
           name: cpp-build-log
           path: cpp-build.log
           if-no-files-found: ignore
+      - name: publish C++ build log (diagnosis)
+        if: steps.cppsample.outcome == 'failure'
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $log = Get-Content cpp-build.log -Raw
+          $body = "Run: $env:GITHUB_SERVER_URL/$env:GITHUB_REPOSITORY/actions/runs/$env:GITHUB_RUN_ID`n`n" +
+                  "``````" + "`n" + ($log.Substring([Math]::Max(0, $log.Length - 12000))) + "`n" + "``````"
+          $payload = @{ title = "CI diag: C++ WebView2 build ($env:GITHUB_SHA)"; body = $body } | ConvertTo-Json
+          Invoke-RestMethod -Method Post -Uri "$env:GITHUB_API_URL/repos/$env:GITHUB_REPOSITORY/issues" `
+            -Headers @{ Authorization = "Bearer $env:GH_TOKEN"; "Accept" = "application/vnd.github+json" } `
+            -Body $payload
       - name: fail if C++ sample failed
         if: steps.cppsample.outcome == 'failure'
         run: exit 1
