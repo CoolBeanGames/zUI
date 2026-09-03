@@ -18,18 +18,38 @@ builds/debug/sample-csharp/ZuiSample.exe
 
 ## C++ (`cpp/`)
 
-Win32 + WebView2 (`bindings/cpp/zui.cpp` + `zui_webview2.cpp`). Needs the
-**WebView2 SDK** and **WIL** headers — pass their locations to CMake:
+Win32 + WebView2 (`bindings/cpp/zui.cpp` + `zui_webview2.cpp`).
+
+### Exact verified recipe
+
+Prereqs: MSVC (VS 2022 Build Tools, "Desktop development with C++"), CMake ≥ 3.20,
+NuGet CLI. Then, from the repo root:
 
 ```
-cmake -S samples/cpp -B builds/test/sample-cpp ^
-  -DWEBVIEW2_DIR=C:/pkgs/Microsoft.Web.WebView2 ^
-  -DWIL_DIR=C:/pkgs/Microsoft.Windows.ImplementationLibrary
-cmake --build builds/test/sample-cpp
+nuget install Microsoft.Web.WebView2 -Version 1.0.2478.35 ^
+      -OutputDirectory pkgs -ExcludeVersion
+nuget install Microsoft.Windows.ImplementationLibrary -Version 1.0.240122.1 ^
+      -OutputDirectory pkgs -ExcludeVersion
+
+cmake -S samples/cpp -B build/sample-cpp ^
+      -DWEBVIEW2_DIR=%CD%/pkgs/Microsoft.Web.WebView2 ^
+      -DWIL_DIR=%CD%/pkgs/Microsoft.Windows.ImplementationLibrary
+cmake --build build/sample-cpp --config Release
+build\sample-cpp\Release\zui_sample.exe
 ```
 
-`build.ps1` attempts this when `cmake` is present and skips it otherwise (the
-SDK paths still have to be supplied for a real build).
+This is exactly what `.github/workflows/ci.yml` runs on every push, so the
+Windows CI job is the canonical proof the C++ side builds and its unit tests
+pass. `build.ps1` runs the same steps locally when `cmake` is present and
+`WEBVIEW2_DIR` / `WIL_DIR` are set; it skips them otherwise.
+
+The pure-core translation unit (`zui.cpp`, no WebView2) plus the envelope unit
+test build with just CMake + a compiler — no SDK:
+
+```
+cmake -S bindings/cpp -B build/cpp -DZUI_BUILD_TESTS=ON
+cmake --build build/cpp && ctest --test-dir build/cpp
+```
 
 ## Runtime
 

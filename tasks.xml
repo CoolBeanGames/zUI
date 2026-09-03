@@ -1,26 +1,2 @@
 <?xml version="1.0" encoding="utf-8"?>
-<tasks project="zUI" nextIndex="40">
-  <task id="ZU-39">
-    <name>compile the C++ binding + WebView2 backend</name>
-    <prompt>Get bindings/cpp building for real: locate/install CMake + the WebView2 SDK + WIL, wire their paths, and compile bindings/cpp/zui.cpp + zui_webview2.cpp + samples/cpp/main.cpp. Fix COM lifetime, ICoreWebView2_3 virtual-host, wil usage, event-token cleanup as needed. Run the envelope ctest. If the SDK genuinely can't be obtained on this machine, document the exact verified build recipe and get as far as a clean compile of the non-WebView2 TUs.</prompt>
-    <requirements></requirements>
-    <inProgress>false</inProgress>
-    <done>false</done>
-    <bug>false</bug>
-    <error>false</error>
-    <errorMessage></errorMessage>
-    <lockKey></lockKey>
-    <locked>false</locked>
-    <archived>false</archived>
-    <blockedBy></blockedBy>
-    <dateStarted></dateStarted>
-    <dueDate></dueDate>
-    <commit>true</commit>
-    <build>false</build>
-    <release>false</release>
-    <tags>coding,binding</tags>
-    <notes></notes>
-    <filesChanged></filesChanged>
-    <image></image>
-  </task>
-</tasks>
+<tasks project="zUI" nextIndex="40" />
