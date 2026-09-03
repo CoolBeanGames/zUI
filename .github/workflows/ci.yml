@@ -44,21 +44,25 @@ jobs:
       - name: build C# sample
         run: dotnet build samples/csharp/ZuiSample.csproj -c Release
 
-      # ---- C++ binding + WebView2 backend + sample -------------------
+      # ---- C++ pure core (no WebView2) - required ---------------------
+      - name: build + test C++ core
+        shell: pwsh
+        run: |
+          cmake -S bindings/cpp -B build/cpp -DZUI_BUILD_TESTS=ON
+          cmake --build build/cpp --config Release
+          ctest --test-dir build/cpp -C Release --output-on-failure
+
+      # ---- C++ WebView2 backend + sample - best effort --------------
       - name: fetch WebView2 SDK + WIL
         shell: pwsh
         run: |
           nuget install Microsoft.Web.WebView2 -Version 1.0.2478.35 -OutputDirectory pkgs -ExcludeVersion
           nuget install Microsoft.Windows.ImplementationLibrary -Version 1.0.240122.1 -OutputDirectory pkgs -ExcludeVersion
-      - name: configure + build C++ (binding, tests, sample)
+      - name: build C++ WebView2 sample
+        continue-on-error: true
         shell: pwsh
         run: |
           $wv2 = "$PWD/pkgs/Microsoft.Web.WebView2"
           $wil = "$PWD/pkgs/Microsoft.Windows.ImplementationLibrary"
-          cmake -S bindings/cpp -B build/cpp -DZUI_BUILD_TESTS=ON `
-            "-DCMAKE_CXX_FLAGS=/I`"$wv2/build/native/include`" /I`"$wil/include`""
-          cmake --build build/cpp --config Release
-          ctest --test-dir build/cpp -C Release --output-on-failure
-          cmake -S samples/cpp -B build/sample-cpp `
-            "-DWEBVIEW2_DIR=$wv2" "-DWIL_DIR=$wil"
+          cmake -S samples/cpp -B build/sample-cpp "-DWEBVIEW2_DIR=$wv2" "-DWIL_DIR=$wil"
           cmake --build build/sample-cpp --config Release

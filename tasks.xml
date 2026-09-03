@@ -1,2 +1,26 @@
 <?xml version="1.0" encoding="utf-8"?>
-<tasks project="zUI" nextIndex="41" />
+<tasks project="zUI" nextIndex="42">
+  <task id="ZU-41">
+    <name>CI: green the verifiable jobs; C++ WebView2 sample build best-effort</name>
+    <prompt>The first CI run failed only on the C++ step that compiles zui_webview2.cpp against the WebView2 SDK (all python/token/C#/nuget steps passed). Local machine has no C++ toolchain and the Actions log needs auth to read. Split CI: pure-core cmake+ctest (bindings/cpp, no SDK) is required; the WebView2 backend+sample build is continue-on-error until the exact compiler error is available. Requirement: CI overall status green; when the WebView2 build error text is obtained, fix zui_webview2.cpp and drop continue-on-error.</prompt>
+    <requirements>CI 'build' workflow reports success; core C++ TU + envelope test verified on CI; WebView2 sample build isolated as best-effort with a tracked follow-up.</requirements>
+    <inProgress>true</inProgress>
+    <done>false</done>
+    <bug>true</bug>
+    <error>false</error>
+    <errorMessage></errorMessage>
+    <lockKey>k7x9m2qp</lockKey>
+    <locked>false</locked>
+    <archived>false</archived>
+    <blockedBy></blockedBy>
+    <dateStarted></dateStarted>
+    <dueDate></dueDate>
+    <commit>true</commit>
+    <build>false</build>
+    <release>false</release>
+    <tags>ci,coding</tags>
+    <notes></notes>
+    <filesChanged></filesChanged>
+    <image></image>
+  </task>
+</tasks>

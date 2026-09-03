@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<tasks project="zUI" nextIndex="41">
+<tasks project="zUI" nextIndex="42">
   <task id="ZU-40">
     <name>full QA sweep: test every component + page, fix what's broken</name>
     <prompt>Systematically exercise every component in showcase/index.html, showcase/music.html and docs/index.html and every documented zui.js API. Known report: in docs/index.html the left tree nav does nothing (hyperlinks work) - likely that component zui.send() does not reach in-page zui.receive() handlers, so hostless pages can't react to their own components (also affects the showcase theme switcher). Fix the root cause, then re-verify: tabs, tree, menus+submenus, dropdown, selection, sliders, toggles, dialog/popover, toasts, drag/reorder, virtual list, validation, rename, undo/redo+shortcuts, theme switch, IO round-trip. Add regression coverage to tests/io-selftest.html or a new headless test.</prompt>
