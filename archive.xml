@@ -1,5 +1,28 @@
 <?xml version="1.0" encoding="utf-8"?>
 <tasks project="zUI" nextIndex="34">
+  <task id="ZU-33">
+    <name>holo theme is a light utility look, not Android Holo</name>
+    <prompt>The holo theme shipped in ZU-4 followed design.txt (light neutral Windows-utility palette). User feedback with reference screenshots: this does not reflect Holo design principles. Real Google Holo = dark chrome, Holo-blue #33b5e5 accent, thin dark dividers, uppercase accent-coloured section headers with an underline rule, blue-tinted selection with a left accent bar, light text on near-black. Repro: open showcase/index.html or music.html, observe light/white UI. Expected: dark Holo look as the default theme; the light design.txt look kept as a separate 'clean' theme.</prompt>
+    <requirements>Default theme (:root + themes/holo.css) renders the dark Android Holo look (Holo-blue accent, dark surfaces, accent caps headers). Light design.txt palette preserved as themes/clean.css. All component CSS remains 100% token-driven. Showcases render in Holo; theme switch to clean works.</requirements>
+    <inProgress>false</inProgress>
+    <done>true</done>
+    <bug>true</bug>
+    <error>false</error>
+    <errorMessage></errorMessage>
+    <lockKey></lockKey>
+    <locked>false</locked>
+    <archived>true</archived>
+    <blockedBy></blockedBy>
+    <dateStarted></dateStarted>
+    <dueDate></dueDate>
+    <commit>false</commit>
+    <build>false</build>
+    <release>false</release>
+    <tags>ui,design,coding</tags>
+    <notes>Reworked the default theme to genuine Android Holo. tokens.css :root now holds the Holo dark palette: bg #0c0c0c/#1b1b1b/#202020, Holo-blue #33b5e5 accent, #2c2c2c dividers, light text, --zui-label-color = accent. themes/holo.css restates it (explicit selection + runtime switch back). themes/clean.css = the previous light design.txt palette as an opt-in theme. Tokenised the last hard-coded colours (scrollbar thumb, tooltip, selected+hover, on-danger) via new tokens so a theme fully controls appearance - component CSS is now 100% token-driven. Holo signatures added: .zui-section-label and .zui-panel__header are accent caps with an underline rule; active sidebar item gets an inset left accent bar. Showcases link both themes and the View menu switches holo&lt;-&gt;clean. design.txt got a top note reconciling default(holo)/clean. New core/css/THEMES.md. Rebuilt debug+release; verified both themes via headless screenshots.</notes>
+    <filesChanged>core/css/tokens.css, core/css/themes/holo.css, core/css/themes/clean.css, core/css/THEMES.md, core/css/base.css, core/css/components/{button,layout,panel,scrollbar,table,tooltip,window}.css, showcase/index.html, showcase/music.html, README.md, design.txt, task_images/ZU-33.png</filesChanged>
+    <image>ZU-33.png</image>
+  </task>
   <task id="ZU-14">
     <name>cursor indicators</name>
     <prompt>Complete tooltip.css cursor classes and a zui.js cursor manager: drag/resize/busy/forbidden/text/link cursors applied per-pane and globally, busy-cursor helper tied to async host calls. Requirement: cursor state is centrally controlled and reset reliably.</prompt>
