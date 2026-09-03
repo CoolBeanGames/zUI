@@ -39,6 +39,18 @@ UI and host talk over a single JSON channel. From the UI:
 `zui.receive(channel, handler)`. Bindings map this onto their platform's web-view
 IPC (`postMessage` / `CoreWebView2.WebMessageReceived`).
 
+## ZSL - the UI scripting language
+
+UI is written in **ZSL** (`.zsl`) and compiled ahead of time by
+[`compiler/zslc.py`](compiler/README.md) - never interpreted at runtime. Backends:
+`html` (a self-contained zUI document), `csharp` and `cpp` (native source built
+into the host). See [`compiler/GRAMMAR.md`](compiler/GRAMMAR.md) and
+[`examples/`](examples/).
+
+```
+py compiler/zslc.py examples/showcase.zsl --backend html -o showcase.html
+```
+
 ## Using it
 
 ### C#

@@ -28,7 +28,23 @@ Copy-Item -Recurse (Join-Path $root 'core') $coreDst
 Copy-Item -Recurse (Join-Path $root 'showcase') (Join-Path $out 'showcase')
 Write-Host "  staged core + showcase"
 
-# 2. C# binding
+# 2. Compile the ZSL examples (and run compiler tests in the test config).
+$pyExe = $null
+foreach ($c in 'py','python','python3') { if (Get-Command $c -ErrorAction SilentlyContinue) { $pyExe = $c; break } }
+if ($pyExe) {
+  if ($Config -eq 'test') { & $pyExe (Join-Path $root 'compiler/tests/test_compile.py') }
+  $gen = Join-Path $out 'examples'
+  New-Item -ItemType Directory -Force -Path $gen | Out-Null
+  Get-ChildItem (Join-Path $root 'examples') -Filter *.zsl | ForEach-Object {
+    $stem = $_.BaseName
+    & $pyExe (Join-Path $root 'compiler/zslc.py') $_.FullName --backend html -o (Join-Path $gen "$stem.html")
+  }
+  Write-Host "  compiled ZSL examples"
+} else {
+  Write-Warning "python not found - skipping ZSL compilation"
+}
+
+# 4. C# binding
 if (Get-Command dotnet -ErrorAction SilentlyContinue) {
   $csConf = if ($Config -eq 'release') { 'Release' } else { 'Debug' }
   dotnet build (Join-Path $root 'bindings/csharp/ZUI.csproj') -c $csConf -o (Join-Path $out 'csharp')
@@ -37,7 +53,7 @@ if (Get-Command dotnet -ErrorAction SilentlyContinue) {
   Write-Warning "dotnet not found - skipping C# binding"
 }
 
-# 3. C++ binding
+# 5. C++ binding
 if (Get-Command cmake -ErrorAction SilentlyContinue) {
   $cppOut = Join-Path $out 'cpp'
   $tests  = if ($Config -eq 'test') { 'ON' } else { 'OFF' }

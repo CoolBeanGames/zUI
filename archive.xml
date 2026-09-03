@@ -1,5 +1,28 @@
 <?xml version="1.0" encoding="utf-8"?>
 <tasks project="zUI" nextIndex="31">
+  <task id="ZU-3">
+    <name>create a scripting language</name>
+    <prompt>the ui itself will be defined by a scripting language, this will compile down to native code for performance</prompt>
+    <requirements>A .zsl language with a documented grammar and an ahead-of-time compiler (no runtime interpretation) that emits a working zUI document and native C#/C++ host code; example programs compile and compiler tests pass.</requirements>
+    <inProgress>false</inProgress>
+    <done>true</done>
+    <bug>false</bug>
+    <error>false</error>
+    <errorMessage></errorMessage>
+    <lockKey></lockKey>
+    <locked>false</locked>
+    <archived>true</archived>
+    <blockedBy></blockedBy>
+    <dateStarted></dateStarted>
+    <dueDate></dueDate>
+    <commit>true</commit>
+    <build>false</build>
+    <release>false</release>
+    <tags></tags>
+    <notes>Designed ZSL (zUI Scripting Language) + zslc.py compiler. compiler/GRAMMAR.md: lexical spec + EBNF grammar (nodes map to zUI components; bind:/source=/-&gt; for bindings, list repetition and events). compiler/zslc.py: regex lexer, recursive-descent parser to Program{roots,state,handlers}, and 3 codegen backends - html (self-contained zUI doc + generated glue JS wiring state/events/tables to the zui.js message bus), csharp (auto-gen partial class embedding the compiled doc + typed On_&lt;event&gt; partial hooks for a ZuiHost), cpp (translation unit with the doc as a raw string literal + on_&lt;event&gt; callbacks for zui::Host). AOT: the .zsl and parser are never shipped. examples/counter.zsl + examples/showcase.zsl compile on all backends; examples/generated/ holds sample output. compiler/tests/test_compile.py (5 tests, lexer/parser/errors/all backends) passes. build.ps1 compiles examples and runs compiler tests in the test config.</notes>
+    <filesChanged>compiler/GRAMMAR.md, compiler/README.md, compiler/zslc.py, compiler/tests/test_compile.py, examples/counter.zsl, examples/showcase.zsl, examples/generated/{counter.html,showcase.html,CompiledUi.g.cs,showcase.g.cpp}, build.ps1, README.md</filesChanged>
+    <image></image>
+  </task>
   <task id="ZU-2">
     <name>create tasks for all nessesary elements</name>
     <prompt>create what we need for barebones stuff, make as many tasks as nessesary</prompt>

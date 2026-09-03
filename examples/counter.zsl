@@ -1,0 +1,25 @@
+// A minimal ZSL program: a counter wired to zUI + the host message bus.
+
+window "Counter" {
+  panel "Counter" {
+    row {
+      button "-" -> dec
+      text bind:count
+      button "+" kind=primary -> inc
+    }
+  }
+}
+
+state {
+  count = 0
+}
+
+on inc {
+  count = count.plus1
+  emit("count", count)
+}
+
+on dec {
+  count = count.minus1
+  emit("count", count)
+}

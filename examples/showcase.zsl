@@ -1,0 +1,70 @@
+// A fuller ZSL program - the same shape as showcase/index.html, expressed in
+// the scripting language and compiled ahead of time.
+
+window "zUI Showcase" {
+
+  menubar {
+    menu "File" {
+      item "New" shortcut="Ctrl+N" -> file.new
+      item "Open..." shortcut="Ctrl+O" -> file.open
+      sep
+      item "Exit" -> file.exit
+    }
+    menu "View" {
+      item "Holo (light)" -> view.light
+      item "Holo (dark)" -> view.dark
+    }
+    menu "Help" {
+      item "About zUI" -> help.about
+    }
+  }
+
+  nav bind:section {
+    item "Components" value="components" active
+    item "Forms" value="forms"
+    item "Data" value="data"
+  }
+
+  workspace {
+    sidebar {
+      section-label "Library"
+      item "Artists" active
+      item "Albums"
+      item "Songs"
+      section-label "Playlists"
+      item "Recently Added"
+    }
+
+    fill {
+      panel "Tracks" {
+        table id="tracks" source=tracks selectable {
+          column "#" field="index"
+          column "Name" field="name"
+          column "Artist" field="artist"
+          column "Plays" field="plays"
+        }
+      }
+      row {
+        button "Edit metadata" -> track.edit
+        button "New playlist" kind=primary -> playlist.new
+        spinner
+        progress bind:scan
+      }
+    }
+  }
+
+  statusbar {
+    text "HAPTICS' IPOD"
+    text "234.6 GB free"
+  }
+}
+
+state {
+  section = "components"
+  scan = 40
+  tracks = []
+}
+
+on playlist.new {
+  emit("playlist.new")
+}
