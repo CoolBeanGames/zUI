@@ -54,6 +54,51 @@
       if (el) el.classList.toggle("zui-btn--busy", on !== false);
     },
 
+    /* Central cursor manager. A stack so nested operations restore correctly:
+     *   var done = zui.cursor.push("busy");  ... ; done();
+     *   zui.cursor("forbidden", el)          // one-off on an element
+     *   await zui.cursor.while("busy", fn)   // scoped to a promise
+     * Valid names: drag link text busy forbidden col row  (see tooltip.css)
+     */
+    cursor: (function () {
+      var stack = [];
+      var CLASSES = ["zui-cursor-drag", "zui-cursor-link", "zui-cursor-text",
+        "zui-cursor-busy", "zui-cursor-forbidden", "zui-cursor-col", "zui-cursor-row"];
+      function apply() {
+        var b = document.body;
+        if (!b) return;
+        CLASSES.forEach(function (c) { b.classList.remove(c); });
+        var top = stack[stack.length - 1];
+        if (top) b.classList.add("zui-cursor-" + top);
+      }
+      function fn(name, el) {
+        if (el) { // one-off, caller owns cleanup
+          CLASSES.forEach(function (c) { el.classList.remove(c); });
+          if (name) el.classList.add("zui-cursor-" + name);
+          return;
+        }
+        stack = name ? [name] : [];
+        apply();
+      }
+      fn.push = function (name) {
+        stack.push(name); apply();
+        var popped = false;
+        return function () { if (popped) return; popped = true; var i = stack.lastIndexOf(name); if (i !== -1) stack.splice(i, 1); apply(); };
+      };
+      fn.pop = function () { stack.pop(); apply(); };
+      fn.clear = function () { stack = []; apply(); };
+      fn.while = function (name, work) {
+        var done = fn.push(name);
+        var r;
+        try { r = typeof work === "function" ? work() : work; }
+        catch (e) { done(); throw e; }
+        return Promise.resolve(r).then(
+          function (v) { done(); return v; },
+          function (e) { done(); throw e; });
+      };
+      return fn;
+    })(),
+
     setTheme: function (name) {
       document.documentElement.setAttribute("data-zui-theme", name);
       zui.send("theme-changed", name);
@@ -331,6 +376,14 @@
       });
     });
 
+    /* Elements that request a cursor while hovered: data-zui-cursor="link". */
+    root.querySelectorAll("[data-zui-cursor]").forEach(function (el) {
+      if (el.__zuiCur) return; el.__zuiCur = true;
+      var name = el.getAttribute("data-zui-cursor");
+      el.addEventListener("mouseenter", function () { zui.cursor(name, el); });
+      el.addEventListener("mouseleave", function () { zui.cursor(null, el); });
+    });
+
     /* Splitters: a .zui-splitter between two flex siblings resizes the pane on
        its "primary" side (previous sibling for --v, previous for --h) by setting
        an explicit flex-basis. Double-click resets. */
@@ -345,7 +398,7 @@
         var rect = prev.getBoundingClientRect();
         var start = vertical ? e.clientX : e.clientY;
         var base = vertical ? rect.width : rect.height;
-        document.body.classList.add(vertical ? "zui-cursor-col" : "zui-cursor-row");
+        var releaseCursor = zui.cursor.push(vertical ? "col" : "row");
         function move(ev) {
           var delta = (vertical ? ev.clientX : ev.clientY) - start;
           var next = Math.max(48, base + delta);
@@ -354,7 +407,7 @@
         function up() {
           document.removeEventListener("mousemove", move);
           document.removeEventListener("mouseup", up);
-          document.body.classList.remove("zui-cursor-col", "zui-cursor-row");
+          releaseCursor();
           zui.send("splitter", { basis: parseInt(prev.style.flexBasis || prev.style.flex, 10) || null });
         }
         document.addEventListener("mousemove", move);
