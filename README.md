@@ -108,6 +108,13 @@ protocol, theming, icons and building. Each section points at the authoritative
 markdown file. `design.txt` is the integration + visual-standard guide for
 agents working in host projects.
 
+## CI
+
+`.github/workflows/ci.yml` builds the whole project on `windows-latest` on every
+push: the Python compiler + token tests, the headless runtime self-tests
+(IO + reactivity), the C# binding and sample, the C++ core (+ envelope ctest),
+and the C++ WebView2 backend + sample against pinned WebView2/WIL packages.
+
 ## Status
 
 Task ZU-1: base systems / "bones". Component CSS, the token system, the JS runtime,

@@ -52,14 +52,13 @@ jobs:
           cmake --build build/cpp --config Release
           ctest --test-dir build/cpp -C Release --output-on-failure
 
-      # ---- C++ WebView2 backend + sample - best effort --------------
+      # ---- C++ WebView2 backend + sample --------------------------
       - name: fetch WebView2 SDK + WIL
         shell: pwsh
         run: |
           nuget install Microsoft.Web.WebView2 -Version 1.0.2478.35 -OutputDirectory pkgs -ExcludeVersion
           nuget install Microsoft.Windows.ImplementationLibrary -Version 1.0.240122.1 -OutputDirectory pkgs -ExcludeVersion
       - name: build C++ WebView2 sample
-        continue-on-error: true
         shell: pwsh
         run: |
           $wv2 = "$PWD/pkgs/Microsoft.Web.WebView2"

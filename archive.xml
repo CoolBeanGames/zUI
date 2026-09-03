@@ -1,5 +1,28 @@
 <?xml version="1.0" encoding="utf-8"?>
 <tasks project="zUI" nextIndex="42">
+  <task id="ZU-41">
+    <name>CI: green the verifiable jobs; C++ WebView2 sample build best-effort</name>
+    <prompt>The first CI run failed only on the C++ step that compiles zui_webview2.cpp against the WebView2 SDK (all python/token/C#/nuget steps passed). Local machine has no C++ toolchain and the Actions log needs auth to read. Split CI: pure-core cmake+ctest (bindings/cpp, no SDK) is required; the WebView2 backend+sample build is continue-on-error until the exact compiler error is available. Requirement: CI overall status green; when the WebView2 build error text is obtained, fix zui_webview2.cpp and drop continue-on-error.</prompt>
+    <requirements>CI 'build' workflow green; C++ core + envelope test verified on CI; C++ WebView2 backend + sample also verified on CI.</requirements>
+    <inProgress>false</inProgress>
+    <done>true</done>
+    <bug>true</bug>
+    <error>false</error>
+    <errorMessage></errorMessage>
+    <lockKey></lockKey>
+    <locked>false</locked>
+    <archived>true</archived>
+    <blockedBy></blockedBy>
+    <dateStarted></dateStarted>
+    <dueDate></dueDate>
+    <commit>true</commit>
+    <build>false</build>
+    <release>false</release>
+    <tags>ci,coding</tags>
+    <notes>Root cause of the failing pure-core C++ step: zui_envelope_test linked the whole zui lib, whose zui.cpp TU references make_default_backend (provided only by zui_webview2.cpp) -&gt; unresolved external. Fix: split make_envelope/parse_envelope into zui_envelope.cpp behind a dependency-free zui_util lib; the test links only that. envelope_test rewritten with explicit checks (was assert -&gt; no-op under Release/NDEBUG). Split the CI C++ work into a required pure-core step and a WebView2 step. RESULT: full CI run 0766885 is GREEN on windows-latest - every step incl. 'build C++ WebView2 sample' (zui_webview2.cpp + samples/cpp compiled and linked against pinned WebView2 1.0.2478.35 + WIL 1.0.240122.1). So the C++ binding + WebView2 backend are now verified too; removed the continue-on-error. README documents the CI matrix.</notes>
+    <filesChanged>bindings/cpp/{CMakeLists.txt,zui.cpp,zui_envelope.cpp,tests/envelope_test.cpp}, .github/workflows/ci.yml, README.md</filesChanged>
+    <image></image>
+  </task>
   <task id="ZU-40">
     <name>full QA sweep: test every component + page, fix what's broken</name>
     <prompt>Systematically exercise every component in showcase/index.html, showcase/music.html and docs/index.html and every documented zui.js API. Known report: in docs/index.html the left tree nav does nothing (hyperlinks work) - likely that component zui.send() does not reach in-page zui.receive() handlers, so hostless pages can't react to their own components (also affects the showcase theme switcher). Fix the root cause, then re-verify: tabs, tree, menus+submenus, dropdown, selection, sliders, toggles, dialog/popover, toasts, drag/reorder, virtual list, validation, rename, undo/redo+shortcuts, theme switch, IO round-trip. Add regression coverage to tests/io-selftest.html or a new headless test.</prompt>
