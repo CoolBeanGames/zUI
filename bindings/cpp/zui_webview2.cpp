@@ -74,17 +74,20 @@ public:
                                     &msg_token_);
 
                                 // host -> UI messages only land once the document's JS is
-                                // listening; buffer until then.
-                                webview_->add_DOMContentLoaded(
-                                    Callback<ICoreWebView2DOMContentLoadedEventHandler>(
-                                        [this](ICoreWebView2*, ICoreWebView2DOMContentLoadedEventArgs*) -> HRESULT {
-                                            dom_ready_ = true;
-                                            for (auto& m : pending_msgs_)
-                                                webview_->PostWebMessageAsString(widen(m).c_str());
-                                            pending_msgs_.clear();
-                                            return S_OK;
-                                        }).Get(),
-                                    &dom_token_);
+                                // listening; buffer until DOMContentLoaded (on ICoreWebView2_2).
+                                wil::com_ptr<ICoreWebView2_2> wv2;
+                                if (SUCCEEDED(webview_->QueryInterface(IID_PPV_ARGS(wv2.put())))) {
+                                    wv2->add_DOMContentLoaded(
+                                        Callback<ICoreWebView2DOMContentLoadedEventHandler>(
+                                            [this](ICoreWebView2*, ICoreWebView2DOMContentLoadedEventArgs*) -> HRESULT {
+                                                dom_ready_ = true;
+                                                for (auto& m : pending_msgs_)
+                                                    webview_->PostWebMessageAsString(widen(m).c_str());
+                                                pending_msgs_.clear();
+                                                return S_OK;
+                                            }).Get(),
+                                        &dom_token_);
+                                }
                                 webview_->add_NavigationStarting(
                                     Callback<ICoreWebView2NavigationStartingEventHandler>(
                                         [this](ICoreWebView2*, ICoreWebView2NavigationStartingEventArgs*) -> HRESULT {
