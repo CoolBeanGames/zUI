@@ -14,9 +14,17 @@
     <ProjectReference Include="..\..\bindings\csharp\ZUI.csproj" />
   </ItemGroup>
 
-  <!-- Ship the showcase next to the exe so the sample has something to load. -->
+  <!-- Ship the showcase + docs next to the exe so the sample has something to
+       load. The showcase links assets as ../core/... so stage core there too
+       (the ZUI binding already stages it as zui/ for host-authored docs). -->
   <ItemGroup>
     <None Include="..\..\showcase\**\*" Link="showcase\%(RecursiveDir)%(Filename)%(Extension)">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="..\..\docs\**\*" Link="docs\%(RecursiveDir)%(Filename)%(Extension)">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="..\..\core\**\*" Link="core\%(RecursiveDir)%(Filename)%(Extension)">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>

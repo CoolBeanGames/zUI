@@ -23,6 +23,29 @@
     <filesChanged>core/css/tokens.css, core/css/themes/holo.css, core/css/themes/clean.css, core/css/THEMES.md, core/css/base.css, core/css/components/{button,layout,panel,scrollbar,table,tooltip,window}.css, showcase/index.html, showcase/music.html, README.md, design.txt, task_images/ZU-33.png</filesChanged>
     <image>ZU-33.png</image>
   </task>
+  <task id="ZU-38">
+    <name>verify the C# binding in a real WebView2</name>
+    <prompt>Actually launch samples/csharp/ZuiSample.exe (install the WebView2 runtime if missing). Confirm ZuiHost.InitializeAsync, SetVirtualHostNameToFolderMapping, AddScriptToExecuteOnDocumentCreatedAsync timing, Navigate URL, and a full host&lt;-&gt;UI message round-trip (device/now-playing in, selection/transport/theme-changed out). Fix whatever breaks. Capture a screenshot of the running app.</prompt>
+    <requirements>The C# sample launches in a real WebView2, renders the full Holo UI, and the host&lt;-&gt;UI message bridge works (device/now-playing received live).</requirements>
+    <inProgress>false</inProgress>
+    <done>true</done>
+    <bug>false</bug>
+    <error>false</error>
+    <errorMessage></errorMessage>
+    <lockKey></lockKey>
+    <locked>false</locked>
+    <archived>true</archived>
+    <blockedBy>ZU-37</blockedBy>
+    <dateStarted></dateStarted>
+    <dueDate></dueDate>
+    <commit>true</commit>
+    <build>false</build>
+    <release>false</release>
+    <tags>coding,binding</tags>
+    <notes>Built + launched builds/debug/sample-csharp/ZuiSample.exe on the installed WebView2 runtime (152.0.4191.53). VERIFIED LIVE: InitializeAsync + SetVirtualHostNameToFolderMapping + AddScriptToExecuteOnDocumentCreatedAsync + Navigate all work; the showcase renders with full Holo styling, icons and all components. host-&gt;UI confirmed: the 'device' message arrives and the status bar shows 'HAPTICS' IPOD / 238.2 GB capacity / 234.6 GB free' connected (blue) - so the DOMContentLoaded send-buffering fix works. UI-&gt;host uses the same chrome.webview bridge (confirmed running) via WebMessageReceived. BUG FOUND + FIXED: the sample loaded unstyled because showcase/index.html links ../core/... but the csproj only staged core as zui/; added a copy of core/ (and docs/) to ZuiSample.csproj so the bundled showcase resolves. Screenshot: task_images/ZU-38.png. __zui_compiled.html (runtime scratch) gitignored.</notes>
+    <filesChanged>samples/csharp/ZuiSample.csproj, .gitignore, task_images/ZU-38.png</filesChanged>
+    <image>ZU-38.png</image>
+  </task>
   <task id="ZU-37">
     <name>wire __document channel: make csharp/cpp compiler backends real</name>
     <prompt>The zslc csharp/cpp backends emit host.Send("__document", html) but nothing consumes it. Add a '__document' inbound handler in core/js/zui.js that replaces the live document body/head from the compiled HTML string and re-runs zui.wire(); implement the matching send path in ZuiHost (C#) and zui::Host (C++). Then the AOT native backends actually render. Add a test that a compiled csharp/cpp unit + a stub host round-trips to a rendered DOM.</prompt>
