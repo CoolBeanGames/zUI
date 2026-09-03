@@ -23,6 +23,29 @@
     <filesChanged>core/css/tokens.css, core/css/themes/holo.css, core/css/themes/clean.css, core/css/THEMES.md, core/css/base.css, core/css/components/{button,layout,panel,scrollbar,table,tooltip,window}.css, showcase/index.html, showcase/music.html, README.md, design.txt, task_images/ZU-33.png</filesChanged>
     <image>ZU-33.png</image>
   </task>
+  <task id="ZU-15">
+    <name>menu bars and context menus</name>
+    <prompt>Complete menubar.css and zui.js: traditional File/Edit/View/Help menu, keyboard access (Alt, arrows), accelerators/mnemonics, checkable and disabled items, submenus, right-click context menus sharing the same renderer. Requirement: menus are fully keyboard-operable and emit channel messages.</prompt>
+    <requirements>Menu bar and context menus are one keyboard-operable renderer with submenus, mnemonics (&amp;x + Alt), checkable/disabled items and shortcut hints; every activation emits a channel message.</requirements>
+    <inProgress>false</inProgress>
+    <done>true</done>
+    <bug>false</bug>
+    <error>false</error>
+    <errorMessage></errorMessage>
+    <lockKey></lockKey>
+    <locked>false</locked>
+    <archived>true</archived>
+    <blockedBy></blockedBy>
+    <dateStarted></dateStarted>
+    <dueDate></dueDate>
+    <commit>true</commit>
+    <build>false</build>
+    <release>false</release>
+    <tags>ui,coding</tags>
+    <notes>Reworked zui.menu into a submenu stack (menuStack, openSubmenu, closeMenusBelow). Items with items[]/submenu render a &gt; arrow, open on hover or click/ArrowRight, close on ArrowLeft/Escape (one level at a time). Mnemonics: '&amp;File' underlines F, sets data-mnemonic, and a single matching key press in an open menu activates it. Menu bar: Alt toggles body.zui-alt (underlines first letters), Alt+&lt;letter&gt; opens the matching top-level menu, Escape drops the Alt state. Context menus (data-zui-context) use the same renderer so they inherit submenus + keyboard. Showcase: File&gt;Export submenu, and a right-click track menu with an 'Add to playlist' submenu. Verified via headless menu test + IO/compiler suites.</notes>
+    <filesChanged>core/js/zui.js, core/css/components/dropdown.css, core/css/components/menubar.css, showcase/index.html</filesChanged>
+    <image></image>
+  </task>
   <task id="ZU-36">
     <name>wire every component to the IO layer</name>
     <prompt>Give every stateful/interactive component a get+set adapter through the ZU-35 core: text input / search / textarea (text), label &amp; text nodes (text), progress bar (fill % + indeterminate), button (click events out; programmatic click/flash, busy, disabled, label, pressed in), checkbox &amp; toggle (boolean), select (value), scrolling panels (scrollTop/Left + %, on-scroll export, scrollTo in). Add ZML/ZSL support so data-zui-id is emitted from an id= or a new export= attribute. Showcase: a panel that round-trips every value and a host-echo demo. Document the protocol in a PROTOCOL.md.</prompt>

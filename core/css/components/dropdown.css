@@ -49,4 +49,12 @@
 .zui-menu__item--checked::before { content: "\2713"; margin-left: -12px; }
 .zui-menu__sep { height: 0; margin: var(--zui-space-1) 0; border-top: var(--zui-border-w) solid var(--zui-border); }
 .zui-menu__shortcut { margin-left: auto; color: var(--zui-text-secondary); font-size: var(--zui-fs-small); }
-.zui-menu__item:hover .zui-menu__shortcut { color: inherit; }
+.zui-menu__item:hover .zui-menu__shortcut,
+.zui-menu__item.zui-active .zui-menu__shortcut { color: inherit; }
+.zui-menu__arrow { margin-left: auto; font-size: 10px; color: var(--zui-text-secondary); }
+.zui-menu__item:hover .zui-menu__arrow,
+.zui-menu__item.zui-active .zui-menu__arrow { color: inherit; }
+.zui-menu__item .zui-menu__shortcut + .zui-menu__arrow { margin-left: var(--zui-space-2); }
+.zui-menu__item u { text-decoration: none; }               /* hidden until Alt */
+body.zui-alt .zui-menu__item u,
+body.zui-alt .zui-menubar__item u { text-decoration: underline; }

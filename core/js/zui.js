@@ -118,51 +118,96 @@
 
     menu: function (items, x, y) {
       closeMenus();
-      var el = document.createElement("div");
-      el.className = "zui-menu";
-      items.forEach(function (it) {
-        if (it === "-" || it.separator) {
-          var s = document.createElement("div"); s.className = "zui-menu__sep"; el.appendChild(s); return;
-        }
-        var mi = document.createElement("div");
-        mi.className = "zui-menu__item" + (it.checked ? " zui-menu__item--checked" : "");
-        if (it.disabled) mi.setAttribute("aria-disabled", "true");
-        mi.textContent = it.label;
-        if (it.shortcut) {
-          var sc = document.createElement("span"); sc.className = "zui-menu__shortcut"; sc.textContent = it.shortcut; mi.appendChild(sc);
-        }
-        mi.addEventListener("click", function () {
-          if (it.disabled) return;
-          closeMenus();
-          if (typeof it.action === "function") it.action();
-          else if (it.channel) zui.send(it.channel, it.payload);
-        });
-        el.appendChild(mi);
-      });
-      document.body.appendChild(el);
-      var w = el.offsetWidth, h = el.offsetHeight;
-      el.style.left = Math.min(x, innerWidth - w - 4) + "px";
-      el.style.top = Math.min(y, innerHeight - h - 4) + "px";
-      openMenu = el;
-      menuActive = -1;
-      el.setAttribute("tabindex", "-1");
-      el.focus();
-      return el;
+      return openSubmenu(items, x, y, 0);
     }
   };
 
-  var openMenu = null;
-  var menuActive = -1;
+  var menuStack = [];          // [{el, items}] - index 0 is the root menu
+  var menuActive = -1;         // active index within the deepest menu
   var typeahead = "";
   var typeaheadTimer = null;
 
-  function closeMenus() {
-    if (openMenu) { openMenu.remove(); openMenu = null; menuActive = -1; }
+  function openMenuGet() { return menuStack.length ? menuStack[menuStack.length - 1].el : null; }
+
+  /* "&File" -> a mnemonic on F. Returns {text, key}. */
+  function parseMnemonic(label) {
+    var m = /&(.)/.exec(label || "");
+    return { text: (label || "").replace(/&(.)/, "$1"), key: m ? m[1].toLowerCase() : null,
+             idx: m ? m.index : -1 };
   }
 
+  function openSubmenu(items, x, y, level) {
+    closeMenusBelow(level);
+    var el = document.createElement("div");
+    el.className = "zui-menu";
+    el.setAttribute("tabindex", "-1");
+
+    items.forEach(function (it) {
+      if (it === "-" || it.separator) {
+        var s = document.createElement("div"); s.className = "zui-menu__sep"; el.appendChild(s); return;
+      }
+      var mi = document.createElement("div");
+      var sub = it.items || it.submenu;
+      var mn = parseMnemonic(it.label);
+      mi.className = "zui-menu__item" + (it.checked ? " zui-menu__item--checked" : "");
+      if (it.disabled) mi.setAttribute("aria-disabled", "true");
+      if (mn.key) mi.setAttribute("data-mnemonic", mn.key);
+
+      if (mn.idx >= 0) {
+        mi.appendChild(document.createTextNode(mn.text.slice(0, mn.idx)));
+        var u = document.createElement("u"); u.textContent = mn.text.charAt(mn.idx); mi.appendChild(u);
+        mi.appendChild(document.createTextNode(mn.text.slice(mn.idx + 1)));
+      } else {
+        mi.appendChild(document.createTextNode(mn.text));
+      }
+      if (it.shortcut) {
+        var sc = document.createElement("span"); sc.className = "zui-menu__shortcut";
+        sc.textContent = it.shortcut; mi.appendChild(sc);
+      }
+      if (sub) {
+        var ar = document.createElement("span"); ar.className = "zui-menu__arrow"; ar.textContent = "▸";
+        mi.appendChild(ar);
+        mi.addEventListener("mouseenter", function () {
+          var r = mi.getBoundingClientRect();
+          openSubmenu(sub, r.right - 2, r.top - 5, level + 1);
+        });
+      } else {
+        mi.addEventListener("mouseenter", function () { closeMenusBelow(level + 1); });
+      }
+      mi.addEventListener("click", function (e) {
+        if (it.disabled) return;
+        if (sub) { e.stopPropagation(); var r = mi.getBoundingClientRect(); openSubmenu(sub, r.right - 2, r.top - 5, level + 1); return; }
+        closeMenus();
+        if (typeof it.action === "function") it.action();
+        else if (it.channel) zui.send(it.channel, it.payload);
+      });
+      el.appendChild(mi);
+    });
+
+    document.body.appendChild(el);
+    var w = el.offsetWidth, h = el.offsetHeight;
+    var left = x + w > innerWidth - 4 ? Math.max(4, (level ? x - w - w : innerWidth - w - 4)) : x;
+    el.style.left = Math.max(4, left) + "px";
+    el.style.top = Math.min(Math.max(4, y), innerHeight - h - 4) + "px";
+    menuStack[level] = { el: el, items: items };
+    menuActive = -1;
+    el.focus();
+    return el;
+  }
+
+  function closeMenusBelow(level) {
+    while (menuStack.length > level) {
+      var m = menuStack.pop();
+      if (m && m.el) m.el.remove();
+    }
+    menuActive = -1;
+  }
+  function closeMenus() { closeMenusBelow(0); }
+
   function menuItems() {
-    return openMenu
-      ? Array.prototype.filter.call(openMenu.querySelectorAll(".zui-menu__item"),
+    var el = openMenuGet();
+    return el
+      ? Array.prototype.filter.call(el.querySelectorAll(".zui-menu__item"),
           function (i) { return i.getAttribute("aria-disabled") !== "true"; })
       : [];
   }
@@ -176,21 +221,37 @@
   }
 
   document.addEventListener("mousedown", function (e) {
-    if (openMenu && !openMenu.contains(e.target)) closeMenus();
+    var top = openMenuGet();
+    if (top && !menuStack.some(function (m) { return m.el.contains(e.target); })) closeMenus();
   });
 
   document.addEventListener("keydown", function (e) {
-    if (!openMenu) return;
+    if (!openMenuGet()) return;
     var items = menuItems();
-    if (e.key === "Escape") { closeMenus(); e.preventDefault(); }
+    if (e.key === "Escape") {
+      if (menuStack.length > 1) closeMenusBelow(menuStack.length - 1);
+      else closeMenus();
+      e.preventDefault();
+    }
     else if (e.key === "ArrowDown") { setMenuActive(menuActive + 1); e.preventDefault(); }
     else if (e.key === "ArrowUp") { setMenuActive(menuActive - 1); e.preventDefault(); }
     else if (e.key === "Home") { setMenuActive(0); e.preventDefault(); }
     else if (e.key === "End") { setMenuActive(items.length - 1); e.preventDefault(); }
+    else if (e.key === "ArrowRight" && menuActive >= 0 && items[menuActive] &&
+             items[menuActive].querySelector(".zui-menu__arrow")) {
+      items[menuActive].click(); e.preventDefault();
+    }
+    else if (e.key === "ArrowLeft" && menuStack.length > 1) {
+      closeMenusBelow(menuStack.length - 1); e.preventDefault();
+    }
     else if (e.key === "Enter" || e.key === " ") {
       if (menuActive >= 0 && items[menuActive]) { items[menuActive].click(); e.preventDefault(); }
     } else if (e.key.length === 1) {
-      typeahead += e.key.toLowerCase();
+      var kl = e.key.toLowerCase();
+      // mnemonic match first, then type-ahead
+      var mi = items.filter(function (n) { return n.getAttribute("data-mnemonic") === kl; });
+      if (mi.length === 1) { mi[0].click(); return; }
+      typeahead += kl;
       clearTimeout(typeaheadTimer);
       typeaheadTimer = setTimeout(function () { typeahead = ""; }, 600);
       for (var k = 0; k < items.length; k++) {
@@ -351,7 +412,22 @@
       });
     });
 
-    /* Menu bar: [data-zui="menubar"] with items carrying data-menu (JSON). */
+    /* Menu bar: [data-zui="menubar"] with items carrying data-menu (JSON).
+       Alt (or Alt+letter) activates it, like a native Windows menu. */
+    root.querySelectorAll('[data-zui="menubar"]').forEach(function (bar0) {
+      if (bar0.__zuiAlt) return; bar0.__zuiAlt = true;
+      document.addEventListener("keydown", function (e) {
+        if (e.key === "Alt" && !e.repeat) { document.body.classList.toggle("zui-alt"); }
+        else if (e.altKey && e.key.length === 1) {
+          var hit = Array.prototype.filter.call(bar0.querySelectorAll(".zui-menubar__item"), function (it) {
+            return (it.getAttribute("data-mnemonic") || it.textContent.trim().charAt(0)).toLowerCase() === e.key.toLowerCase();
+          })[0];
+          if (hit) { e.preventDefault(); document.body.classList.add("zui-alt"); hit.click(); }
+        } else if (e.key === "Escape") {
+          document.body.classList.remove("zui-alt");
+        }
+      });
+    });
     root.querySelectorAll('[data-zui="menubar"] .zui-menubar__item').forEach(function (item) {
       if (item.__zuiWired) return; item.__zuiWired = true;
       item.setAttribute("tabindex", "0");

@@ -24,7 +24,7 @@
 
   <!-- 2. application menu -->
   <div class="zui-menubar" data-zui="menubar">
-    <div class="zui-menubar__item" data-menu='[{"label":"New","shortcut":"Ctrl+N","channel":"file.new"},{"label":"Open...","shortcut":"Ctrl+O","channel":"file.open"},"-",{"label":"Exit","channel":"file.exit"}]'>File</div>
+    <div class="zui-menubar__item" data-menu='[{"label":"&New","shortcut":"Ctrl+N","channel":"file.new"},{"label":"&Open...","shortcut":"Ctrl+O","channel":"file.open"},"-",{"label":"&Export","items":[{"label":"MP3","channel":"export.mp3"},{"label":"FLAC","channel":"export.flac"},{"label":"ALAC","channel":"export.alac"}]},"-",{"label":"E&xit","channel":"file.exit"}]'>File</div>
     <div class="zui-menubar__item" data-menu='[{"label":"Undo","shortcut":"Ctrl+Z","disabled":true},{"label":"Redo","shortcut":"Ctrl+Y","disabled":true}]'>Edit</div>
     <div class="zui-menubar__item" data-menu='[{"label":"Holo (dark)","checked":true,"channel":"view.theme","payload":"holo"},{"label":"Clean (light)","channel":"view.theme","payload":"clean"}]'>View</div>
     <div class="zui-menubar__item" data-menu='[{"label":"About zUI","channel":"help.about"}]'>Help</div>
@@ -170,7 +170,8 @@
         <div class="zui-panel">
           <div class="zui-panel__header">Tracks</div>
           <div class="zui-panel__body zui-panel__body--flush">
-            <table class="zui-table" data-zui="selectable">
+            <table class="zui-table" data-zui="selectable"
+                   data-zui-context='[{"label":"Play","channel":"track.play"},{"label":"Add to playlist","items":[{"label":"Focus","channel":"pl.focus"},{"label":"Long Drives","channel":"pl.drives"},"-",{"label":"New playlist...","channel":"pl.new"}]},"-",{"label":"Get info","shortcut":"Ctrl+I","channel":"track.info"},{"label":"Delete","channel":"track.del"}]'>
               <thead><tr><th>#</th><th>Name</th><th>Artist</th><th>Album</th><th class="zui-num">Plays</th></tr></thead>
               <tbody>
                 <tr data-zui-row="1"><td>1</td><td>Nightdrive</td><td>Aria Kane</td><td>Long Exposure</td><td class="zui-num">42</td></tr>
