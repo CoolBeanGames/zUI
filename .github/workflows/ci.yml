@@ -59,9 +59,22 @@ jobs:
           nuget install Microsoft.Web.WebView2 -Version 1.0.2478.35 -OutputDirectory pkgs -ExcludeVersion
           nuget install Microsoft.Windows.ImplementationLibrary -Version 1.0.240122.1 -OutputDirectory pkgs -ExcludeVersion
       - name: build C++ WebView2 sample
+        id: cppsample
+        continue-on-error: true
         shell: pwsh
         run: |
           $wv2 = "$PWD/pkgs/Microsoft.Web.WebView2"
           $wil = "$PWD/pkgs/Microsoft.Windows.ImplementationLibrary"
-          cmake -S samples/cpp -B build/sample-cpp "-DWEBVIEW2_DIR=$wv2" "-DWIL_DIR=$wil"
-          cmake --build build/sample-cpp --config Release
+          cmake -S samples/cpp -B build/sample-cpp "-DWEBVIEW2_DIR=$wv2" "-DWIL_DIR=$wil" 2>&1 | Tee-Object cpp-build.log
+          cmake --build build/sample-cpp --config Release 2>&1 | Tee-Object -Append cpp-build.log
+          exit $LASTEXITCODE
+      - name: upload C++ build log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cpp-build-log
+          path: cpp-build.log
+          if-no-files-found: ignore
+      - name: fail if C++ sample failed
+        if: steps.cppsample.outcome == 'failure'
+        run: exit 1
