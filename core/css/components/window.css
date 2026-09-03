@@ -29,7 +29,8 @@
 .zui-workspace { flex: 1; display: flex; min-height: 0; overflow: hidden; }
 
 /* Contextual control bar (used as the playback bar in the music app): compact,
-   visually secondary to the workspace. */
+   visually secondary to the workspace. Generic - non-media hosts drop in their
+   own left controls / centre content. */
 .zui-contextbar {
   display: flex;
   align-items: center;
@@ -38,8 +39,21 @@
   padding: 0 var(--zui-space-3);
   background: var(--zui-bg-surface-alt);
   border-top: var(--zui-border-w) solid var(--zui-border);
+  font-size: var(--zui-fs-normal);
 }
 .zui-contextbar__spacer { margin-left: auto; }
+.zui-contextbar__transport { display: flex; gap: var(--zui-space-1); flex: 0 0 auto; }
+.zui-contextbar__art {
+  width: 32px; height: 32px; flex: 0 0 auto;
+  background: var(--zui-bg-surface);
+  border: var(--zui-border-w) solid var(--zui-border);
+}
+.zui-contextbar__meta { display: flex; flex-direction: column; line-height: 1.25; min-width: 0; }
+.zui-contextbar__title { font-weight: var(--zui-fw-medium); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.zui-contextbar__sub { color: var(--zui-text-secondary); font-size: var(--zui-fs-small); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.zui-contextbar__time { font-variant-numeric: tabular-nums; color: var(--zui-text-secondary); font-size: var(--zui-fs-small); flex: 0 0 auto; }
+.zui-contextbar__scrub { flex: 1 1 auto; max-width: 420px; }
+.zui-contextbar__opts { display: flex; gap: var(--zui-space-1); flex: 0 0 auto; }
 
 .zui-statusbar {
   display: flex;

@@ -12,18 +12,6 @@
     .mb-cols { display: flex; min-height: 0; }
     .mb-cols .zui-panel { flex: 1; overflow: auto; }
     .mb-cols .zui-panel:not(:first-child) { border-left: 0; }
-    .mb-art { width: 34px; height: 34px; background: var(--zui-bg-surface-alt);
-              border: var(--zui-border-w) solid var(--zui-border); flex: 0 0 auto; }
-    .mb-player { display: flex; align-items: center; gap: var(--zui-space-3);
-                 height: 44px; padding: 0 var(--zui-space-3);
-                 background: var(--zui-bg-surface-alt);
-                 border-top: var(--zui-border-w) solid var(--zui-border); }
-    .mb-player__meta { display: flex; flex-direction: column; line-height: 1.25; }
-    .mb-player__title { font-weight: var(--zui-fw-medium); }
-    .mb-player__sub { color: var(--zui-text-secondary); font-size: var(--zui-fs-small); }
-    .mb-player .zui-progress { flex: 1; max-width: 420px; }
-    .mb-time { font-variant-numeric: tabular-nums; color: var(--zui-text-secondary);
-               font-size: var(--zui-fs-small); }
   </style>
 </head>
 <body>
@@ -138,26 +126,26 @@
     </span>
   </div>
 
-  <!-- playback bar -->
-  <div class="mb-player">
-    <div class="zui-btn-group">
-      <button class="zui-btn zui-btn--icon" data-zui-tip="Previous">&#9198;</button>
-      <button class="zui-btn zui-btn--icon" data-zui-tip="Pause">&#10074;&#10074;</button>
-      <button class="zui-btn zui-btn--icon" data-zui-tip="Next">&#9197;</button>
+  <!-- playback bar (contextual control bar) -->
+  <div class="zui-contextbar" data-zui="contextbar">
+    <div class="zui-contextbar__transport zui-btn-group">
+      <button class="zui-btn zui-btn--icon" data-transport="prev" data-zui-tip="Previous">&#9198;</button>
+      <button class="zui-btn zui-btn--icon" data-transport="playpause" data-zui-tip="Pause">&#10074;&#10074;</button>
+      <button class="zui-btn zui-btn--icon" data-transport="next" data-zui-tip="Next">&#9197;</button>
     </div>
-    <div class="mb-art"></div>
-    <div class="mb-player__meta">
-      <span class="mb-player__title">Nightdrive</span>
-      <span class="mb-player__sub">Aria Kane &mdash; Long Exposure</span>
+    <div class="zui-contextbar__art"></div>
+    <div class="zui-contextbar__meta">
+      <span class="zui-contextbar__title">Nightdrive</span>
+      <span class="zui-contextbar__sub">Aria Kane &mdash; Long Exposure</span>
     </div>
-    <span class="mb-time">1:48</span>
-    <div class="zui-progress"><div class="zui-progress__bar" style="width:38%"></div></div>
-    <span class="mb-time">4:41</span>
-    <div class="zui-btn-group">
-      <button class="zui-btn zui-btn--icon zui-active" data-zui-tip="Shuffle">&#128256;</button>
-      <button class="zui-btn zui-btn--icon" data-zui-tip="Repeat">&#128257;</button>
+    <span class="zui-contextbar__time">1:48</span>
+    <div class="zui-contextbar__scrub zui-progress"><div class="zui-progress__bar" style="width:38%"></div></div>
+    <span class="zui-contextbar__time">4:41</span>
+    <div class="zui-contextbar__opts zui-btn-group">
+      <button class="zui-btn zui-btn--icon" data-zui="toggle" aria-pressed="true" data-name="shuffle" data-transport="shuffle" data-zui-tip="Shuffle">&#128256;</button>
+      <button class="zui-btn zui-btn--icon" data-zui="toggle" data-name="repeat" data-transport="repeat" data-zui-tip="Repeat">&#128257;</button>
     </div>
-    <span class="mb-time">3 of 7</span>
+    <span class="zui-contextbar__time">3 of 7</span>
   </div>
 
 </div>

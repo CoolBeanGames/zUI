@@ -460,6 +460,33 @@
       if (active) activate(active);
     });
 
+    /* Contextual / playback bar: [data-zui="contextbar"]. Transport buttons
+       carrying data-transport emit "transport"; the host pushes "now-playing"
+       {title, sub, position, duration, positionPct} to update it. */
+    (root || document).querySelectorAll('[data-zui="contextbar"]').forEach(function (bar) {
+      if (bar.__zuiCtxBar) return; bar.__zuiCtxBar = true;
+      bar.querySelectorAll("[data-transport]").forEach(function (b) {
+        b.addEventListener("click", function () { zui.send("transport", b.getAttribute("data-transport")); });
+      });
+      var fmt = function (s) {
+        if (s == null) return "";
+        s = Math.round(s); return Math.floor(s / 60) + ":" + ("0" + (s % 60)).slice(-2);
+      };
+      zui.receive("now-playing", function (p) {
+        if (!p) return;
+        var set = function (cls, v) { var n = bar.querySelector("." + cls); if (n && v != null) n.textContent = v; };
+        set("zui-contextbar__title", p.title);
+        set("zui-contextbar__sub", p.sub);
+        var times = bar.querySelectorAll(".zui-contextbar__time");
+        if (times[0] && p.position != null) times[0].textContent = fmt(p.position);
+        if (times[1] && p.duration != null) times[1].textContent = fmt(p.duration);
+        var pctv = p.positionPct != null ? p.positionPct
+          : (p.position != null && p.duration ? (p.position / p.duration) * 100 : null);
+        var bar2 = bar.querySelector(".zui-progress__bar");
+        if (bar2 && pctv != null) bar2.style.width = Math.max(0, Math.min(100, pctv)) + "%";
+      });
+    });
+
     /* Device / status bar: a .zui-statusbar with data-zui-device reacts to the
        "device" channel - {name, capacity, free, actions?} connects it, null
        disconnects. Matches design.txt STATUS / DEVICE BAR. */

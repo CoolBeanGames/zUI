@@ -23,6 +23,29 @@
     <filesChanged>core/css/tokens.css, core/css/themes/holo.css, core/css/themes/clean.css, core/css/THEMES.md, core/css/base.css, core/css/components/{button,layout,panel,scrollbar,table,tooltip,window}.css, showcase/index.html, showcase/music.html, README.md, design.txt, task_images/ZU-33.png</filesChanged>
     <image>ZU-33.png</image>
   </task>
+  <task id="ZU-25">
+    <name>playback / contextual control bar</name>
+    <prompt>Build the compact contextual control bar (playback bar for the music app): prev/play/pause/stop/next icon buttons, artwork, track text, time, scrub progress, shuffle/repeat toggles, visually secondary to the workspace. Requirement: matches PLAYBACK BAR in design.txt and is generic enough for non-music hosts.</prompt>
+    <requirements>Compact contextual/playback bar matching design.txt PLAYBACK BAR (transport, art, track text, times, scrub, shuffle/repeat, queue pos), visually secondary, generic enough for non-media hosts.</requirements>
+    <inProgress>false</inProgress>
+    <done>true</done>
+    <bug>false</bug>
+    <error>false</error>
+    <errorMessage></errorMessage>
+    <lockKey></lockKey>
+    <locked>false</locked>
+    <archived>true</archived>
+    <blockedBy></blockedBy>
+    <dateStarted></dateStarted>
+    <dueDate></dueDate>
+    <commit>true</commit>
+    <build>false</build>
+    <release>false</release>
+    <tags>ui,coding</tags>
+    <notes>window.css: .zui-contextbar promoted to a full component (__transport/__art/__meta/__title/__sub/__time/__scrub/__opts). zui.js [data-zui=contextbar]: [data-transport] buttons emit 'transport'; host pushes 'now-playing' {title,sub,position,duration,positionPct} to update text/times/scrub (mm:ss formatting). shuffle/repeat reuse data-zui=toggle. music.html playback bar rebuilt on the component; removed the local .mb-player CSS. Compiler HTML_MAP gains 'contextbar'. 10/10 tests pass.</notes>
+    <filesChanged>core/css/components/window.css, core/js/zui.js, compiler/zslc.py, showcase/music.html</filesChanged>
+    <image></image>
+  </task>
   <task id="ZU-24">
     <name>status / device bar</name>
     <prompt>Build the persistent status/device bar as a reusable component: disconnected (neutral) vs connected (accent) states, device name/capacity/free, consistently aligned Eject/Sync actions, driven by a device host channel. Requirement: matches the STATUS / DEVICE BAR example in design.txt.</prompt>

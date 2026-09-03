@@ -486,6 +486,7 @@ HTML_MAP = {
     "fill":          ("div", "zui-fill", None),
     "grid":          ("div", "zui-grid", None),
     "statusbar":     ("div", "zui-statusbar", None),
+    "contextbar":    ("div", "zui-contextbar", None),
     "spinner":       ("div", "zui-spinner", None),
     "tabs":          ("div", "zui-tabs", None),
     "tabpanel":      ("div", "zui-tabpanel", None),
