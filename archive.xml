@@ -23,6 +23,29 @@
     <filesChanged>core/css/tokens.css, core/css/themes/holo.css, core/css/themes/clean.css, core/css/THEMES.md, core/css/base.css, core/css/components/{button,layout,panel,scrollbar,table,tooltip,window}.css, showcase/index.html, showcase/music.html, README.md, design.txt, task_images/ZU-33.png</filesChanged>
     <image>ZU-33.png</image>
   </task>
+  <task id="ZU-24">
+    <name>status / device bar</name>
+    <prompt>Build the persistent status/device bar as a reusable component: disconnected (neutral) vs connected (accent) states, device name/capacity/free, consistently aligned Eject/Sync actions, driven by a device host channel. Requirement: matches the STATUS / DEVICE BAR example in design.txt.</prompt>
+    <requirements>Reusable status/device bar: disconnected (neutral) vs connected (accent name+dot) states, device name/capacity/free, consistently right-aligned Eject/Sync actions, driven by the 'device' channel. Matches design.txt.</requirements>
+    <inProgress>false</inProgress>
+    <done>true</done>
+    <bug>false</bug>
+    <error>false</error>
+    <errorMessage></errorMessage>
+    <lockKey></lockKey>
+    <locked>false</locked>
+    <archived>true</archived>
+    <blockedBy></blockedBy>
+    <dateStarted></dateStarted>
+    <dueDate></dueDate>
+    <commit>true</commit>
+    <build>false</build>
+    <release>false</release>
+    <tags>ui,coding</tags>
+    <notes>window.css: .zui-statusbar__name (accent when connected), __dot (grey-&gt;accent), __capacity/__free, __actions (right-aligned), __when-connected (hidden while disconnected), __sep bullet. zui.js: .zui-statusbar[data-zui-device] subscribes to 'device' - {name,capacity,free} connects, null disconnects; [data-device-action] buttons emit 'device-action'. Compiler _n_statusbar renders the scaffold from &lt;statusbar device connected&gt; + &lt;text&gt;/&lt;button action=&gt;. music.html device bar rebuilt. 10/10 tests pass.</notes>
+    <filesChanged>core/css/components/window.css, core/js/zui.js, compiler/zslc.py, showcase/music.html</filesChanged>
+    <image></image>
+  </task>
   <task id="ZU-23">
     <name>modal dialogs and popovers</name>
     <prompt>Add dialog/popover primitives (CSS and zui.js): modal dialog with title/body/footer buttons, non-modal anchored popover, focus trap, Esc/Enter handling, overlay. Requirement: dialogs are compact native-style (not large rounded web cards) and manage focus correctly.</prompt>

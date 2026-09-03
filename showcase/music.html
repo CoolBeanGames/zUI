@@ -127,14 +127,15 @@
   </div>
 
   <!-- device / status bar -->
-  <div class="zui-statusbar zui-statusbar--connected">
+  <div class="zui-statusbar zui-statusbar--connected" data-zui-device>
     <span class="zui-statusbar__dot"></span>
-    <span>HAPTICS' IPOD</span>
-    <span>238.2 GB capacity</span>
-    <span>234.6 GB free</span>
-    <span class="zui-statusbar__spacer"></span>
-    <button class="zui-btn">Eject</button>
-    <button class="zui-btn">Sync all</button>
+    <span class="zui-statusbar__name">HAPTICS' IPOD</span>
+    <span class="zui-statusbar__when-connected zui-statusbar__capacity">238.2 GB capacity</span>
+    <span class="zui-statusbar__when-connected zui-statusbar__free">234.6 GB free</span>
+    <span class="zui-statusbar__actions zui-statusbar__when-connected">
+      <button class="zui-btn" data-device-action="eject">Eject</button>
+      <button class="zui-btn" data-device-action="sync">Sync all</button>
+    </span>
   </div>
 
   <!-- playback bar -->

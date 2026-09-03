@@ -460,6 +460,31 @@
       if (active) activate(active);
     });
 
+    /* Device / status bar: a .zui-statusbar with data-zui-device reacts to the
+       "device" channel - {name, capacity, free, actions?} connects it, null
+       disconnects. Matches design.txt STATUS / DEVICE BAR. */
+    (root || document).querySelectorAll(".zui-statusbar[data-zui-device]").forEach(function (bar) {
+      if (bar.__zuiDevice) return; bar.__zuiDevice = true;
+      var set = function (txt, cls) {
+        var n = bar.querySelector("." + cls);
+        if (n) n.textContent = txt == null ? "" : txt;
+      };
+      zui.receive("device", function (d) {
+        if (!d) {
+          bar.classList.remove("zui-statusbar--connected");
+          set("No device connected", "zui-statusbar__name");
+          return;
+        }
+        bar.classList.add("zui-statusbar--connected");
+        set(d.name, "zui-statusbar__name");
+        set(d.capacity != null ? d.capacity + " capacity" : "", "zui-statusbar__capacity");
+        set(d.free != null ? d.free + " free" : "", "zui-statusbar__free");
+      });
+      bar.querySelectorAll("[data-device-action]").forEach(function (b) {
+        b.addEventListener("click", function () { zui.send("device-action", b.getAttribute("data-device-action")); });
+      });
+    });
+
     /* Title-bar window controls: a .zui-titlebar__btn carries data-window with
        one of minimize|maximize|restore|close. The host performs the action;
        zUI just forwards it. */

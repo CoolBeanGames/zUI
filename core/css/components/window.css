@@ -45,13 +45,25 @@
   display: flex;
   align-items: center;
   gap: var(--zui-space-3);
-  height: var(--zui-control-h);
+  min-height: var(--zui-control-h);
   padding: 0 var(--zui-space-3);
   background: var(--zui-bg-surface-alt);
   border-top: var(--zui-border-w) solid var(--zui-border);
   font-size: var(--zui-fs-small);
   color: var(--zui-text-secondary);
 }
-.zui-statusbar__spacer { margin-left: auto; }
-.zui-statusbar--connected { color: var(--zui-accent); }
-.zui-statusbar__dot { width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
+.zui-statusbar__spacer,
+.zui-statusbar__actions { margin-left: auto; display: flex; gap: var(--zui-space-2); align-items: center; }
+.zui-statusbar__name { font-weight: var(--zui-fw-medium); color: var(--zui-text); }
+.zui-statusbar__dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--zui-text-disabled);
+  flex: 0 0 auto;
+}
+/* connected: name + dot pick up the accent; capacity/free stay secondary */
+.zui-statusbar--connected .zui-statusbar__dot  { background: var(--zui-accent); }
+.zui-statusbar--connected .zui-statusbar__name { color: var(--zui-accent); }
+.zui-statusbar__sep::before { content: "\2022"; margin: 0 var(--zui-space-1); color: var(--zui-text-disabled); }
+.zui-statusbar[hidden] { display: none; }
+/* disconnected hides device-only fields */
+.zui-statusbar:not(.zui-statusbar--connected) .zui-statusbar__when-connected { display: none; }

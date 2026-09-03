@@ -562,6 +562,27 @@ class HtmlGen:
     def _n_heading(self, n: Node) -> str:
         return f"<h1>{self.esc(n.text or '')}</h1>"
 
+    def _n_statusbar(self, n: Node) -> str:
+        # <statusbar device> renders the design.txt device-bar scaffold; actions
+        # are <button ... action="eject">.
+        dev = " data-zui-device" if "device" in n.flags else ""
+        conn = " zui-statusbar--connected" if "connected" in n.flags else ""
+        parts = ['<span class="zui-statusbar__dot"></span>']
+        if n.text:
+            parts.append(f'<span class="zui-statusbar__name">{self.esc(n.text)}</span>')
+        acts = []
+        for c in n.children:
+            if c.name == "button":
+                act = c.attrs.get("action", (c.text or "").lower())
+                acts.append(f'<button class="zui-btn" data-device-action="{self.esc(act)}">{self.esc(c.text)}</button>')
+            elif c.name == "text":
+                parts.append(f'<span class="zui-statusbar__when-connected">{self.esc(c.text)}</span>')
+        if acts:
+            parts.append('<span class="zui-statusbar__actions zui-statusbar__when-connected">' + "".join(acts) + "</span>")
+        elif not any('__actions' in p for p in parts):
+            parts.append('<span class="zui-statusbar__spacer"></span>')
+        return f'<div class="zui-statusbar{conn}"{dev}>{"".join(parts)}</div>'
+
     def _n_text(self, n: Node) -> str:
         if n.bind:
             i = n.attrs.get("id") or self.uid("t")
