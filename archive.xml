@@ -1,5 +1,28 @@
 <?xml version="1.0" encoding="utf-8"?>
-<tasks project="zUI" nextIndex="40">
+<tasks project="zUI" nextIndex="41">
+  <task id="ZU-40">
+    <name>full QA sweep: test every component + page, fix what's broken</name>
+    <prompt>Systematically exercise every component in showcase/index.html, showcase/music.html and docs/index.html and every documented zui.js API. Known report: in docs/index.html the left tree nav does nothing (hyperlinks work) - likely that component zui.send() does not reach in-page zui.receive() handlers, so hostless pages can't react to their own components (also affects the showcase theme switcher). Fix the root cause, then re-verify: tabs, tree, menus+submenus, dropdown, selection, sliders, toggles, dialog/popover, toasts, drag/reorder, virtual list, validation, rename, undo/redo+shortcuts, theme switch, IO round-trip. Add regression coverage to tests/io-selftest.html or a new headless test.</prompt>
+    <requirements>Root cause of the dead docs tree-nav fixed; components react in-page whether or not a host is attached; every component + doc page + zui.js API re-verified; regression test added.</requirements>
+    <inProgress>false</inProgress>
+    <done>true</done>
+    <bug>true</bug>
+    <error>false</error>
+    <errorMessage></errorMessage>
+    <lockKey></lockKey>
+    <locked>false</locked>
+    <archived>true</archived>
+    <blockedBy></blockedBy>
+    <dateStarted></dateStarted>
+    <dueDate></dueDate>
+    <commit>true</commit>
+    <build>false</build>
+    <release>false</release>
+    <tags>qa,coding</tags>
+    <notes>ROOT CAUSE: zui.send() only posted to the host - it never invoked in-page zui.receive() handlers, so a hostless page (docs site, showcase theme switcher, showcase selection/drop demos) could not respond to its own components. FIX: zui.send() now also delivers to local zui.receive() handlers for that channel (shared deliver() with _dispatch), with a per-channel re-entrancy guard so a handler that re-sends the same channel can't loop. A real host that handles a channel does not echo it, so no double-handling. Re-verified via new tests/nav-selftest.html (7 assertions: tree nav, tab, tab-panel switch, theme-select switch, IO value, loop guard - all pass) plus the existing 10 compiler + 19 IO-selftest + token check, all green through build.ps1 -Config test. Also wired nav-selftest into build.ps1 and .github/workflows/ci.yml. Manual sweep of showcase Components/Data/Layout, music.html and docs pages - no console errors, all render; the showcase demos (selection toast, drop toast, theme switch) now work live without the fake host.</notes>
+    <filesChanged>core/js/zui.js, tests/nav-selftest.html, build.ps1, .github/workflows/ci.yml</filesChanged>
+    <image></image>
+  </task>
   <task id="ZU-33">
     <name>holo theme is a light utility look, not Android Holo</name>
     <prompt>The holo theme shipped in ZU-4 followed design.txt (light neutral Windows-utility palette). User feedback with reference screenshots: this does not reflect Holo design principles. Real Google Holo = dark chrome, Holo-blue #33b5e5 accent, thin dark dividers, uppercase accent-coloured section headers with an underline rule, blue-tinted selection with a left accent bar, light text on near-black. Repro: open showcase/index.html or music.html, observe light/white UI. Expected: dark Holo look as the default theme; the light design.txt look kept as a separate 'clean' theme.</prompt>

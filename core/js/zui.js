@@ -16,6 +16,13 @@
   "use strict";
 
   var listeners = Object.create(null);
+  var sending = Object.create(null);
+
+  function deliver(channel, payload) {
+    (listeners[channel] || []).forEach(function (h) {
+      try { h(payload); } catch (e) { console.error("[zui] handler error", e); }
+    });
+  }
 
   function hostPost(msg) {
     var h = global.__zuiHost;
@@ -27,8 +34,18 @@
   var zui = {
     version: "0.1.0",
 
+    /* UI -> host. Also delivered to in-page zui.receive() handlers for the same
+       channel, so a page reacts to its own components whether or not a host is
+       attached (a host that handles a channel does not echo it back). A
+       re-entrancy guard stops a handler that re-sends the same channel from
+       looping. */
     send: function (channel, payload) {
-      hostPost(JSON.stringify({ channel: channel, payload: payload === undefined ? null : payload }));
+      var p = payload === undefined ? null : payload;
+      hostPost(JSON.stringify({ channel: channel, payload: p }));
+      if (sending[channel]) return;
+      sending[channel] = true;
+      try { deliver(channel, p); }
+      finally { sending[channel] = false; }
     },
 
     receive: function (channel, handler) {
@@ -43,9 +60,7 @@
       var msg;
       try { msg = typeof raw === "string" ? JSON.parse(raw) : raw; }
       catch (e) { console.warn("[zui] bad host message", raw); return; }
-      (listeners[msg.channel] || []).forEach(function (h) {
-        try { h(msg.payload); } catch (e) { console.error("[zui] handler error", e); }
-      });
+      deliver(msg.channel, msg.payload);
     },
 
     /* Toggle a button's busy spinner (keeps its box size, disables it). */

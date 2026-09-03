@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html data-zui-theme="holo">
+<head>
+  <meta charset="utf-8">
+  <title>zUI nav self-test</title>
+  <link rel="stylesheet" href="../core/css/zui.css">
+  <link rel="stylesheet" href="../core/css/themes/holo.css">
+  <link rel="stylesheet" href="../core/css/themes/clean.css">
+</head>
+<body style="padding:16px">
+<h1>Hostless component reactivity</h1>
+<div class="zui-nav" data-zui="tabs">
+  <div class="zui-nav__item zui-active" data-zui-tab="a">A</div>
+  <div class="zui-nav__item" data-zui-tab="b">B</div>
+</div>
+<div data-zui-tabpanel="a" class="zui-active">panel A</div>
+<div data-zui-tabpanel="b">panel B</div>
+<div class="zui-tree" data-zui="tree" data-name="toc" style="max-width:180px;border:1px solid var(--zui-border)">
+  <div class="zui-tree__item zui-selected" data-id="x" data-depth="0"><span class="zui-tree__label">X</span></div>
+  <div class="zui-tree__item" data-id="y" data-depth="0"><span class="zui-tree__label">Y</span></div>
+</div>
+<div class="zui-select" data-zui="select" data-name="theme" data-value="holo"
+     data-options='["holo","clean"]'><span class="zui-select__value">holo</span></div>
+<button class="zui-btn" data-zui-id="b1">Btn</button>
+<label class="zui-check"><input type="checkbox" data-zui-id="c1"> chk</label>
+<pre id="out" class="zui-selectable" style="white-space:pre-wrap">running…</pre>
+
+<script src="../core/js/zui.js"></script>
+<script>
+(function () {
+  var pass = [], fail = [];
+  function ok(n, c) { (c ? pass : fail).push(n); }
+  window.addEventListener("load", function () { try {
+    var tree = null, tab = null, sel = null, toggled = 0, valSeen = null;
+
+    zui.receive("tree", function (p) { if (p && p.name === "toc") tree = p.id; });
+    zui.receive("tab", function (id) { tab = id; });
+    zui.receive("select", function (p) { if (p && p.name === "theme") { sel = p.value; zui.setTheme(p.value); } });
+    zui.receive("toggle", function () { toggled++; });
+    zui.receive("value", function (m) { valSeen = m && m.id; });
+
+    // a page must react to its OWN components with no host attached
+    document.querySelectorAll(".zui-tree__item")[1].click();
+    ok("tree nav reaches zui.receive", tree === "y");
+
+    document.querySelectorAll("[data-zui-tab]")[1].click();
+    ok("tab reaches zui.receive", tab === "b");
+    ok("tab panel switched", !document.querySelector('[data-zui-tabpanel="b"]').hidden);
+
+    var s = document.querySelector(".zui-select"); s.click();
+    document.querySelectorAll(".zui-menu__item")[1].click();  // clean
+    ok("select reaches zui.receive", sel === "clean");
+    ok("theme actually switched", document.documentElement.getAttribute("data-zui-theme") === "clean");
+
+    var chk = document.querySelector('[data-zui-id="c1"]');
+    chk.checked = true; chk.dispatchEvent(new Event("change"));
+    ok("IO value reaches zui.receive", valSeen === "c1");
+
+    // loop guard: a receive handler that re-sends the same channel must not hang
+    var guardHits = 0;
+    var off = zui.receive("loopy", function () { guardHits++; zui.send("loopy"); });
+    zui.send("loopy");
+    ok("send loop guarded", guardHits === 1);
+    off();
+
+    var okAll = fail.length === 0;
+    document.getElementById("out").textContent =
+      (okAll ? "ALL " + pass.length + " PASS" : fail.length + " FAILED\n" + fail.join("\n"));
+    document.title = okAll ? "NAV SELFTEST OK" : "NAV SELFTEST FAIL";
+  } catch (e) {
+    document.getElementById("out").textContent = "ERROR: " + (e && e.stack || e);
+    document.title = "NAV SELFTEST ERROR";
+  } });
+})();
+</script>
+</body>
+</html>

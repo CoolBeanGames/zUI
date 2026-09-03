@@ -23,6 +23,20 @@ jobs:
         run: python compiler/tests/test_compile.py
       - name: token check
         run: python tests/check-tokens.py
+      - name: runtime self-tests (headless)
+        shell: pwsh
+        run: |
+          $chrome = (Get-Command chrome, msedge -ErrorAction SilentlyContinue |
+                     Select-Object -First 1).Source
+          if (-not $chrome) { $chrome = "$env:ProgramFiles (x86)\Microsoft\Edge\Application\msedge.exe" }
+          foreach ($t in @(
+              @{ f = 'tests/io-selftest.html';  m = 'IO SELFTEST OK' },
+              @{ f = 'tests/nav-selftest.html'; m = 'NAV SELFTEST OK' })) {
+            $dom = & $chrome --headless --disable-gpu --virtual-time-budget=6000 --dump-dom `
+                   ("file:///" + (Resolve-Path $t.f).Path.Replace('\','/'))
+            if ($dom -notmatch $t.m) { throw "self-test failed: $($t.f)" }
+            Write-Host "ok  $($t.f)"
+          }
 
       # ---- C# binding + sample ----------------------------------------
       - name: build C# binding

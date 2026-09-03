@@ -63,14 +63,18 @@ if ($Config -eq 'test') {
     "$env:ProgramFiles (x86)\Microsoft\Edge\Application\msedge.exe"
   ) | Where-Object { Test-Path $_ } | Select-Object -First 1
   if ($chrome) {
-    $tmp = Join-Path $out 'io-selftest.dom.html'
-    & $chrome --headless --disable-gpu --virtual-time-budget=5000 --dump-dom `
-      ("file:///" + (Join-Path $root 'tests/io-selftest.html').Replace('\', '/')) 2>$null |
-      Out-File -Encoding utf8 $tmp
-    if (Select-String -Path $tmp -Pattern 'IO SELFTEST OK' -Quiet) {
-      Write-Host "  IO self-test: OK"
-    } else {
-      Write-Warning "  IO self-test FAILED (see $tmp)"
+    foreach ($t in @(
+        @{ file = 'tests/io-selftest.html';  marker = 'IO SELFTEST OK';  name = 'IO' },
+        @{ file = 'tests/nav-selftest.html'; marker = 'NAV SELFTEST OK'; name = 'nav/reactivity' })) {
+      $tmp = Join-Path $out (($t.name -replace '\W', '_') + '.dom.html')
+      & $chrome --headless --disable-gpu --virtual-time-budget=5000 --dump-dom `
+        ("file:///" + (Join-Path $root $t.file).Replace('\', '/')) 2>$null |
+        Out-File -Encoding utf8 $tmp
+      if (Select-String -Path $tmp -Pattern $t.marker -Quiet) {
+        Write-Host "  $($t.name) self-test: OK"
+      } else {
+        Write-Warning "  $($t.name) self-test FAILED (see $tmp)"
+      }
     }
   } else {
     Write-Warning "no Chrome/Edge - skipping runtime self-tests"
