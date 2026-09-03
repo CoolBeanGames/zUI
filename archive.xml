@@ -1,5 +1,28 @@
 <?xml version="1.0" encoding="utf-8"?>
 <tasks project="zUI" nextIndex="31">
+  <task id="ZU-10">
+    <name>buttons</name>
+    <prompt>Complete button.css: default/primary/icon-only/toggle/split-button, button groups, disabled and busy (spinner) states, compact sizing. Add toggle and split-button behaviour to zui.js. Requirement: all button variants restrained (no web CTA styling) and keyboard/AT operable.</prompt>
+    <requirements>Full button set (default/primary/icon/toggle/split/busy/group), all visually restrained per design.txt, keyboard &amp; AT operable via native &lt;button&gt; + aria-pressed.</requirements>
+    <inProgress>false</inProgress>
+    <done>true</done>
+    <bug>false</bug>
+    <error>false</error>
+    <errorMessage></errorMessage>
+    <lockKey></lockKey>
+    <locked>false</locked>
+    <archived>true</archived>
+    <blockedBy></blockedBy>
+    <dateStarted></dateStarted>
+    <dueDate></dueDate>
+    <commit>true</commit>
+    <build>false</build>
+    <release>false</release>
+    <tags>ui,coding</tags>
+    <notes>button.css: added toggle (aria-pressed -&gt; pale-accent), .zui-btn--busy (label hidden, inline spinner, box size preserved), .zui-btn-split + .zui-btn--caret. zui.js: data-zui="toggle" flips aria-pressed and emits 'toggle'; split-button caret opens its data-menu via the shared renderer; zui.busy(el,on) helper. Showcase Buttons block demos toggle, split and busy. All variants keep thin border / light fill / minimal radius.</notes>
+    <filesChanged>core/css/components/button.css, core/js/zui.js, showcase/index.html</filesChanged>
+    <image></image>
+  </task>
   <task id="ZU-9">
     <name>scroll bars</name>
     <prompt>Refine scrollbar.css: thin neutral desktop scrollbars (WebKit and Firefox), overlay vs stable gutter option, corner treatment, optional custom-scrollbar JS fallback. Requirement: scrollbars match design.txt weight and look identical in the C# and C++ hosts.</prompt>

@@ -48,6 +48,12 @@
       });
     },
 
+    /* Toggle a button's busy spinner (keeps its box size, disables it). */
+    busy: function (el, on) {
+      if (typeof el === "string") el = document.querySelector(el);
+      if (el) el.classList.toggle("zui-btn--busy", on !== false);
+    },
+
     setTheme: function (name) {
       document.documentElement.setAttribute("data-zui-theme", name);
       zui.send("theme-changed", name);
@@ -184,6 +190,30 @@
       if (btn.__zuiWin) return; btn.__zuiWin = true;
       btn.addEventListener("click", function () {
         zui.send("window", btn.getAttribute("data-window"));
+      });
+    });
+
+    /* Toggle buttons: data-zui="toggle" flips aria-pressed and emits `toggle`. */
+    root.querySelectorAll('[data-zui="toggle"]').forEach(function (btn) {
+      if (btn.__zuiToggle) return; btn.__zuiToggle = true;
+      if (!btn.hasAttribute("aria-pressed")) btn.setAttribute("aria-pressed", "false");
+      btn.addEventListener("click", function () {
+        var on = btn.getAttribute("aria-pressed") === "true";
+        btn.setAttribute("aria-pressed", String(!on));
+        zui.send("toggle", { name: btn.getAttribute("data-name") || btn.textContent.trim(), pressed: !on });
+      });
+    });
+
+    /* Split-button caret: opens the menu described by its data-menu JSON. */
+    root.querySelectorAll(".zui-btn--caret[data-menu]").forEach(function (caret) {
+      if (caret.__zuiCaret) return; caret.__zuiCaret = true;
+      caret.addEventListener("click", function (e) {
+        e.stopPropagation();
+        var spec;
+        try { spec = JSON.parse(caret.getAttribute("data-menu") || "[]"); } catch (x) { return; }
+        var r = caret.getBoundingClientRect();
+        zui.menu(spec, r.right - 4, r.bottom);
+        setMenuActive(0);
       });
     });
 

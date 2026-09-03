@@ -67,6 +67,15 @@
               <button class="zui-btn zui-btn--icon" data-zui-tip="Next">&#9197;</button>
             </div>
           </div>
+          <div class="zui-row zui-gap-2" style="margin-top:var(--zui-space-2)">
+            <button class="zui-btn" data-zui="toggle" data-name="shuffle">Shuffle</button>
+            <button class="zui-btn" data-zui="toggle" data-name="repeat" aria-pressed="true">Repeat</button>
+            <div class="zui-btn-split">
+              <button class="zui-btn">Add to playlist</button>
+              <button class="zui-btn zui-btn--caret" data-menu='[{"label":"Focus"},{"label":"Long Drives"},"-",{"label":"New playlist..."}]'></button>
+            </div>
+            <button class="zui-btn" id="btnBusy" onclick="zui.busy(this,true);setTimeout(function(){zui.busy(document.getElementById('btnBusy'),false)},1500)">Rescan</button>
+          </div>
         </div>
 
         <div class="sc-block">

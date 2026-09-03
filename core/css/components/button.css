@@ -34,6 +34,41 @@
   padding: 0;
 }
 
+/* Toggle button: pressed state uses the pale accent, like a selected item. */
+.zui-btn[aria-pressed="true"] {
+  background: var(--zui-accent-weak);
+  border-color: var(--zui-accent);
+  color: var(--zui-accent);
+}
+
+/* Busy: swap label for a spinner, keep the box the same size. */
+.zui-btn--busy { color: transparent !important; position: relative; pointer-events: none; }
+.zui-btn--busy::after {
+  content: "";
+  position: absolute;
+  width: 12px; height: 12px;
+  border: 2px solid var(--zui-border-strong);
+  border-top-color: var(--zui-accent);
+  border-radius: 50%;
+  animation: zui-spin 0.7s linear infinite;
+}
+
+/* Split button: main action + a caret that opens a menu. */
+.zui-btn-split { display: inline-flex; }
+.zui-btn-split > .zui-btn:first-child { border-radius: var(--zui-radius) 0 0 var(--zui-radius); }
+.zui-btn-split > .zui-btn--caret {
+  border-radius: 0 var(--zui-radius) var(--zui-radius) 0;
+  border-left: 0;
+  width: 18px;
+  padding: 0;
+}
+.zui-btn--caret::after {
+  content: "";
+  border: 3px solid transparent;
+  border-top-color: currentColor;
+  margin-top: 2px;
+}
+
 .zui-btn-group { display: inline-flex; }
 .zui-btn-group .zui-btn { border-radius: 0; margin-left: -1px; }
 .zui-btn-group .zui-btn:first-child { border-radius: var(--zui-radius) 0 0 var(--zui-radius); margin-left: 0; }
