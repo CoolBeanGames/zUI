@@ -99,6 +99,101 @@
       return fn;
     })(),
 
+    /* Modal dialog. opts: {title, body (string|HTMLElement), buttons:[{label,
+       value, primary}], dismissable=true}. Returns a Promise resolving to the
+       chosen button's value (or null on dismiss). Native <dialog> = focus trap
+       + Esc handled by the platform. */
+    dialog: function (opts) {
+      opts = opts || {};
+      return new Promise(function (resolve) {
+        var dlg = document.createElement("dialog");
+        dlg.className = "zui-dialog";
+        var done = function (val) {
+          if (dlg.open) dlg.close();
+          dlg.remove();
+          resolve(val);
+        };
+
+        if (opts.title != null) {
+          var t = document.createElement("div"); t.className = "zui-dialog__title";
+          t.appendChild(document.createTextNode(opts.title));
+          if (opts.dismissable !== false) {
+            var x = document.createElement("button"); x.className = "zui-dialog__x"; x.textContent = "×";
+            x.addEventListener("click", function () { done(null); });
+            t.appendChild(x);
+          }
+          dlg.appendChild(t);
+        }
+
+        var body = document.createElement("div"); body.className = "zui-dialog__body";
+        if (opts.body instanceof Node) body.appendChild(opts.body);
+        else { var p = document.createElement("p"); p.textContent = opts.body || ""; body.appendChild(p); }
+        dlg.appendChild(body);
+
+        var buttons = opts.buttons || [{ label: "OK", value: true, primary: true }];
+        var foot = document.createElement("div"); foot.className = "zui-dialog__footer";
+        buttons.forEach(function (b) {
+          var el = document.createElement("button");
+          el.className = "zui-btn" + (b.primary ? " zui-btn--primary" : "");
+          el.textContent = b.label;
+          el.addEventListener("click", function () { done(b.value !== undefined ? b.value : b.label); });
+          foot.appendChild(el);
+        });
+        dlg.appendChild(foot);
+
+        dlg.addEventListener("cancel", function (e) {   // Esc
+          e.preventDefault();
+          if (opts.dismissable !== false) done(null);
+        });
+
+        document.body.appendChild(dlg);
+        dlg.showModal();
+        var focusEl = dlg.querySelector(".zui-dialog__body .zui-input, .zui-dialog__body .zui-select") ||
+          dlg.querySelector(".zui-btn--primary") || dlg.querySelector(".zui-btn");
+        if (focusEl) focusEl.focus();
+      });
+    },
+
+    /* Confirm helper. */
+    confirm: function (message, opts) {
+      opts = opts || {};
+      return zui.dialog({
+        title: opts.title || "Confirm",
+        body: message,
+        buttons: [
+          { label: opts.cancelLabel || "Cancel", value: false },
+          { label: opts.okLabel || "OK", value: true, primary: true }
+        ]
+      });
+    },
+
+    /* Non-modal popover anchored to an element. Returns { close() }. */
+    popover: function (anchor, content, opts) {
+      opts = opts || {};
+      if (typeof anchor === "string") anchor = document.querySelector(anchor);
+      var pop = document.createElement("div");
+      pop.className = "zui-popover";
+      if (content instanceof Node) pop.appendChild(content); else pop.textContent = content || "";
+      document.body.appendChild(pop);
+      var r = anchor.getBoundingClientRect();
+      var pw = pop.offsetWidth, ph = pop.offsetHeight;
+      var top = (opts.placement === "top") ? r.top - ph - 4 : r.bottom + 4;
+      pop.style.left = Math.max(4, Math.min(r.left, innerWidth - pw - 4)) + "px";
+      pop.style.top = Math.max(4, Math.min(top, innerHeight - ph - 4)) + "px";
+      var close = function () {
+        pop.remove();
+        document.removeEventListener("mousedown", outside, true);
+        document.removeEventListener("keydown", onKey, true);
+      };
+      var outside = function (e) { if (!pop.contains(e.target) && e.target !== anchor) close(); };
+      var onKey = function (e) { if (e.key === "Escape") close(); };
+      setTimeout(function () {
+        document.addEventListener("mousedown", outside, true);
+        document.addEventListener("keydown", onKey, true);
+      });
+      return { close: close, el: pop };
+    },
+
     setTheme: function (name) {
       document.documentElement.setAttribute("data-zui-theme", name);
       zui.send("theme-changed", name);
@@ -1150,6 +1245,10 @@
     if (!p) return;
     if (typeof p === "string") zui.toast(p);
     else zui.toast(p.message, p);
+  });
+  zui.receive("dialog", function (p) {
+    if (!p) return;
+    zui.dialog(p).then(function (val) { zui.send("dialog-result", { id: p.id || null, value: val }); });
   });
   zui.receive("set", function (p) { if (p) zui.set(p.id, p.value); });
   zui.receive("set-many", function (p) { if (p) zui.set(p); });

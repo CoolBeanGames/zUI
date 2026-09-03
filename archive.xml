@@ -23,6 +23,29 @@
     <filesChanged>core/css/tokens.css, core/css/themes/holo.css, core/css/themes/clean.css, core/css/THEMES.md, core/css/base.css, core/css/components/{button,layout,panel,scrollbar,table,tooltip,window}.css, showcase/index.html, showcase/music.html, README.md, design.txt, task_images/ZU-33.png</filesChanged>
     <image>ZU-33.png</image>
   </task>
+  <task id="ZU-23">
+    <name>modal dialogs and popovers</name>
+    <prompt>Add dialog/popover primitives (CSS and zui.js): modal dialog with title/body/footer buttons, non-modal anchored popover, focus trap, Esc/Enter handling, overlay. Requirement: dialogs are compact native-style (not large rounded web cards) and manage focus correctly.</prompt>
+    <requirements>Compact native-style modal dialog (title/body/footer, not a big rounded card) with correct focus management + Esc/Enter, and a non-modal anchored popover; both drivable from the host.</requirements>
+    <inProgress>false</inProgress>
+    <done>true</done>
+    <bug>false</bug>
+    <error>false</error>
+    <errorMessage></errorMessage>
+    <lockKey></lockKey>
+    <locked>false</locked>
+    <archived>true</archived>
+    <blockedBy></blockedBy>
+    <dateStarted></dateStarted>
+    <dueDate></dueDate>
+    <commit>true</commit>
+    <build>false</build>
+    <release>false</release>
+    <tags>ui,coding</tags>
+    <notes>dialog.css: .zui-dialog on a native &lt;dialog&gt; (platform focus-trap + Esc), 30px title bar, alt-surface footer, subtle heavy shadow, ::backdrop; .zui-popover fixed + clamped. zui.js: zui.dialog({title,body,buttons,dismissable}) -&gt; Promise of the chosen value (null on dismiss), autofocus body input else primary button; zui.confirm(msg,opts); zui.popover(anchor,content,{placement}) -&gt; {close} with outside-click/Esc dismiss. Inbound 'dialog' channel -&gt; opens + replies 'dialog-result'. Showcase: confirm + popover buttons. Verified via headless (modal, focus, resolve, cleanup). 10/10 tests pass.</notes>
+    <filesChanged>core/css/components/dialog.css, core/css/zui.css, core/js/zui.js, showcase/index.html</filesChanged>
+    <image></image>
+  </task>
   <task id="ZU-22">
     <name>tree view navigation</name>
     <prompt>Add a tree/outline component for sidebar hierarchies (LIBRARY, PLAYLISTS): expand/collapse, keyboard nav, single/multi select, drag to reorder, rename-in-place. Requirement: the showcase sidebar uses the tree component and matches design.txt SIDEBAR rules.</prompt>

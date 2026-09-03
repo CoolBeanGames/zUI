@@ -1,0 +1,52 @@
+/* Modal dialog + anchored popover.
+ * Compact, native-desktop - NOT a large rounded web card. */
+
+.zui-dialog {
+  padding: 0;
+  min-width: 280px;
+  max-width: min(90vw, 460px);
+  color: var(--zui-text);
+  background: var(--zui-bg-surface);
+  border: var(--zui-border-w) solid var(--zui-border-strong);
+  border-radius: var(--zui-radius);
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.55);
+}
+.zui-dialog::backdrop { background: rgba(0, 0, 0, 0.45); }
+
+.zui-dialog__title {
+  display: flex;
+  align-items: center;
+  height: 30px;
+  padding: 0 var(--zui-space-3);
+  font-weight: var(--zui-fw-medium);
+  background: var(--zui-bg-surface-alt);
+  border-bottom: var(--zui-border-w) solid var(--zui-border);
+}
+.zui-dialog__title .zui-dialog__x { margin-left: auto; color: var(--zui-text-secondary); background: none; border: 0; font: inherit; cursor: default; }
+.zui-dialog__title .zui-dialog__x:hover { color: var(--zui-text); }
+
+.zui-dialog__body { padding: var(--zui-space-4) var(--zui-space-3); font-size: var(--zui-fs-normal); }
+.zui-dialog__body p { margin: 0 0 var(--zui-space-2); }
+
+.zui-dialog__footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--zui-space-2);
+  padding: var(--zui-space-2) var(--zui-space-3);
+  background: var(--zui-bg-surface-alt);
+  border-top: var(--zui-border-w) solid var(--zui-border);
+}
+
+/* Non-modal popover anchored to a control. */
+.zui-popover {
+  position: fixed;
+  z-index: 1150;
+  min-width: 160px;
+  max-width: 320px;
+  padding: var(--zui-space-3);
+  background: var(--zui-bg-raised);
+  border: var(--zui-border-w) solid var(--zui-border-strong);
+  border-radius: var(--zui-radius);
+  box-shadow: var(--zui-shadow-pop);
+  font-size: var(--zui-fs-normal);
+}

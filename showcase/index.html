@@ -69,6 +69,10 @@
             </div>
           </div>
           <div class="zui-row zui-gap-2" style="margin-top:var(--zui-space-2)">
+            <button class="zui-btn" onclick="zui.confirm('Delete 3 tracks from the library? This cannot be undone.',{okLabel:'Delete',title:'Delete tracks'}).then(function(ok){ if(ok) zui.toast('Deleted',{kind:'ok'}) })">Confirm dialog</button>
+            <button class="zui-btn" onclick="zui.popover(this, 'Sorted by date added, newest first.')">Popover</button>
+          </div>
+          <div class="zui-row zui-gap-2" style="margin-top:var(--zui-space-2)">
             <button class="zui-btn" data-zui="toggle" data-name="shuffle">Shuffle</button>
             <button class="zui-btn" data-zui="toggle" data-name="repeat" aria-pressed="true">Repeat</button>
             <div class="zui-btn-split">
