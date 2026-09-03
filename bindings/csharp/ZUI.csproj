@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>net8.0-windows;net472</TargetFrameworks>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <UseWindowsForms>true</UseWindowsForms>
+    <AssemblyName>ZUI</AssemblyName>
+    <RootNamespace>ZUI</RootNamespace>
+    <Description>zUI .NET binding - embeds the shared zUI CSS/JS in a WebView2 host.</Description>
+    <Version>0.1.0</Version>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.2478.35" />
+  </ItemGroup>
+
+  <!-- The shared core assets are copied next to the binding on build so a host
+       app that references ZUI.dll also gets zui/css + zui/js. -->
+  <ItemGroup>
+    <None Include="..\..\core\**\*" Link="zui\%(RecursiveDir)%(Filename)%(Extension)">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+</Project>

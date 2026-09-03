@@ -1,0 +1,37 @@
+/* Showcase behaviour - exercises the zUI message bus with no host attached. */
+
+zui.receive("view.theme", function (name) { zui.setTheme(name); });
+zui.receive("help.about", function () {
+  zui.toast("zUI " + zui.version + " - holo theme", { kind: "ok" });
+});
+zui.receive("file.new", function () { zui.toast("New"); });
+zui.receive("file.open", function () { zui.toast("Open..."); });
+
+/* Sidebar selection (single-select). */
+document.querySelectorAll(".zui-sidebar__item").forEach(function (item) {
+  item.addEventListener("click", function () {
+    document.querySelectorAll(".zui-sidebar__item").forEach(function (i) { i.classList.remove("zui-active"); });
+    item.classList.add("zui-active");
+    zui.send("navigate", item.textContent.trim());
+  });
+});
+
+/* Reflect selection + drop events from the runtime. */
+zui.receive("selection", function (ids) {
+  if (ids && ids.length) zui.toast(ids.length + " track(s) selected");
+});
+zui.receive("drop", function (info) {
+  zui.toast("Added " + (info.files.length || 0) + " file(s) to " + info.target);
+});
+
+/* Simulated device connect/disconnect from a host. */
+zui.receive("device", function (dev) {
+  var bar = document.getElementById("deviceBar");
+  if (!dev) {
+    bar.classList.remove("zui-statusbar--connected");
+    document.getElementById("deviceName").textContent = "No device connected";
+    return;
+  }
+  bar.classList.add("zui-statusbar--connected");
+  document.getElementById("deviceName").textContent = dev.name;
+});

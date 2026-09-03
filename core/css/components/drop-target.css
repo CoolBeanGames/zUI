@@ -1,0 +1,25 @@
+/* Drop targets + empty states. */
+
+.zui-drop {
+  border: var(--zui-border-w) dashed var(--zui-border-strong);
+  border-radius: var(--zui-radius);
+  transition: background var(--zui-dur-fast) var(--zui-ease), border-color var(--zui-dur-fast) var(--zui-ease);
+}
+.zui-drop.zui-drop--over {
+  border-color: var(--zui-accent);
+  background: var(--zui-accent-weak);
+}
+
+/* Understated empty state: small icon + short line. */
+.zui-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--zui-space-2);
+  padding: var(--zui-space-6);
+  color: var(--zui-text-secondary);
+  text-align: center;
+  font-size: var(--zui-fs-normal);
+}
+.zui-empty__icon { width: 28px; height: 28px; opacity: 0.6; }

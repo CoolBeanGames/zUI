@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<tasks project="zUI" nextIndex="5">
+  <task id="ZU-1">
+    <name>project overview</name>
+    <prompt>your task is to create a visual UI subsystem that will sit on top of my other apps providing a consistent UI experience, at the start we will base the visual design on googles holoUI however other themes may be added later. Plan to add widgets, forms, dropdowns, buttons, fonts, colors, etc. I will leave infrastructure up to you but perhaps use css and build plugins for both C++ and C# so that either language can use the library and get an identical experience. For now build the base systems to get everything up and running, and create a seperate app that showcases any forms and ui elements we make. keep in mind we will be using this in a music app, a game engine, and a project managment app so make the scalable, universal, and effecient.</prompt>
+    <requirements>bones of system are up and running</requirements>
+    <inProgress>false</inProgress>
+    <done>true</done>
+    <bug>false</bug>
+    <error>false</error>
+    <errorMessage></errorMessage>
+    <lockKey></lockKey>
+    <locked>false</locked>
+    <archived>true</archived>
+    <blockedBy></blockedBy>
+    <dateStarted></dateStarted>
+    <dueDate></dueDate>
+    <commit>true</commit>
+    <build>false</build>
+    <release>false</release>
+    <tags>ui,coding,scripting,project</tags>
+    <notes>Established zUI base architecture: CSS design-token system (core/css/tokens.css) + base reset, 14 component stylesheets (button, panel, window shell, dropdown/menu, scrollbar, menubar, tabs/nav, table/list, input, layout, tooltip/cursor, notification/toast, loading, drop-target/empty), single-import core/css/zui.css, holo theme (+ dark scaffold). JS runtime core/js/zui.js: transport-agnostic host&lt;-&gt;UI JSON message bus (send/receive/dispatch), theme switch, context menus, toasts, and declarative wiring for tabs, selects, menubar, tooltips, drop targets, multi-select tables. Bindings: C# ZuiHost (WebView2, ZUI.csproj net8/net472) and C++ zui::Host (pluggable WebViewBackend, dependency-free JSON envelope + unit test). Standalone showcase app (window shell, menu, nav, sidebar, forms, data table, feedback widgets). build.ps1 stages core to builds/&lt;config&gt; and builds available bindings.</notes>
+    <filesChanged>README.md, .gitignore, build.ps1, core/css/tokens.css, core/css/base.css, core/css/zui.css, core/css/themes/holo.css, core/css/components/{button,panel,window,dropdown,scrollbar,menubar,tabs,table,input,layout,tooltip,notification,loading,drop-target}.css, core/js/zui.js, bindings/csharp/{ZUI.csproj,ZuiHost.cs,README.md}, bindings/cpp/{zui.h,zui.cpp,CMakeLists.txt,README.md,tests/envelope_test.cpp}, showcase/{index.html,showcase.css,showcase.js}</filesChanged>
+    <image></image>
+  </task>
+</tasks>

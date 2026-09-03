@@ -1,0 +1,27 @@
+/* Text boxes, search fields, checkboxes, radios, selectors. Compact desktop. */
+
+.zui-input,
+.zui-textarea {
+  min-height: var(--zui-control-h);
+  padding: 0 var(--zui-space-2);
+  font: inherit;
+  color: var(--zui-text);
+  background: var(--zui-bg-surface);
+  border: var(--zui-border-w) solid var(--zui-border);
+  border-radius: var(--zui-radius);
+}
+.zui-textarea { padding: var(--zui-space-1) var(--zui-space-2); min-height: 60px; resize: vertical; }
+.zui-input:focus,
+.zui-textarea:focus { outline: none; border-color: var(--zui-accent); }
+.zui-input:disabled { background: var(--zui-bg-surface-alt); color: var(--zui-text-disabled); }
+.zui-input::placeholder { color: var(--zui-text-disabled); }
+
+.zui-field { display: flex; flex-direction: column; gap: var(--zui-space-1); }
+.zui-field > label { font-size: var(--zui-fs-small); color: var(--zui-text-secondary); }
+
+.zui-search { position: relative; display: inline-flex; }
+.zui-search .zui-input { padding-left: var(--zui-space-6); width: 220px; }
+.zui-search__icon { position: absolute; left: var(--zui-space-2); top: 50%; transform: translateY(-50%); color: var(--zui-text-secondary); }
+
+.zui-check { display: inline-flex; align-items: center; gap: var(--zui-space-2); }
+.zui-check input { width: 13px; height: 13px; accent-color: var(--zui-accent); }

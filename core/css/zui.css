@@ -1,0 +1,25 @@
+/* zUI - single entry point. Include this one file (plus a theme) in a host
+ * document:
+ *
+ *   <link rel="stylesheet" href="zui/css/zui.css">
+ *   <link rel="stylesheet" href="zui/css/themes/holo.css">
+ *   <script src="zui/js/zui.js"></script>
+ */
+
+@import "tokens.css";
+@import "base.css";
+
+@import "components/layout.css";
+@import "components/window.css";
+@import "components/menubar.css";
+@import "components/tabs.css";
+@import "components/panel.css";
+@import "components/button.css";
+@import "components/input.css";
+@import "components/dropdown.css";
+@import "components/scrollbar.css";
+@import "components/table.css";
+@import "components/tooltip.css";
+@import "components/notification.css";
+@import "components/loading.css";
+@import "components/drop-target.css";

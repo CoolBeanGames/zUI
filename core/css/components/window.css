@@ -1,0 +1,42 @@
+/* Application window shell: title bar, menu, nav strip, workspace, status bar,
+ * contextual/playback bar. Strong horizontal hierarchy, subtle separators. */
+
+.zui-window {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: var(--zui-bg-app);
+}
+
+.zui-titlebar {
+  display: flex;
+  align-items: center;
+  height: 30px;
+  padding: 0 var(--zui-space-2);
+  background: var(--zui-bg-surface-alt);
+  border-bottom: var(--zui-border-w) solid var(--zui-border);
+  font-size: var(--zui-fs-small);
+  color: var(--zui-text-secondary);
+  -webkit-app-region: drag;
+}
+.zui-titlebar__controls { margin-left: auto; display: flex; -webkit-app-region: no-drag; }
+.zui-titlebar__btn { width: 40px; height: 30px; display: grid; place-items: center; }
+.zui-titlebar__btn:hover { background: var(--zui-bg-hover); }
+.zui-titlebar__btn--close:hover { background: var(--zui-error); color: #fff; }
+
+.zui-workspace { flex: 1; display: flex; min-height: 0; overflow: hidden; }
+
+.zui-statusbar {
+  display: flex;
+  align-items: center;
+  gap: var(--zui-space-3);
+  height: var(--zui-control-h);
+  padding: 0 var(--zui-space-3);
+  background: var(--zui-bg-surface-alt);
+  border-top: var(--zui-border-w) solid var(--zui-border);
+  font-size: var(--zui-fs-small);
+  color: var(--zui-text-secondary);
+}
+.zui-statusbar__spacer { margin-left: auto; }
+.zui-statusbar--connected { color: var(--zui-accent); }
+.zui-statusbar__dot { width: 8px; height: 8px; border-radius: 50%; background: currentColor; }

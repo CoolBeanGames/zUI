@@ -1,0 +1,18 @@
+/* Showcase-only layout. No new visual patterns - just spacing for the demo. */
+
+.sc-page { padding: var(--zui-space-4) var(--zui-space-6); }
+.sc-page h1 { margin-bottom: var(--zui-space-4); }
+
+.sc-block {
+  padding: var(--zui-space-3) 0 var(--zui-space-4);
+  border-bottom: var(--zui-border-w) solid var(--zui-border);
+}
+.sc-block:last-child { border-bottom: 0; }
+.sc-block h3 {
+  margin-bottom: var(--zui-space-2);
+  font-size: var(--zui-fs-small);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--zui-text-secondary);
+}
+.sc-block .zui-field { margin-bottom: var(--zui-space-3); }

@@ -1,0 +1,24 @@
+/* Tooltips + cursor indicators. */
+
+.zui-tooltip {
+  position: absolute;
+  z-index: 1100;
+  max-width: 240px;
+  padding: var(--zui-space-1) var(--zui-space-2);
+  background: #2b2b2b;
+  color: #f0f0f0;
+  font-size: var(--zui-fs-small);
+  border-radius: var(--zui-radius);
+  box-shadow: var(--zui-shadow-pop);
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+/* Cursor indicators (drag, resize, busy, forbidden) applied to <body> or a pane. */
+.zui-cursor-drag      { cursor: grabbing; }
+.zui-cursor-link      { cursor: pointer; }
+.zui-cursor-text      { cursor: text; }
+.zui-cursor-busy      { cursor: progress; }
+.zui-cursor-forbidden { cursor: not-allowed; }
+.zui-cursor-col       { cursor: col-resize; }
+.zui-cursor-row       { cursor: row-resize; }

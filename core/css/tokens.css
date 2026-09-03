@@ -1,0 +1,67 @@
+/* zUI design tokens.
+ *
+ * Every component is styled ONLY through these custom properties. A theme is
+ * nothing more than a file that re-declares them (see themes/holo.css). Do not
+ * hard-code colours, spacing or type sizes in component CSS.
+ */
+
+:root {
+  /* ---- colour: surfaces ------------------------------------------------ */
+  --zui-bg-app:           #f3f3f3; /* main application background            */
+  --zui-bg-surface:       #ffffff; /* primary content surfaces              */
+  --zui-bg-surface-alt:   #ececec; /* secondary surfaces / headers          */
+  --zui-bg-raised:        #fafafa; /* menus, popovers                       */
+  --zui-bg-selected:      #e5eef7; /* pale accent selection background      */
+  --zui-bg-hover:         #e9e9e9;
+  --zui-bg-active:        #dedede;
+
+  /* ---- colour: lines ------------------------------------------------- */
+  --zui-border:           #d0d0d0; /* standard 1px separator               */
+  --zui-border-strong:    #b8b8b8;
+  --zui-border-focus:     var(--zui-accent);
+
+  /* ---- colour: text ------------------------------------------------- */
+  --zui-text:             #1e1e1e; /* primary                              */
+  --zui-text-secondary:   #6b6b6b;
+  --zui-text-disabled:    #a8a8a8;
+  --zui-text-on-accent:   #ffffff;
+
+  /* ---- colour: accent --------------------------------------------- */
+  --zui-accent:           #3a6ea5; /* muted, desaturated blue              */
+  --zui-accent-hover:     #33628f;
+  --zui-accent-weak:      #e5eef7;
+
+  /* ---- colour: status ------------------------------------------- */
+  --zui-warn:             #b5892b;
+  --zui-error:            #b3352e;
+  --zui-ok:               #3f7d46;
+
+  /* ---- spacing scale (design.txt) ----------------------------- */
+  --zui-space-1: 4px;
+  --zui-space-2: 8px;
+  --zui-space-3: 12px;
+  --zui-space-4: 16px;
+  --zui-space-6: 24px;
+
+  /* ---- typography ------------------------------------------- */
+  --zui-font: "Segoe UI", -apple-system, "system-ui", "Roboto", sans-serif;
+  --zui-font-mono: "Cascadia Mono", "Consolas", ui-monospace, monospace;
+  --zui-fs-small:   11px;
+  --zui-fs-normal:  13px;
+  --zui-fs-medium:  14px;
+  --zui-fs-heading: 21px;
+  --zui-fw-normal:  400;
+  --zui-fw-medium:  600;
+  --zui-lh:         1.4;
+
+  /* ---- geometry ----------------------------------------- */
+  --zui-radius:      2px;   /* minimal corner radius              */
+  --zui-radius-lg:   3px;
+  --zui-border-w:    1px;
+  --zui-control-h:   24px;  /* compact control height             */
+  --zui-shadow-pop:  0 2px 6px rgba(0, 0, 0, 0.14); /* subtle only */
+
+  /* ---- motion ------------------------------------------ */
+  --zui-dur-fast: 90ms;
+  --zui-ease: cubic-bezier(0.2, 0, 0.2, 1);
+}

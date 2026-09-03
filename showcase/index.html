@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en" data-zui-theme="holo">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>zUI Showcase</title>
+  <link rel="stylesheet" href="../core/css/zui.css">
+  <link rel="stylesheet" href="../core/css/themes/holo.css">
+  <link rel="stylesheet" href="showcase.css">
+</head>
+<body>
+<div class="zui-window">
+
+  <!-- 1. title bar -->
+  <div class="zui-titlebar">
+    <span>zUI Showcase</span>
+    <div class="zui-titlebar__controls">
+      <div class="zui-titlebar__btn">&#8211;</div>
+      <div class="zui-titlebar__btn">&#9633;</div>
+      <div class="zui-titlebar__btn zui-titlebar__btn--close">&#10005;</div>
+    </div>
+  </div>
+
+  <!-- 2. application menu -->
+  <div class="zui-menubar" data-zui="menubar">
+    <div class="zui-menubar__item" data-menu='[{"label":"New","shortcut":"Ctrl+N","channel":"file.new"},{"label":"Open...","shortcut":"Ctrl+O","channel":"file.open"},"-",{"label":"Exit","channel":"file.exit"}]'>File</div>
+    <div class="zui-menubar__item" data-menu='[{"label":"Undo","shortcut":"Ctrl+Z","disabled":true},{"label":"Redo","shortcut":"Ctrl+Y","disabled":true}]'>Edit</div>
+    <div class="zui-menubar__item" data-menu='[{"label":"Holo (light)","checked":true,"channel":"view.theme","payload":"holo"},{"label":"Holo (dark)","channel":"view.theme","payload":"holo-dark"}]'>View</div>
+    <div class="zui-menubar__item" data-menu='[{"label":"About zUI","channel":"help.about"}]'>Help</div>
+  </div>
+
+  <!-- 3. primary navigation -->
+  <div class="zui-nav" data-zui="tabs">
+    <div class="zui-nav__item zui-active" data-zui-tab="components">Components</div>
+    <div class="zui-nav__item" data-zui-tab="forms">Forms</div>
+    <div class="zui-nav__item" data-zui-tab="data">Data</div>
+  </div>
+
+  <!-- 4. workspace -->
+  <div class="zui-workspace">
+    <nav class="zui-sidebar">
+      <div class="zui-section-label">Library</div>
+      <div class="zui-sidebar__item zui-active">Artists</div>
+      <div class="zui-sidebar__item">Albums</div>
+      <div class="zui-sidebar__item">Genres</div>
+      <div class="zui-sidebar__item">Songs</div>
+      <div class="zui-section-label">Playlists</div>
+      <div class="zui-sidebar__item">Recently Added</div>
+      <div class="zui-sidebar__item">Focus</div>
+    </nav>
+
+    <div class="zui-fill zui-scroll">
+
+      <section data-zui-tabpanel="components" class="zui-active sc-page">
+        <h1>Components</h1>
+
+        <div class="sc-block">
+          <h3>Buttons</h3>
+          <div class="zui-row zui-gap-2">
+            <button class="zui-btn">Edit metadata</button>
+            <button class="zui-btn">Eject</button>
+            <button class="zui-btn zui-btn--primary">+ New playlist</button>
+            <button class="zui-btn" disabled>Sync all</button>
+            <div class="zui-btn-group">
+              <button class="zui-btn zui-btn--icon" data-zui-tip="Previous">&#9198;</button>
+              <button class="zui-btn zui-btn--icon" data-zui-tip="Play">&#9654;</button>
+              <button class="zui-btn zui-btn--icon" data-zui-tip="Next">&#9197;</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="sc-block">
+          <h3>Dropdown</h3>
+          <div class="zui-select" data-zui="select" data-name="sort"
+               data-options='["Name","Artist","Album","Date added","Plays"]'>
+            <span class="zui-select__value">Name</span>
+          </div>
+        </div>
+
+        <div class="sc-block">
+          <h3>Tabbed display</h3>
+          <div class="zui-tabs" data-zui="tabs">
+            <div class="zui-tab zui-active" data-zui-tab="t1">Overview</div>
+            <div class="zui-tab" data-zui-tab="t2">Details</div>
+          </div>
+          <div data-zui-tabpanel="t1" class="zui-active zui-pad-3">Overview content.</div>
+          <div data-zui-tabpanel="t2" class="zui-pad-3">Details content.</div>
+        </div>
+
+        <div class="sc-block">
+          <h3>Feedback</h3>
+          <div class="zui-row zui-gap-3 zui-center">
+            <div class="zui-spinner"></div>
+            <div class="zui-progress" style="width:160px"><div class="zui-progress__bar" style="width:45%"></div></div>
+            <span class="zui-badge">3</span>
+            <span class="zui-badge zui-badge--error">!</span>
+            <button class="zui-btn" onclick="zui.toast('Library scan complete', {kind:'ok'})">Toast</button>
+          </div>
+        </div>
+
+        <div class="sc-block">
+          <h3>Drop target &amp; empty state</h3>
+          <div class="zui-drop" data-name="library" style="padding:var(--zui-space-6)">
+            <div class="zui-empty">
+              <div class="zui-empty__icon">&#9834;</div>
+              <div>Drop music here to add it</div>
+              <div class="zui-text-secondary">or choose File &rarr; Add files to library</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section data-zui-tabpanel="forms" class="sc-page">
+        <h1>Forms</h1>
+        <div class="sc-block" style="max-width:360px">
+          <div class="zui-field">
+            <label>Playlist name</label>
+            <input class="zui-input" placeholder="Untitled playlist">
+          </div>
+          <div class="zui-field">
+            <label>Description</label>
+            <textarea class="zui-textarea"></textarea>
+          </div>
+          <label class="zui-check"><input type="checkbox" checked> Public</label>
+          <label class="zui-check"><input type="checkbox"> Smart playlist</label>
+          <div class="zui-row zui-gap-2" style="margin-top:var(--zui-space-4)">
+            <button class="zui-btn zui-btn--primary">Create</button>
+            <button class="zui-btn">Cancel</button>
+          </div>
+        </div>
+        <div class="sc-block">
+          <div class="zui-search">
+            <span class="zui-search__icon">&#128269;</span>
+            <input class="zui-input" placeholder="Search library">
+          </div>
+        </div>
+      </section>
+
+      <section data-zui-tabpanel="data" class="sc-page">
+        <h1>Data</h1>
+        <div class="zui-panel">
+          <div class="zui-panel__header">Tracks</div>
+          <div class="zui-panel__body zui-panel__body--flush">
+            <table class="zui-table" data-zui="selectable">
+              <thead><tr><th>#</th><th>Name</th><th>Artist</th><th>Album</th><th class="zui-num">Plays</th></tr></thead>
+              <tbody>
+                <tr data-zui-row="1"><td>1</td><td>Nightdrive</td><td>Aria Kane</td><td>Long Exposure</td><td class="zui-num">42</td></tr>
+                <tr data-zui-row="2"><td>2</td><td>Paper Cranes</td><td>Aria Kane</td><td>Long Exposure</td><td class="zui-num">17</td></tr>
+                <tr data-zui-row="3" class="zui-row-warn"><td>3</td><td>Untitled</td><td class="zui-text-secondary">Unknown</td><td class="zui-text-secondary">&mdash;</td><td class="zui-num">0</td></tr>
+                <tr data-zui-row="4"><td>4</td><td>Quartz</td><td>Møller</td><td>Cold Rooms</td><td class="zui-num">89</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </div>
+
+  <!-- 5. status / device bar -->
+  <div class="zui-statusbar zui-statusbar--connected" id="deviceBar">
+    <span class="zui-statusbar__dot"></span>
+    <span id="deviceName">HAPTICS' IPOD</span>
+    <span>238.2 GB capacity</span>
+    <span>234.6 GB free</span>
+    <span class="zui-statusbar__spacer"></span>
+    <button class="zui-btn">Eject</button>
+    <button class="zui-btn">Sync</button>
+  </div>
+
+</div>
+
+<script src="../core/js/zui.js"></script>
+<script src="showcase.js"></script>
+</body>
+</html>

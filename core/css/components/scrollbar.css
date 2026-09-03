@@ -1,0 +1,24 @@
+/* Scroll bars: thin, neutral, desktop-weight. */
+
+.zui-scroll { overflow: auto; }
+
+.zui-scroll::-webkit-scrollbar,
+.zui-window ::-webkit-scrollbar { width: 12px; height: 12px; }
+
+.zui-scroll::-webkit-scrollbar-track,
+.zui-window ::-webkit-scrollbar-track {
+  background: var(--zui-bg-surface-alt);
+  border-left: var(--zui-border-w) solid var(--zui-border);
+}
+.zui-scroll::-webkit-scrollbar-thumb,
+.zui-window ::-webkit-scrollbar-thumb {
+  background: #c2c2c2;
+  border: 3px solid var(--zui-bg-surface-alt);
+  border-radius: 6px;
+}
+.zui-scroll::-webkit-scrollbar-thumb:hover,
+.zui-window ::-webkit-scrollbar-thumb:hover { background: #a8a8a8; }
+.zui-scroll::-webkit-scrollbar-corner { background: var(--zui-bg-surface-alt); }
+
+/* Firefox */
+.zui-scroll { scrollbar-width: thin; scrollbar-color: #c2c2c2 var(--zui-bg-surface-alt); }

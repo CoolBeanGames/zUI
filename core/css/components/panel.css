@@ -1,0 +1,35 @@
+/* Panels & layout surfaces. Panels share one background and are divided by thin
+ * borders - they must not read as independent floating cards. */
+
+.zui-panel {
+  background: var(--zui-bg-surface);
+  border: var(--zui-border-w) solid var(--zui-border);
+  min-width: 0;
+  min-height: 0;
+}
+
+/* Adjacent panels in a row/column collapse their shared border. */
+.zui-panel + .zui-panel { border-left-width: 0; }
+.zui-panel-stack > .zui-panel + .zui-panel { border-left-width: var(--zui-border-w); border-top-width: 0; }
+
+.zui-panel__header {
+  display: flex;
+  align-items: center;
+  gap: var(--zui-space-2);
+  height: var(--zui-control-h);
+  padding: 0 var(--zui-space-3);
+  background: var(--zui-bg-surface-alt);
+  border-bottom: var(--zui-border-w) solid var(--zui-border);
+  font-weight: var(--zui-fw-medium);
+  font-size: var(--zui-fs-small);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--zui-text-secondary);
+}
+
+.zui-panel__body { padding: var(--zui-space-3); overflow: auto; }
+.zui-panel__body--flush { padding: 0; }
+
+/* Thin standalone separators. */
+.zui-sep        { border: 0; border-top: var(--zui-border-w) solid var(--zui-border); margin: var(--zui-space-2) 0; }
+.zui-sep--v     { border: 0; border-left: var(--zui-border-w) solid var(--zui-border); align-self: stretch; }

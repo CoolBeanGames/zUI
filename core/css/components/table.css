@@ -1,0 +1,39 @@
+/* Tables & lists: compact rows, subtle separators, functional highlights only. */
+
+.zui-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--zui-fs-normal);
+}
+.zui-table thead th {
+  position: sticky;
+  top: 0;
+  text-align: left;
+  font-weight: var(--zui-fw-medium);
+  color: var(--zui-text-secondary);
+  background: var(--zui-bg-surface-alt);
+  border-bottom: var(--zui-border-w) solid var(--zui-border);
+  padding: var(--zui-space-1) var(--zui-space-3);
+  white-space: nowrap;
+}
+.zui-table tbody td {
+  padding: var(--zui-space-1) var(--zui-space-3);
+  border-bottom: var(--zui-border-w) solid var(--zui-bg-surface-alt);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.zui-table tbody tr:hover { background: var(--zui-bg-hover); }
+.zui-table tbody tr.zui-selected { background: var(--zui-bg-selected); }
+.zui-table tbody tr.zui-selected:hover { background: #d9e6f3; }
+
+/* Functional row states only. */
+.zui-table tbody tr.zui-row-warn  td:first-child { box-shadow: inset 2px 0 0 var(--zui-warn); }
+.zui-table tbody tr.zui-row-error td:first-child { box-shadow: inset 2px 0 0 var(--zui-error); }
+.zui-table td.zui-num { text-align: right; font-variant-numeric: tabular-nums; }
+
+/* Plain list variant. */
+.zui-list { list-style: none; margin: 0; padding: 0; font-size: var(--zui-fs-normal); }
+.zui-list__item { padding: var(--zui-space-1) var(--zui-space-3); border-radius: var(--zui-radius); }
+.zui-list__item:hover { background: var(--zui-bg-hover); }
+.zui-list__item.zui-selected { background: var(--zui-bg-selected); }

@@ -1,0 +1,47 @@
+/* Layout groups: rows, columns, splitters, sidebars, grids. */
+
+.zui-row     { display: flex; flex-direction: row; min-width: 0; min-height: 0; }
+.zui-col     { display: flex; flex-direction: column; min-width: 0; min-height: 0; }
+.zui-fill    { flex: 1 1 auto; min-width: 0; min-height: 0; }
+.zui-center  { align-items: center; justify-content: center; }
+.zui-gap-1 { gap: var(--zui-space-1); }
+.zui-gap-2 { gap: var(--zui-space-2); }
+.zui-gap-3 { gap: var(--zui-space-3); }
+.zui-gap-4 { gap: var(--zui-space-4); }
+.zui-pad-3 { padding: var(--zui-space-3); }
+.zui-pad-4 { padding: var(--zui-space-4); }
+
+/* Sidebar: narrow, functional, square selection. */
+.zui-sidebar {
+  width: 200px;
+  flex: 0 0 auto;
+  background: var(--zui-bg-surface);
+  border-right: var(--zui-border-w) solid var(--zui-border);
+  overflow: auto;
+  padding-bottom: var(--zui-space-2);
+}
+.zui-sidebar__item {
+  display: flex;
+  align-items: center;
+  gap: var(--zui-space-2);
+  height: 22px;
+  padding: 0 var(--zui-space-3);
+  color: var(--zui-text);
+  border-radius: 0;
+}
+.zui-sidebar__item:hover { background: var(--zui-bg-hover); }
+.zui-sidebar__item.zui-active { background: var(--zui-bg-selected); }
+
+/* Splitter handle between two resizable panes. */
+.zui-splitter { flex: 0 0 auto; background: var(--zui-border); }
+.zui-splitter--v { width: var(--zui-border-w); cursor: col-resize; }
+.zui-splitter--h { height: var(--zui-border-w); cursor: row-resize; }
+.zui-splitter:hover { background: var(--zui-accent); }
+
+/* Grid of cards/thumbnails (album grid etc.) - restrained, not big cards. */
+.zui-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: var(--zui-space-3);
+  padding: var(--zui-space-3);
+}

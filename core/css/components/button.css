@@ -1,0 +1,40 @@
+/* Buttons: restrained desktop controls. */
+
+.zui-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--zui-space-1);
+  min-height: var(--zui-control-h);
+  padding: 0 var(--zui-space-3);
+  font: inherit;
+  color: var(--zui-text);
+  background: var(--zui-bg-raised);
+  border: var(--zui-border-w) solid var(--zui-border);
+  border-radius: var(--zui-radius);
+  cursor: default;
+  transition: background var(--zui-dur-fast) var(--zui-ease);
+}
+.zui-btn:hover              { background: var(--zui-bg-hover); }
+.zui-btn:active             { background: var(--zui-bg-active); }
+.zui-btn:disabled,
+.zui-btn.zui-disabled       { color: var(--zui-text-disabled); background: var(--zui-bg-surface-alt); }
+
+/* Primary action: still restrained - accent border + weak fill. */
+.zui-btn--primary {
+  color: var(--zui-accent);
+  border-color: var(--zui-accent);
+  background: var(--zui-accent-weak);
+}
+.zui-btn--primary:hover { background: #d9e6f3; }
+
+/* Icon-only (playback controls etc.) */
+.zui-btn--icon {
+  width: var(--zui-control-h);
+  padding: 0;
+}
+
+.zui-btn-group { display: inline-flex; }
+.zui-btn-group .zui-btn { border-radius: 0; margin-left: -1px; }
+.zui-btn-group .zui-btn:first-child { border-radius: var(--zui-radius) 0 0 var(--zui-radius); margin-left: 0; }
+.zui-btn-group .zui-btn:last-child  { border-radius: 0 var(--zui-radius) var(--zui-radius) 0; }

@@ -1,0 +1,55 @@
+/* zUI base: reset + platform typography. Import after tokens.css. */
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+}
+
+body {
+  background: var(--zui-bg-app);
+  color: var(--zui-text);
+  font-family: var(--zui-font);
+  font-size: var(--zui-fs-normal);
+  line-height: var(--zui-lh);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  cursor: default;
+  user-select: none;
+}
+
+/* Content that is genuinely text the user reads/edits opts back in. */
+.zui-selectable, input, textarea { user-select: text; }
+
+h1, h2, h3, h4 { margin: 0; font-weight: var(--zui-fw-medium); }
+h1 { font-size: var(--zui-fs-heading); }
+h2 { font-size: var(--zui-fs-medium); }
+h3, h4 { font-size: var(--zui-fs-normal); }
+
+p { margin: 0 0 var(--zui-space-3); }
+
+a { color: var(--zui-accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+/* Small, subtle, uppercase category label (LIBRARY / PLAYLISTS). */
+.zui-section-label {
+  font-size: var(--zui-fs-small);
+  font-weight: var(--zui-fw-medium);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--zui-text-secondary);
+  padding: var(--zui-space-2) var(--zui-space-3) var(--zui-space-1);
+}
+
+.zui-text-secondary { color: var(--zui-text-secondary); }
+.zui-text-disabled  { color: var(--zui-text-disabled); }
+
+:focus-visible {
+  outline: 1px solid var(--zui-border-focus);
+  outline-offset: -1px;
+}
+
+[hidden] { display: none !important; }
+[disabled], .zui-disabled { color: var(--zui-text-disabled); pointer-events: none; }

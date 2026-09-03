@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8"?>
+<tasks project="zUI" nextIndex="5">
+  <task id="ZU-2">
+    <name>create tasks for all nessesary elements</name>
+    <prompt>create what we need for barebones stuff, make as many tasks as nessesary</prompt>
+    <requirements>tasks created</requirements>
+    <inProgress>false</inProgress>
+    <done>false</done>
+    <bug>false</bug>
+    <error>false</error>
+    <errorMessage></errorMessage>
+    <lockKey></lockKey>
+    <locked>false</locked>
+    <archived>false</archived>
+    <blockedBy></blockedBy>
+    <dateStarted></dateStarted>
+    <dueDate></dueDate>
+    <commit>true</commit>
+    <build>false</build>
+    <release>false</release>
+    <tags></tags>
+    <notes></notes>
+    <filesChanged></filesChanged>
+    <image></image>
+    <subtasks>
+      <subtask done="false">fonts</subtask>
+      <subtask done="false">panels</subtask>
+      <subtask done="false">windows</subtask>
+      <subtask done="false">drop downs</subtask>
+      <subtask done="false">scroll bars</subtask>
+      <subtask done="false">buttons</subtask>
+      <subtask done="false">layou groups</subtask>
+      <subtask done="false">tabbed displays</subtask>
+      <subtask done="false">drop targets</subtask>
+      <subtask done="false">cursor indicators</subtask>
+      <subtask done="false">menu bars</subtask>
+      <subtask done="false">loading icons</subtask>
+      <subtask done="false">notification glyphs</subtask>
+      <subtask done="false">anything else you identify</subtask>
+    </subtasks>
+  </task>
+  <task id="ZU-3">
+    <name>create a scripting language</name>
+    <prompt>the ui itself will be defined by a scripting language, this will compile down to native code for performance</prompt>
+    <requirements></requirements>
+    <inProgress>false</inProgress>
+    <done>false</done>
+    <bug>false</bug>
+    <error>false</error>
+    <errorMessage></errorMessage>
+    <lockKey></lockKey>
+    <locked>false</locked>
+    <archived>false</archived>
+    <blockedBy></blockedBy>
+    <dateStarted></dateStarted>
+    <dueDate></dueDate>
+    <commit>true</commit>
+    <build>false</build>
+    <release>false</release>
+    <tags></tags>
+    <notes></notes>
+    <filesChanged></filesChanged>
+    <image></image>
+  </task>
+  <task id="ZU-4">
+    <name>implement holo</name>
+    <prompt>actually implement the holo design so we can SEE the ui</prompt>
+    <requirements></requirements>
+    <inProgress>false</inProgress>
+    <done>false</done>
+    <bug>false</bug>
+    <error>false</error>
+    <errorMessage></errorMessage>
+    <lockKey></lockKey>
+    <locked>false</locked>
+    <archived>false</archived>
+    <blockedBy></blockedBy>
+    <dateStarted></dateStarted>
+    <dueDate></dueDate>
+    <commit>true</commit>
+    <build>true</build>
+    <release>true</release>
+    <tags></tags>
+    <notes></notes>
+    <filesChanged></filesChanged>
+    <image></image>
+  </task>
+</tasks>

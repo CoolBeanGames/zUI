@@ -1,0 +1,20 @@
+/* Traditional desktop application menu (File / Edit / View / ...). */
+
+.zui-menubar {
+  display: flex;
+  align-items: stretch;
+  height: var(--zui-control-h);
+  background: var(--zui-bg-surface-alt);
+  border-bottom: var(--zui-border-w) solid var(--zui-border);
+  font-size: var(--zui-fs-normal);
+}
+.zui-menubar__item {
+  display: flex;
+  align-items: center;
+  padding: 0 var(--zui-space-3);
+}
+.zui-menubar__item:hover,
+.zui-menubar__item[aria-expanded="true"] {
+  background: var(--zui-bg-hover);
+}
+.zui-menubar__item[aria-expanded="true"] { background: var(--zui-accent-weak); }

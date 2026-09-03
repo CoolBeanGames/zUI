@@ -1,0 +1,43 @@
+/* Notification glyphs / badges + a modest toast area. Understated. */
+
+.zui-badge {
+  display: inline-grid;
+  place-items: center;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  font-size: var(--zui-fs-small);
+  font-weight: var(--zui-fw-medium);
+  color: var(--zui-text-on-accent);
+  background: var(--zui-accent);
+  border-radius: 8px;
+}
+.zui-badge--warn  { background: var(--zui-warn); }
+.zui-badge--error { background: var(--zui-error); }
+.zui-badge--dot   { min-width: 8px; height: 8px; padding: 0; border-radius: 50%; }
+
+.zui-toasts {
+  position: fixed;
+  right: var(--zui-space-4);
+  bottom: var(--zui-space-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--zui-space-2);
+  z-index: 1200;
+}
+.zui-toast {
+  display: flex;
+  align-items: center;
+  gap: var(--zui-space-2);
+  min-width: 240px;
+  padding: var(--zui-space-2) var(--zui-space-3);
+  background: var(--zui-bg-raised);
+  border: var(--zui-border-w) solid var(--zui-border-strong);
+  border-left: 3px solid var(--zui-accent);
+  border-radius: var(--zui-radius);
+  box-shadow: var(--zui-shadow-pop);
+  font-size: var(--zui-fs-normal);
+}
+.zui-toast--warn  { border-left-color: var(--zui-warn); }
+.zui-toast--error { border-left-color: var(--zui-error); }
+.zui-toast--ok    { border-left-color: var(--zui-ok); }
