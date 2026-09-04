@@ -1,2 +1,34 @@
 <?xml version="1.0" encoding="utf-8"?>
-<tasks project="zUI" nextIndex="43" />
+<tasks project="zUI" nextIndex="45">
+  <task id="ZU-43">
+    <name>make zUI deploy-ready for a hand-off agent</name>
+    <prompt>Close the gap between 'the pieces work' and 'another agent can be handed the repo and integrate it without getting stuck'. In scope: (1) FIX the compiler source= table binding - generated render() glue crashes in a real WebView2 (elist.querySelector('tbody') returns null -&gt; tb.innerHTML throws); (2) docs/QUICKSTART.md - a one-page followable-without-other-docs guide: prereqs (Python 3 for zslc, WebView2 runtime, .NET 8 / MSVC), one copy-paste hello-world (author one .zml -&gt; zslc --backend html -&gt; new ZuiHost(view); LoadAsync -&gt; wire one message each way), and say plainly 'use --backend html + LoadAsync, the csharp/cpp backends are advanced'; (3) cut git tag v0.1.0 + a short compat note; (4) minor: ZuiHost flush buffered Send() on NavigationCompleted too; close stale CI diag issue #1; review the continue-on-error on the C++ sample CI step. Verify the source= fix with ONE minimal headless or WebView2 check - do NOT build a whole demo app.</prompt>
+    <requirements>source= table binding renders in a real host (verified); QUICKSTART.md is followable end-to-end alone; v0.1.0 tag pushed.</requirements>
+    <inProgress>false</inProgress>
+    <done>false</done>
+    <bug>false</bug>
+    <error>false</error>
+    <errorMessage></errorMessage>
+    <lockKey></lockKey>
+    <locked>false</locked>
+    <archived>false</archived>
+    <blockedBy></blockedBy>
+    <dateStarted></dateStarted>
+    <dueDate></dueDate>
+    <commit>true</commit>
+    <build>false</build>
+    <release>false</release>
+    <tags>coding,binding,docs</tags>
+    <notes></notes>
+    <filesChanged></filesChanged>
+    <image></image>
+    <subtasks>
+      <subtask done="false">fix compiler source= table glue (tbody null in WebView2): tb = e.tBodies[0] || e.appendChild(document.createElement('tbody'))</subtask>
+      <subtask done="false">docs/QUICKSTART.md - prereqs + copy-paste hello-world + 'use --backend html' + link from README/design.txt</subtask>
+      <subtask done="false">add missing prereqs line to design.txt Part 1</subtask>
+      <subtask done="false">git tag v0.1.0 + compat note</subtask>
+      <subtask done="false">ZuiHost: flush pending Send on NavigationCompleted too</subtask>
+      <subtask done="false">close stale CI issue #1; finalize C++ sample CI step (drop continue-on-error or keep intentionally)</subtask>
+    </subtasks>
+  </task>
+</tasks>
