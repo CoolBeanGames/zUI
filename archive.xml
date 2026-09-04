@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<tasks project="zUI" nextIndex="42">
+<tasks project="zUI" nextIndex="43">
   <task id="ZU-41">
     <name>CI: green the verifiable jobs; C++ WebView2 sample build best-effort</name>
     <prompt>The first CI run failed only on the C++ step that compiles zui_webview2.cpp against the WebView2 SDK (all python/token/C#/nuget steps passed). Local machine has no C++ toolchain and the Actions log needs auth to read. Split CI: pure-core cmake+ctest (bindings/cpp, no SDK) is required; the WebView2 backend+sample build is continue-on-error until the exact compiler error is available. Requirement: CI overall status green; when the WebView2 build error text is obtained, fix zui_webview2.cpp and drop continue-on-error.</prompt>
@@ -19,7 +19,7 @@
     <build>false</build>
     <release>false</release>
     <tags>ci,coding</tags>
-    <notes>Root cause of the failing pure-core C++ step: zui_envelope_test linked the whole zui lib, whose zui.cpp TU references make_default_backend (provided only by zui_webview2.cpp) -&gt; unresolved external. Fix: split make_envelope/parse_envelope into zui_envelope.cpp behind a dependency-free zui_util lib; the test links only that. envelope_test rewritten with explicit checks (was assert -&gt; no-op under Release/NDEBUG). Split the CI C++ work into a required pure-core step and a WebView2 step. RESULT: full CI run 0766885 is GREEN on windows-latest - every step incl. 'build C++ WebView2 sample' (zui_webview2.cpp + samples/cpp compiled and linked against pinned WebView2 1.0.2478.35 + WIL 1.0.240122.1). So the C++ binding + WebView2 backend are now verified too; removed the continue-on-error. README documents the CI matrix.</notes>
+    <notes>CI 'build' workflow is GREEN on windows-latest, run 74d1402: python compiler tests, token check, headless IO+nav self-tests, C# binding+sample, C++ pure-core (+ envelope ctest), AND C++ WebView2 sample (zui_webview2.cpp + samples/cpp compiled+linked vs WebView2 1.0.2478.35 + WIL 1.0.240122.1). Two real C++ bugs found via CI and fixed: (1) zui_envelope_test pulled the whole zui lib whose zui.cpp references make_default_backend (backend-only) -&gt; split make_envelope/parse_envelope into zui_envelope.cpp / zui_util lib, test links that alone; (2) add_DOMContentLoaded is on ICoreWebView2_2 not ICoreWebView2 -&gt; QI to _2. Diagnosis path: CI writes cpp-build.log, uploads it as an artifact, and on failure appends the tail to the run's job summary. Local C++ build not possible - this machine has no cmake/MSVC/clang/winget/scoop.</notes>
     <filesChanged>bindings/cpp/{CMakeLists.txt,zui.cpp,zui_envelope.cpp,tests/envelope_test.cpp}, .github/workflows/ci.yml, README.md</filesChanged>
     <image></image>
   </task>
@@ -68,6 +68,29 @@
     <notes>Reworked the default theme to genuine Android Holo. tokens.css :root now holds the Holo dark palette: bg #0c0c0c/#1b1b1b/#202020, Holo-blue #33b5e5 accent, #2c2c2c dividers, light text, --zui-label-color = accent. themes/holo.css restates it (explicit selection + runtime switch back). themes/clean.css = the previous light design.txt palette as an opt-in theme. Tokenised the last hard-coded colours (scrollbar thumb, tooltip, selected+hover, on-danger) via new tokens so a theme fully controls appearance - component CSS is now 100% token-driven. Holo signatures added: .zui-section-label and .zui-panel__header are accent caps with an underline rule; active sidebar item gets an inset left accent bar. Showcases link both themes and the View menu switches holo&lt;-&gt;clean. design.txt got a top note reconciling default(holo)/clean. New core/css/THEMES.md. Rebuilt debug+release; verified both themes via headless screenshots.</notes>
     <filesChanged>core/css/tokens.css, core/css/themes/holo.css, core/css/themes/clean.css, core/css/THEMES.md, core/css/base.css, core/css/components/{button,layout,panel,scrollbar,table,tooltip,window}.css, showcase/index.html, showcase/music.html, README.md, design.txt, task_images/ZU-33.png</filesChanged>
     <image>ZU-33.png</image>
+  </task>
+  <task id="ZU-42">
+    <name>wire local C++ builds (VS 2026 is installed)</name>
+    <prompt>The machine has VS 18 Community with bundled CMake 4.3.1 + Ninja + MSVC (vcvars64.bat at C:/Program Files/Microsoft Visual Studio/18/Community/VC/Auxiliary/Build/). build.ps1 previously assumed no C++ toolchain. Make build.ps1 discover the VS toolchain (vswhere), build bindings/cpp (+ envelope ctest) locally, and build samples/cpp when the WebView2 SDK + WIL are resolvable (restore via nuget/dotnet or vendored). Requirement: build.ps1 -Config test compiles + tests the C++ core locally; documented path for the WebView2 sample.</prompt>
+    <requirements>build.ps1 builds the full project locally - C#, C++ core (+ ctest), and the C++ WebView2 sample - using the toolchain that's actually installed (VS 18 + bundled CMake/Ninja); C++ sample runs without crashing.</requirements>
+    <inProgress>false</inProgress>
+    <done>true</done>
+    <bug>false</bug>
+    <error>false</error>
+    <errorMessage></errorMessage>
+    <lockKey></lockKey>
+    <locked>false</locked>
+    <archived>true</archived>
+    <blockedBy></blockedBy>
+    <dateStarted></dateStarted>
+    <dueDate></dueDate>
+    <commit>true</commit>
+    <build>false</build>
+    <release>false</release>
+    <tags>coding,binding,build</tags>
+    <notes>Machine DOES have VS 18 Community (MSVC 19.51, bundled CMake 4.3.1 + Ninja) - cl/cmake just aren't on PATH outside a dev prompt. build.ps1 now: Find-CppToolchain via vswhere (falls back to VS-bundled cmake), writes a .bat that calls vcvars64 then runs cmake/ctest, resolves the WebView2 SDK from pkgs/ (vendored .nupkg, gitignored) or WEBVIEW2_DIR. Verified locally: bindings/cpp builds + envelope ctest passes; samples/cpp builds zui_webview2.cpp + links zui_sample.exe; the exe RUNS (was crashing 0xC0000005 - fixed: added CoInitializeEx(STA) in wWinMain, WebView2 needs an STA UI thread; also FAILED()/null guards in the env+controller callbacks and controller put_IsVisible(TRUE)). samples/cpp CMake also stages core/ (like the C# csproj) and WebView2Loader.dll. debug+release+test all build the C++ side now. samples/README.md updated with the working recipe.</notes>
+    <filesChanged>build.ps1, bindings/cpp/zui_webview2.cpp, samples/cpp/main.cpp, samples/cpp/CMakeLists.txt, samples/README.md, .gitignore</filesChanged>
+    <image></image>
   </task>
   <task id="ZU-39">
     <name>compile the C++ binding + WebView2 backend</name>

@@ -43,17 +43,21 @@ public:
         CreateCoreWebView2EnvironmentWithOptions(
             nullptr, nullptr, nullptr,
             Callback<ICoreWebView2CreateCoreWebView2EnvironmentCompletedHandler>(
-                [this](HRESULT, ICoreWebView2Environment* env) -> HRESULT {
+                [this](HRESULT hr, ICoreWebView2Environment* env) -> HRESULT {
+                    if (FAILED(hr) || !env) return hr;
                     env_ = env;
                     env->CreateCoreWebView2Controller(
                         parent_,
                         Callback<ICoreWebView2CreateCoreWebView2ControllerCompletedHandler>(
-                            [this](HRESULT, ICoreWebView2Controller* controller) -> HRESULT {
+                            [this](HRESULT hr2, ICoreWebView2Controller* controller) -> HRESULT {
+                                if (FAILED(hr2) || !controller) return hr2;
                                 controller_ = controller;
-                                controller_->get_CoreWebView2(webview_.put());
+                                if (FAILED(controller_->get_CoreWebView2(webview_.put())) || !webview_)
+                                    return E_FAIL;
 
                                 RECT rc; GetClientRect(parent_, &rc);
                                 controller_->put_Bounds(rc);
+                                controller_->put_IsVisible(TRUE);
 
                                 wil::com_ptr<ICoreWebView2Settings> settings;
                                 if (SUCCEEDED(webview_->get_Settings(settings.put())))

@@ -28,10 +28,21 @@ endif()
 
 target_link_libraries(zui_sample PRIVATE version shlwapi)
 
-# Stage the core assets + showcase next to the exe.
+# Stage the core assets + showcase next to the exe. core/ is staged twice:
+# 'zui/' is the canonical virtual-root name; 'core/' keeps the bundled showcase's
+# ../core/... links resolving (a host app writes its own doc against zui/).
 add_custom_command(TARGET zui_sample POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_directory
         ${CMAKE_CURRENT_SOURCE_DIR}/../../core $<TARGET_FILE_DIR:zui_sample>/zui
     COMMAND ${CMAKE_COMMAND} -E copy_directory
+        ${CMAKE_CURRENT_SOURCE_DIR}/../../core $<TARGET_FILE_DIR:zui_sample>/core
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
         ${CMAKE_CURRENT_SOURCE_DIR}/../../showcase $<TARGET_FILE_DIR:zui_sample>/showcase
     COMMENT "zUI sample: staging assets")
+
+if(DEFINED WEBVIEW2_DIR)
+    add_custom_command(TARGET zui_sample POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            ${WEBVIEW2_DIR}/build/native/x64/WebView2Loader.dll $<TARGET_FILE_DIR:zui_sample>
+        COMMENT "zUI sample: staging WebView2Loader.dll")
+endif()

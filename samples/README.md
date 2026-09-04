@@ -20,28 +20,40 @@ builds/debug/sample-csharp/ZuiSample.exe
 
 Win32 + WebView2 (`bindings/cpp/zui.cpp` + `zui_webview2.cpp`).
 
-### Exact verified recipe
+### Build it (verified locally + on CI)
 
-Prereqs: MSVC (VS 2022 Build Tools, "Desktop development with C++"), CMake ≥ 3.20,
-NuGet CLI. Then, from the repo root:
+`build.ps1 -Config test` builds and runs the whole C++ side automatically: it
+finds CMake (standalone, or the one bundled with Visual Studio via `vswhere`),
+runs inside `vcvars64`, builds `bindings/cpp` (+ `ctest`), and builds
+`samples/cpp` when the WebView2 SDK is available.
+
+For the WebView2 sample it looks for the SDK in `pkgs/` at the repo root. To
+populate it (any of: NuGet CLI, or just download the `.nupkg` which are zips):
 
 ```
-nuget install Microsoft.Web.WebView2 -Version 1.0.2478.35 ^
-      -OutputDirectory pkgs -ExcludeVersion
-nuget install Microsoft.Windows.ImplementationLibrary -Version 1.0.240122.1 ^
-      -OutputDirectory pkgs -ExcludeVersion
+mkdir pkgs
+curl -L -o pkgs/wv2.zip https://www.nuget.org/api/v2/package/Microsoft.Web.WebView2/1.0.2478.35
+curl -L -o pkgs/wil.zip https://www.nuget.org/api/v2/package/Microsoft.Windows.ImplementationLibrary/1.0.240122.1
+tar -xf pkgs/wv2.zip -C pkgs/Microsoft.Web.WebView2
+tar -xf pkgs/wil.zip -C pkgs/Microsoft.Windows.ImplementationLibrary
+```
 
-cmake -S samples/cpp -B build/sample-cpp ^
+Manual CMake (if not using `build.ps1`), from a Developer prompt:
+
+```
+cmake -S samples/cpp -B build/sample-cpp -G Ninja -DCMAKE_BUILD_TYPE=Release ^
       -DWEBVIEW2_DIR=%CD%/pkgs/Microsoft.Web.WebView2 ^
       -DWIL_DIR=%CD%/pkgs/Microsoft.Windows.ImplementationLibrary
-cmake --build build/sample-cpp --config Release
-build\sample-cpp\Release\zui_sample.exe
+cmake --build build/sample-cpp
+build\sample-cpp\zui_sample.exe
 ```
 
-This is exactly what `.github/workflows/ci.yml` runs on every push, so the
-Windows CI job is the canonical proof the C++ side builds and its unit tests
-pass. `build.ps1` runs the same steps locally when `cmake` is present and
-`WEBVIEW2_DIR` / `WIL_DIR` are set; it skips them otherwise.
+`.github/workflows/ci.yml` runs the equivalent (via NuGet) on every push — the
+canonical cross-check.
+
+Requires the evergreen **WebView2 runtime** at run time (standard on Win 10/11).
+The Win32 sample calls `CoInitializeEx(STA)` — WebView2 needs a single-threaded
+apartment on the UI thread.
 
 The pure-core translation unit (`zui.cpp`, no WebView2) plus the envelope unit
 test build with just CMake + a compiler — no SDK:

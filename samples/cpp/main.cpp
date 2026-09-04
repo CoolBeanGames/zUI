@@ -8,6 +8,7 @@
 #include "zui.h"
 
 #include <windows.h>
+#include <objbase.h>
 #include <string>
 
 static zui::Host* g_ui = nullptr;
@@ -22,6 +23,9 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM w, LPARAM l) {
 }
 
 int WINAPI wWinMain(HINSTANCE hInst, HINSTANCE, PWSTR, int nShow) {
+    // WebView2 requires a single-threaded apartment on the UI thread.
+    CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED);
+
     WNDCLASSW wc{};
     wc.lpfnWndProc = WndProc;
     wc.hInstance = hInst;

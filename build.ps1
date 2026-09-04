@@ -91,24 +91,59 @@ if (Get-Command dotnet -ErrorAction SilentlyContinue) {
   Write-Warning "dotnet not found - skipping C# binding"
 }
 
-# 5. C++ binding
-if (Get-Command cmake -ErrorAction SilentlyContinue) {
-  $cppOut = Join-Path $out 'cpp'
-  $tests  = if ($Config -eq 'test') { 'ON' } else { 'OFF' }
-  cmake -S (Join-Path $root 'bindings/cpp') -B $cppOut -DZUI_BUILD_TESTS=$tests
-  cmake --build $cppOut
-  if ($Config -eq 'test') { ctest --test-dir $cppOut --output-on-failure }
-  Write-Host "  built C++ binding"
-  if ($env:WEBVIEW2_DIR -and $env:WIL_DIR) {
-    $scOut = Join-Path $out 'sample-cpp'
-    cmake -S (Join-Path $root 'samples/cpp') -B $scOut "-DWEBVIEW2_DIR=$env:WEBVIEW2_DIR" "-DWIL_DIR=$env:WIL_DIR"
-    cmake --build $scOut
-    Write-Host "  built C++ sample"
-  } else {
-    Write-Warning "WEBVIEW2_DIR / WIL_DIR not set - skipping C++ sample (see samples/README.md)"
+# 5. C++ binding (+ sample). Uses a standalone cmake if on PATH, otherwise the
+#    one bundled with Visual Studio (found via vswhere); runs inside vcvars64.
+function Find-CppToolchain {
+  $cmake = (Get-Command cmake -ErrorAction SilentlyContinue).Source
+  $vcvars = $null
+  $vswhere = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
+  if (Test-Path $vswhere) {
+    $vs = & $vswhere -latest -products * -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath
+    if ($vs) {
+      $vcvars = Join-Path $vs 'VC\Auxiliary\Build\vcvars64.bat'
+      if (-not $cmake) {
+        $bundled = Join-Path $vs 'Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe'
+        if (Test-Path $bundled) { $cmake = $bundled }
+      }
+    }
   }
+  if ($cmake) { return @{ cmake = $cmake; vcvars = $vcvars } }
+  return $null
+}
+
+$tc = Find-CppToolchain
+if ($tc) {
+  $tests = if ($Config -eq 'test') { 'ON' } else { 'OFF' }
+  $cppOut = Join-Path $out 'cpp'
+  $scOut  = Join-Path $out 'sample-cpp'
+  $wv2 = $env:WEBVIEW2_DIR; $wil = $env:WIL_DIR
+  if (-not $wv2 -and (Test-Path (Join-Path $root 'pkgs/Microsoft.Web.WebView2'))) {
+    $wv2 = Join-Path $root 'pkgs/Microsoft.Web.WebView2'
+    $wil = Join-Path $root 'pkgs/Microsoft.Windows.ImplementationLibrary'
+  }
+
+  $steps = @(
+    "`"$($tc.cmake)`" -S `"$root\bindings\cpp`" -B `"$cppOut`" -G Ninja -DCMAKE_BUILD_TYPE=Release -DZUI_BUILD_TESTS=$tests",
+    "`"$($tc.cmake)`" --build `"$cppOut`""
+  )
+  if ($Config -eq 'test') { $steps += "ctest --test-dir `"$cppOut`" --output-on-failure" }
+  if ($wv2 -and (Test-Path $wv2)) {
+    $steps += "`"$($tc.cmake)`" -S `"$root\samples\cpp`" -B `"$scOut`" -G Ninja -DCMAKE_BUILD_TYPE=Release -DWEBVIEW2_DIR=`"$wv2`" -DWIL_DIR=`"$wil`""
+    $steps += "`"$($tc.cmake)`" --build `"$scOut`""
+  }
+
+  $bat = Join-Path $env:TEMP "zui_cpp_$Config.bat"
+  $body = @('@echo off', "set `"PATH=%PATH%;${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer`"")
+  if ($tc.vcvars) { $body += "call `"$($tc.vcvars)`" >nul" }
+  $body += ($steps | ForEach-Object { "$_ || exit /b 1" })
+  Set-Content -Encoding Ascii $bat ($body -join "`r`n")
+  $prev = $ErrorActionPreference; $ErrorActionPreference = 'Continue'
+  cmd /c "`"$bat`" 2>&1" | Write-Host
+  $ErrorActionPreference = $prev
+  if ($LASTEXITCODE -ne 0) { throw "C++ build failed" }
+  Write-Host "  built C++ binding$(if ($wv2 -and (Test-Path $wv2)) { ' + sample' })"
 } else {
-  Write-Warning "cmake not found - skipping C++ binding"
+  Write-Warning "no C++ toolchain (cmake / Visual Studio) - skipping C++ binding"
 }
 
 Write-Host "done."
