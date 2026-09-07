@@ -171,6 +171,34 @@ Tasks support project branches. The default branch is "main".
 
 === END PROJECT BRANCHES & MERGING ===
 
+=== RELEASE, MERGE & CLOSE-OUT WORKFLOW ===
+
+When a task has <release>true</release> or the user explicitly requests a
+release, follow this sequence:
+  1. Run the full test gate into project_root/builds/test and stop on ANY failed
+     compiler, test, external command or executable smoke check. Warning-only
+     success is not acceptable for an executed required check.
+  2. If <build>true</build>, build project_root/builds/debug. For a release,
+     also build project_root/builds/release and smoke-check the release artifacts.
+  3. Update release notes/instructions, commit all verified source-branch work,
+     and push the source branch before merging.
+  4. Merge only when <merge>true</merge> or the user explicitly authorizes it.
+     Fetch first, update the target branch without rewriting history, merge the
+     task branch, and push the target branch. Never silently force-push.
+  5. GitHub release tags use project_name_buildN, where N is one greater than
+     the highest existing numbered GitHub release for that project. Create and
+     push the tag from the merged target commit, then use `gh release create`
+     with complete patch notes since the previous GitHub release.
+  6. Check every subtask, write notes/filesChanged, set done=true and
+     inProgress=false, release the ownership lock, and commit/push that final
+     bookkeeping on the target branch. Keep any retained source branch synced
+     to the close-out commit so it does not show stale open work.
+
+If no numbered GitHub release exists, begin with project_name_build1. A prior
+SemVer tag without a GitHub release does not consume a numbered build value.
+
+=== END RELEASE, MERGE & CLOSE-OUT WORKFLOW ===
+
 === ADDING & REFINING TASKS ===
 
 You have full access to add and create new tasks as needed, to split an existing
@@ -192,7 +220,7 @@ if a task has the tag commit set to true then commit the project and push to git
 
 the task is NOT complete unless the requirements have been met, if a task is impossible to complete add an "error" flag, set it to true, and add error message text in before saving XML and end execution of tasks there, notifiying your chat of the error and the taskID. 
 
-if the task has a build tag set to true, the project should be built to project_root/builds/debug, if you need to test build to project_root/builds/test, if it has a release tag set use project_root/builds/release
+if the task has a build tag set to true, the project should be built to project_root/builds/debug. every release must first pass the full project_root/builds/test gate. if it has a release tag set, also build project_root/builds/release and smoke-check its artifacts.
 
 if a task is a bug, it takes top priority.
 
@@ -200,7 +228,6 @@ if a task is blocked by another task, finish the task that is blocking it first,
 
 if a task is in-progress it is the number 1 priority over even bugs.
 
-COMPLETELY ignore the acrhive tags contents, dont even proccess it once you see it.
+COMPLETELY ignore the archive contents; do not process archived tasks.
 
-If a project is a release build, then also release a github release with full patch notes since the last release, tag it as project_name_build# build# is the most recent build# +1 use the gh cli to do this.
-
+If a project is a release build, follow the RELEASE, MERGE & CLOSE-OUT WORKFLOW above and publish the GitHub release with the gh CLI.
