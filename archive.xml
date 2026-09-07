@@ -75,6 +75,39 @@
     <filesChanged>core/css/tokens.css, core/css/themes/holo.css, core/css/themes/clean.css, core/css/THEMES.md, core/css/base.css, core/css/components/{button,layout,panel,scrollbar,table,tooltip,window}.css, showcase/index.html, showcase/music.html, README.md, design.txt, task_images/ZU-33.png</filesChanged>
     <image>ZU-33.png</image>
   </task>
+  <task id="ZU-47">
+    <name>create a test note taking app with zUI to test it</name>
+    <prompt>make a app to test this new system fully, maybe a spreadsheet editor that saves to csv? call it zSheets</prompt>
+    <requirements></requirements>
+    <inProgress>false</inProgress>
+    <done>true</done>
+    <bug>false</bug>
+    <error>false</error>
+    <errorMessage></errorMessage>
+    <lockKey></lockKey>
+    <locked>false</locked>
+    <archived>true</archived>
+    <blockedBy></blockedBy>
+    <dateStarted></dateStarted>
+    <dueDate></dueDate>
+    <commit>false</commit>
+    <build>false</build>
+    <release>false</release>
+    <merge>false</merge>
+    <branch>refactor</branch>
+    <tags></tags>
+    <notes>Created zSheets, a native .NET 8/WebView2 CSV editor using the Holo zUI runtime. The theme-token-only grid supports editable headers/cells, keyboard navigation, adding/deleting rows and columns, dirty state, notifications, and file status. Native C# owns Open/Save/Save As and a quoted CSV codec supporting commas, escaped quotes, and multiline fields. Added CSV and headless UI self-tests, build.ps1/CI integration, and sample docs. Full test and debug builds pass; runnable executable is builds/debug/zsheets/zSheets.exe.</notes>
+    <filesChanged>samples/zsheets/ZSheets.csproj, samples/zsheets/Program.cs, samples/zsheets/CsvCodec.cs, samples/zsheets/app.html, build.ps1, .github/workflows/ci.yml, samples/README.md</filesChanged>
+    <image></image>
+    <subtasks>
+      <subtask done="true">Define the zSheets native-host architecture and spreadsheet interaction contract</subtask>
+      <subtask done="true">Implement the Holo zUI spreadsheet surface with editable cells and row/column operations</subtask>
+      <subtask done="true">Implement the native C# host with CSV new, open, save, and save-as message handling</subtask>
+      <subtask done="true">Integrate zSheets into the repository build and sample documentation</subtask>
+      <subtask done="true">Build the executable and run focused spreadsheet and full regression checks</subtask>
+      <subtask done="true">Record task metadata, mark completion, and release the ownership lock</subtask>
+    </subtasks>
+  </task>
   <task id="ZU-43">
     <name>make zUI deploy-ready for a hand-off agent</name>
     <prompt>Close the gap between 'the pieces work' and 'another agent can be handed the repo and integrate it without getting stuck'. In scope: (1) FIX the compiler source= table binding - generated render() glue crashes in a real WebView2 (elist.querySelector('tbody') returns null -&gt; tb.innerHTML throws); (2) docs/QUICKSTART.md - a one-page followable-without-other-docs guide: prereqs (Python 3 for zslc, WebView2 runtime, .NET 8 / MSVC), one copy-paste hello-world (author one .zml -&gt; zslc --backend html -&gt; new ZuiHost(view); LoadAsync -&gt; wire one message each way), and say plainly 'use --backend html + LoadAsync, the csharp/cpp backends are advanced'; (3) cut git tag v0.1.0 + a short compat note; (4) minor: ZuiHost flush buffered Send() on NavigationCompleted too; close stale CI diag issue #1; review the continue-on-error on the C++ sample CI step. Verify the source= fix with ONE minimal headless or WebView2 check - do NOT build a whole demo app.</prompt>

@@ -105,7 +105,20 @@ if (Get-Command dotnet -ErrorAction SilentlyContinue) {
   $csConf = if ($Config -eq 'release') { 'Release' } else { 'Debug' }
   dotnet build (Join-Path $root 'bindings/csharp/ZUI.csproj') -c $csConf -o (Join-Path $out 'csharp')
   dotnet build (Join-Path $root 'samples/csharp/ZuiSample.csproj') -c $csConf -o (Join-Path $out 'sample-csharp')
-  Write-Host "  built C# binding + sample ($csConf)"
+  $zSheetsOut = Join-Path $out 'zsheets'
+  dotnet build (Join-Path $root 'samples/zsheets/ZSheets.csproj') -c $csConf -o $zSheetsOut
+  if ($Config -eq 'test') {
+    & (Join-Path $zSheetsOut 'zSheets.exe') --self-test
+    if ($LASTEXITCODE -ne 0) { throw 'zSheets CSV self-test failed' }
+    Write-Host '  zSheets CSV self-test: OK'
+    if ($chrome) {
+      $dom = & $chrome --headless --disable-gpu --virtual-time-budget=5000 --dump-dom `
+        ("file:///" + (Join-Path $zSheetsOut 'app.html').Replace('\', '/') + '?selftest=1') 2>$null
+      if ($dom -notmatch 'ZSHEETS SELFTEST OK') { throw 'zSheets UI self-test failed' }
+      Write-Host '  zSheets UI self-test: OK'
+    }
+  }
+  Write-Host "  built C# binding + samples ($csConf)"
 } else {
   Write-Warning "dotnet not found - skipping C# binding"
 }

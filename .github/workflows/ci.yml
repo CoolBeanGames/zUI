@@ -46,6 +46,12 @@ jobs:
         run: dotnet build bindings/csharp/ZUI.csproj -c Release
       - name: build C# sample
         run: dotnet build samples/csharp/ZuiSample.csproj -c Release
+      - name: build + test zSheets sample
+        shell: pwsh
+        run: |
+          dotnet build samples/zsheets/ZSheets.csproj -c Release
+          & samples/zsheets/bin/Release/net8.0-windows/zSheets.exe --self-test
+          if ($LASTEXITCODE -ne 0) { throw 'zSheets CSV self-test failed' }
 
       # ---- C++ pure core (no WebView2) - required ---------------------
       - name: build + test C++ core

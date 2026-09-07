@@ -1,5 +1,21 @@
 # zUI host samples
 
+## zSheets — native C# CSV editor
+
+`zsheets/` is a practical native-host test application rather than a component
+gallery. Its Holo zUI screen supports editable cells, keyboard movement, and
+row/column insertion and deletion. The .NET host owns Open/Save/Save As dialogs
+and robust quoted CSV parsing/writing; all data crosses the normal zUI message
+bus.
+
+```powershell
+dotnet run --project samples/zsheets/ZSheets.csproj
+```
+
+`build.ps1 -Config debug` writes the runnable application to
+`builds/debug/zsheets/zSheets.exe`. Test builds also run its CSV round-trip and
+headless grid-operation self-tests.
+
 Two minimal host apps that open the **same** `showcase/index.html` through their
 binding and round-trip the same messages (`device`, `now-playing`, `selection`,
 `theme-changed`, `transport`). Because both embed the identical `core/` assets,
