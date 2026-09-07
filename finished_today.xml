@@ -68,7 +68,7 @@ unrelated state does not cause unrelated control updates.</requirements>
     <merge>false</merge>
     <branch>final-build-push</branch>
     <tags></tags>
-    <notes>Compiler tests (14/14), C# runtime tests (29/29 incl. new ZU-64 block), and tests/check-native.py all green. C++ state_test.cpp is written and wired into CMakeLists (ZUI_BUILD_TESTS); it mirrors the C# scenarios but was not compiled in this environment (no MSVC/CMake toolchain present) - run ctest -R state on a Windows build host to close that gap.</notes>
+    <notes>Full gate green via build.ps1 -Config test: compiler tests (14/14), tests/check-native.py, C# runtime tests (29/29 incl. new ZU-64 block), C# sample + zSheets self-tests, and a clean-rebuild C++ ctest run (4/4 incl. the new `state` test) plus both native samples. state_test.cpp mirrors the C# scenarios (initial/one-way/two-way/multi-bind/watcher/isolation/top-level handler).</notes>
     <filesChanged>compiler/zslc.py; compiler/tests/test_compile.py; bindings/csharp/ZuiHost.cs; tests/csharp/Program.cs; bindings/cpp/zui.h; bindings/cpp/zui.cpp; bindings/cpp/CMakeLists.txt; bindings/cpp/tests/state_test.cpp; core/RUNTIME_CONTRACT.md; compiler/GRAMMAR.md; examples/generated/CompiledUi.g.cs; examples/generated/showcase.g.cpp; samples/csharp/generated/ShowcaseUi.g.cs</filesChanged>
     <image></image>
     <subtasks>
