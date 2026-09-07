@@ -24,4 +24,9 @@ if failures:
     print("native-only policy FAILED")
     for failure in failures: print(" -", failure)
     sys.exit(1)
+compiler = (ROOT / "compiler" / "zslc.py").read_text(encoding="utf-8")
+for legacy_symbol in ("class HtmlGen", "DOC_TEMPLATE", 'choices=["html"'):
+    if legacy_symbol in compiler:
+        print("native-only policy FAILED: legacy document generator symbol", legacy_symbol)
+        sys.exit(1)
 print("native-only policy: OK")

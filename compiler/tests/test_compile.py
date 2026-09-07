@@ -38,6 +38,11 @@ def test_csharp_native_backend():
     _check("<!DOCTYPE" not in code and "<script" not in code, "document markup leaked into native output")
 
 
+def test_only_native_generators_exist():
+    _check(not hasattr(zslc, "HtmlGen"), "legacy document generator must not exist")
+    _check(hasattr(zslc, "gen_csharp") and hasattr(zslc, "gen_cpp"), "native generators missing")
+
+
 def test_table_source_is_native_metadata():
     prog = zslc.compile_source(
         '<table id="rows" source="rows"><column field="name">Name</column></table>'

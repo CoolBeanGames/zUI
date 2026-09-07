@@ -3,8 +3,7 @@
 #include <string>
 #include <unordered_map>
 
-void build_ui(
-    zui::Host& host,
+void build_ui(zui::Host& host,
     const std::unordered_map<std::string, zui::MessageHandler>& handlers) {
     if (auto it = handlers.find("file.exit"); it != handlers.end()) host.on("file.exit", it->second);
     if (auto it = handlers.find("file.new"); it != handlers.end()) host.on("file.new", it->second);

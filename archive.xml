@@ -1,5 +1,33 @@
 <?xml version="1.0" encoding="utf-8"?>
-<tasks project="zUI" nextIndex="61">
+<tasks project="zUI" nextIndex="62">
+  <task id="ZU-61">
+    <name>native parser confuses same-line sibling with flag</name>
+    <prompt>During removal of the legacy generator, the replacement parser consumed a same-line sibling node followed by a string label as a flag. Reproduce with panel { input export=q button " Go\ export=go }. Expected two child nodes; actual parse error at Go. Corrected via next-token lookahead and covered by compiler tests.</prompt>
+    <requirements>Same-line sibling nodes parse correctly and the full compiler suite passes</requirements>
+    <inProgress>false</inProgress>
+    <done>true</done>
+    <bug>true</bug>
+    <error>false</error>
+    <errorMessage></errorMessage>
+    <lockKey></lockKey>
+    <locked>false</locked>
+    <archived>true</archived>
+    <blockedBy></blockedBy>
+    <dateStarted></dateStarted>
+    <dueDate></dueDate>
+    <commit>false</commit>
+    <build>false</build>
+    <release>false</release>
+    <merge>false</merge>
+    <branch>main</branch>
+    <tags></tags>
+    <notes>Added next-token lookahead so an identifier followed by a string begins a sibling node instead of becoming a flag. All 11 compiler tests pass.</notes>
+    <filesChanged>compiler/zslc.py</filesChanged>
+    <image></image>
+    <subtasks>
+      <subtask done="true">Verify sibling lookahead regression through the compiler suite</subtask>
+    </subtasks>
+  </task>
   <task id="ZU-55">
     <name>still using webview</name>
     <prompt>we are still using a webview for rendering, create whatever tasks and subtasks as needed but dont stop working on this until webview is NO LONGER IN USE for rendering our widgets, we need to use native windows code, NO CHROMIUM NO WEBVIEW native code only

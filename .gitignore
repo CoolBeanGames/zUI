@@ -3,9 +3,10 @@
 bin/
 obj/
 *.user
+__pycache__/
+*.pyc
 
 # os
 Thumbs.db
 .DS_Store
-__zui_compiled.html
 /pkgs/
