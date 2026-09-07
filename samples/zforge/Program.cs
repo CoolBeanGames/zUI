@@ -35,7 +35,7 @@ internal static class Program
             return SelfTest();
 
         ApplicationConfiguration.Initialize();
-        using var form = new Form { Text = "zForge", Width = 1180, Height = 860 };
+        using var form = new Form { Text = "zForge", Width = 1180, Height = 860, StartPosition = FormStartPosition.CenterScreen };
         using var host = new ZuiHost(form);
 
         new CharacterForgeUi().Build(host);
@@ -63,6 +63,25 @@ internal static class Program
 
         foreach (var attr in Attributes)
             host.State.Watch(attr, _ => RecomputeBudget());
+
+        // The nav bar switches which panel is shown — one view at a time.
+        var tabs = new (string value, string panel, string nav)[]
+        {
+            ("identity", "tabIdentity", "navIdentity"),
+            ("attributes", "tabAttributes", "navAttributes"),
+            ("equipment", "tabEquipment", "navEquipment"),
+        };
+        void ShowTab(string value)
+        {
+            foreach (var (v, panel, nav) in tabs)
+            {
+                host.SetVisible(panel, v == value);
+                host.SetForeground(nav, v == value ? host.Theme.Accent : host.Theme.Muted);
+            }
+            host.State.Set("tab", value);
+        }
+        foreach (var (value, _, _) in tabs)
+            host.On($"tab.{value}", _ => ShowTab(value));
 
         host.State.Watch("name", v =>
             host.SetText("sumName", string.IsNullOrWhiteSpace(v) ? "Name: —" : $"Name: {v}"));
@@ -137,6 +156,7 @@ internal static class Program
         RecomputeBudget();
         host.SetText("sumName", "Name: —");
         host.SetText("sumClass", $"Class: {Classes[0]}");
+        ShowTab("identity");
     }
 
     private static string SheetSummary(ZuiHost host, DataGridView pack)

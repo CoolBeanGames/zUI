@@ -110,11 +110,13 @@ public sealed class ZuiHost : IDisposable
         {
             _parent.Controls.Clear();
             _exports.Clear();
-            var root = Container(true);
+            var root = VStack(fill: true);
             root.Name = "zui-root";
             root.Dock = DockStyle.Fill;
             root.AutoScroll = true;
             _parent.Controls.Add(root);
+            if (_parent.FindForm() is { } form && form.MinimumSize.IsEmpty)
+                form.MinimumSize = new Size(960, 680);
             foreach (var child in tree.Nodes) AddNode(root, child);
             ApplyTheme(root);
             return root;
@@ -253,30 +255,76 @@ public sealed class ZuiHost : IDisposable
         foreach (var handler in list.ToArray()) handler(payload);
     }
 
+    // ---- Layout engine --------------------------------------------------------
+    //
+    // Structural nodes map to TableLayoutPanels: a vertical container is a single
+    // 100%-wide column with one row per child; a horizontal band is a single row
+    // with one column per child. Children dock to fill their cell, so fields grow
+    // with the window instead of keeping a hard-coded pixel width, and rows never
+    // run off the edge. One child per container may claim the leftover space
+    // (a table, tree, textarea, or a nested fill/workspace).
+
+    private static readonly string[] VerticalKinds =
+        ["root", "window", "col", "fill", "panel-body", "tabpanel"];
+    private static readonly string[] HorizontalKinds =
+        ["row", "statusbar", "contextbar", "nav", "tabs", "workspace"];
+    private static readonly string[] LeafKinds =
+        ["heading", "section-label", "text", "empty", "item", "menu", "button", "input",
+         "textarea", "check", "select", "dropdown", "slider", "progress", "table", "tree",
+         "spinner", "loading", "sep", "option", "column"];
+
+    private int Gap => Theme.Gap;
+
     private Control AddNode(Control parent, ZuiNode node)
     {
-        if (node.Kind == "window" && parent.FindForm() is Form form && node.Text.Length > 0) form.Text = node.Text;
+        if (node.Kind == "window" && parent.FindForm() is Form wf && node.Text.Length > 0) wf.Text = node.Text;
+
+        if (node.Kind == "menubar")
+        {
+            var strip = BuildMenuStrip(node);
+            Place(parent, strip, node);
+            if (parent.FindForm() is { } mf) mf.MainMenuStrip = strip;
+            return strip;
+        }
+
         Control control = node.Kind switch
         {
-            "root" or "window" or "col" or "fill" or "workspace" or "panel-body" => Container(true),
-            "row" or "statusbar" or "contextbar" or "nav" or "tabs" or "menubar" => Container(false),
-            "panel" => new GroupBox { Text = node.Text, AutoSize = true, AutoSizeMode = AutoSizeMode.GrowAndShrink, Padding = new Padding(Theme.Gap) },
-            "sidebar" => new FlowLayoutPanel { FlowDirection = FlowDirection.TopDown, WrapContents = false, AutoScroll = true, Width = Theme.SidebarWidth, Dock = DockStyle.Left },
+            "panel" => MakePanel(node),
+            "sidebar" => MakeSidebar(),
+            _ when VerticalKinds.Contains(node.Kind) => VStack(fill: true),
+            _ when HorizontalKinds.Contains(node.Kind) => HStack(),
             "heading" or "section-label" or "text" or "empty" or "item" or "menu" => CreateLabel(node),
-            "button" => new Button { Text = node.Text, AutoSize = true, FlatStyle = FlatStyle.Flat },
-            "input" => new TextBox { PlaceholderText = node.Attrs.GetValueOrDefault("placeholder", ""), Width = 220 },
-            "textarea" => new TextBox { Multiline = true, Width = 320, Height = 100, ScrollBars = ScrollBars.Vertical },
+            "button" => new Button
+            {
+                Text = node.Text, AutoSize = true, AutoSizeMode = AutoSizeMode.GrowAndShrink,
+                FlatStyle = FlatStyle.Flat, MinimumSize = new Size(96, 30),
+                Padding = new Padding(12, 5, 12, 5),
+            },
+            "input" => new TextBox
+            {
+                PlaceholderText = node.Attrs.GetValueOrDefault("placeholder", ""),
+                MinimumSize = new Size(160, 0),
+            },
+            "textarea" => new TextBox
+            {
+                Multiline = true, ScrollBars = ScrollBars.Vertical, WordWrap = true,
+                MinimumSize = new Size(240, 96),
+                PlaceholderText = node.Attrs.GetValueOrDefault("placeholder", ""),
+            },
             "check" => new CheckBox { Text = node.Text, AutoSize = true },
             "select" or "dropdown" => Select(node),
             "slider" => Slider(node),
-            "progress" => Progress(node),
+            "progress" => new ProgressBar
+            {
+                Minimum = 0, Maximum = 100, Value = Math.Clamp(Int(node, "value", 0), 0, 100), Height = 16,
+            },
             "table" => Table(node),
             "tree" => Tree(node),
-            "spinner" or "loading" => new ProgressBar { Style = ProgressBarStyle.Marquee, Width = 90, Height = 8 },
-            "sep" => new Label { AutoSize = false, Height = 1, Width = 120 },
-            _ => Container(true)
+            "spinner" or "loading" => new ProgressBar { Style = ProgressBarStyle.Marquee, Width = 110, Height = 10 },
+            "sep" => new Label { AutoSize = false, Height = 1, Margin = new Padding(0, Gap / 2, 0, Gap / 2) },
+            _ => VStack(fill: true),
         };
-        control.Margin = new Padding(Theme.Gap / 2);
+
         if (node.Attrs.TryGetValue("id", out var id)) control.Name = id;
         // Register every lookup name. Resolution priority is export > bind > id:
         // a more specific name wins, but all three resolve to the control.
@@ -289,28 +337,127 @@ public sealed class ZuiHost : IDisposable
             if (key.Length > 0) _exports[key] = control;
         if (node.Attrs.ContainsKey("disabled")) control.Enabled = false;
         if (node.Attrs.TryGetValue("on", out var channel)) WireEvent(control, channel);
-        parent.Controls.Add(control);
-        if (control is not (DataGridView or TreeView or ComboBox or TrackBar or ProgressBar or TextBox or Button or CheckBox or Label))
-            foreach (var child in node.Nodes) AddNode(control, child);
+
+        Place(parent, control, node);
+
+        if (!LeafKinds.Contains(node.Kind))
+        {
+            var content = control is GroupBox box ? box.Controls[0] : control;
+            foreach (var child in node.Nodes) AddNode(content, child);
+            if (content is TableLayoutPanel { Tag: "v" } stack) TopPack(stack);
+        }
         return control;
     }
 
-    private FlowLayoutPanel Container(bool vertical) => new()
+    /// <summary>Inserts <paramref name="control"/> as the next row (vertical parent)
+    /// or column (horizontal parent) of a layout table, sized to fill or to fit.</summary>
+    private void Place(Control parent, Control control, ZuiNode node)
     {
-        AutoSize = true, AutoSizeMode = AutoSizeMode.GrowAndShrink,
-        FlowDirection = vertical ? FlowDirection.TopDown : FlowDirection.LeftToRight,
-        WrapContents = false, Dock = DockStyle.Top, Padding = new Padding(Theme.Gap / 2)
-    };
+        control.Margin = control is TableLayoutPanel or GroupBox
+            ? new Padding(Gap / 2)
+            : new Padding(Gap / 2, 2, Gap / 2, 2);
+        if (parent is not TableLayoutPanel table)
+        {
+            parent.Controls.Add(control);
+            return;
+        }
+
+        bool horizontal = table.Tag as string == "h";
+        bool grows = Grows(node, horizontal);
+
+        if (horizontal)
+        {
+            var style = grows ? new ColumnStyle(SizeType.Percent, 100f)
+                : node.Kind == "sidebar" ? new ColumnStyle(SizeType.Absolute, Theme.SidebarWidth)
+                : new ColumnStyle(SizeType.AutoSize);
+            table.ColumnStyles.Add(style);
+            table.ColumnCount = table.ColumnStyles.Count;
+            bool stretch = grows || control is TableLayoutPanel or GroupBox;
+            control.Anchor = stretch ? AnchorStyles.Left | AnchorStyles.Right : AnchorStyles.Left;
+            control.Dock = stretch ? DockStyle.Fill : DockStyle.None;
+            table.Controls.Add(control, table.ColumnCount - 1, 0);
+        }
+        else
+        {
+            table.RowStyles.Add(new RowStyle(
+                grows ? SizeType.Percent : SizeType.AutoSize, grows ? 100f : 0f));
+            table.RowCount = table.RowStyles.Count;
+            control.Dock = DockStyle.Fill;
+            table.Controls.Add(control, 0, table.RowCount - 1);
+        }
+    }
+
+    private static bool Grows(ZuiNode node, bool horizontal) => horizontal
+        ? node.Kind is "input" or "textarea" or "select" or "dropdown" or "slider" or "progress"
+            or "table" or "tree" or "fill" or "row" or "col" or "workspace"
+        : node.Kind is "table" or "tree" or "textarea" or "fill" or "workspace" or "tabpanel" or "window";
+
+    /// <summary>Keeps a vertical stack's children pinned to the top: if nothing in
+    /// it already claims the leftover height, a flexible spacer row absorbs it.</summary>
+    private static void TopPack(TableLayoutPanel v)
+    {
+        foreach (RowStyle style in v.RowStyles)
+            if (style.SizeType == SizeType.Percent) return;
+        v.RowStyles.Add(new RowStyle(SizeType.Percent, 100f));
+        v.RowCount = v.RowStyles.Count;
+        v.Controls.Add(new Label { Margin = new Padding(0), AutoSize = false }, 0, v.RowCount - 1);
+    }
+
+    private TableLayoutPanel VStack(bool fill)
+    {
+        var t = new TableLayoutPanel
+        {
+            ColumnCount = 1, AutoSize = true, AutoSizeMode = AutoSizeMode.GrowAndShrink,
+            Dock = fill ? DockStyle.Fill : DockStyle.Top, Padding = new Padding(Gap / 2),
+            GrowStyle = TableLayoutPanelGrowStyle.AddRows, Tag = "v",
+        };
+        t.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100f));
+        return t;
+    }
+
+    private TableLayoutPanel HStack()
+    {
+        var t = new TableLayoutPanel
+        {
+            RowCount = 1, AutoSize = true, AutoSizeMode = AutoSizeMode.GrowAndShrink,
+            Dock = DockStyle.Top, Margin = new Padding(0),
+            GrowStyle = TableLayoutPanelGrowStyle.AddColumns, Tag = "h",
+        };
+        t.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+        return t;
+    }
+
+    private GroupBox MakePanel(ZuiNode node)
+    {
+        var box = new GroupBox
+        {
+            Text = node.Text, AutoSize = true, AutoSizeMode = AutoSizeMode.GrowAndShrink,
+            Padding = new Padding(Gap, Gap + 8, Gap, Gap), Margin = new Padding(Gap / 2, Gap / 2, Gap / 2, Gap),
+        };
+        var inner = VStack(fill: true);
+        box.Controls.Add(inner);
+        return box;
+    }
+
+    private TableLayoutPanel MakeSidebar()
+    {
+        var s = VStack(fill: true);
+        s.Padding = new Padding(Gap);
+        s.MinimumSize = new Size(Theme.SidebarWidth, 0);
+        s.Width = Theme.SidebarWidth;
+        return s;
+    }
 
     private static Label CreateLabel(ZuiNode node) => new()
     {
-        Text = node.Text, AutoSize = true,
-        Font = new Font("Segoe UI", 9F, node.Kind is "heading" or "section-label" ? FontStyle.Bold : FontStyle.Regular)
+        Text = node.Text, AutoSize = true, Padding = new Padding(0, 3, 0, 3),
+        Font = new Font("Segoe UI", node.Kind is "heading" ? 11F : 9F,
+            node.Kind is "heading" or "section-label" ? FontStyle.Bold : FontStyle.Regular),
     };
 
     private static ComboBox Select(ZuiNode node)
     {
-        var box = new ComboBox { DropDownStyle = ComboBoxStyle.DropDownList, Width = 200 };
+        var box = new ComboBox { DropDownStyle = ComboBoxStyle.DropDownList, MinimumSize = new Size(140, 0) };
         box.Items.AddRange(node.Nodes.Where(n => n.Kind is "option" or "item").Select(n => (object)n.Text).ToArray());
         if (box.Items.Count > 0) box.SelectedIndex = 0;
         return box;
@@ -319,23 +466,31 @@ public sealed class ZuiHost : IDisposable
     private static TrackBar Slider(ZuiNode node)
     {
         var min = Int(node, "min", 0); var max = Int(node, "max", 100);
-        return new TrackBar { Minimum = min, Maximum = max, Value = Math.Clamp(Int(node, "value", min), min, max), TickStyle = TickStyle.None, Width = 220 };
+        return new TrackBar
+        {
+            Minimum = min, Maximum = max, Value = Math.Clamp(Int(node, "value", min), min, max),
+            TickStyle = TickStyle.None, AutoSize = false, Height = 34, MinimumSize = new Size(160, 0),
+        };
     }
-
-    private static ProgressBar Progress(ZuiNode node) => new() { Minimum = 0, Maximum = 100, Value = Math.Clamp(Int(node, "value", 0), 0, 100), Width = 220, Height = 12 };
 
     private static DataGridView Table(ZuiNode node)
     {
-        var grid = new DataGridView { Width = 720, Height = 320, AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill,
-            AllowUserToAddRows = false, RowHeadersVisible = false, SelectionMode = DataGridViewSelectionMode.FullRowSelect };
-        foreach (var col in node.Nodes.Where(n => n.Kind == "column")) grid.Columns.Add(col.Attrs.GetValueOrDefault("field", col.Text), col.Text);
+        var grid = new DataGridView
+        {
+            MinimumSize = new Size(0, 160), AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill,
+            AllowUserToAddRows = false, RowHeadersVisible = false, BorderStyle = BorderStyle.FixedSingle,
+            SelectionMode = DataGridViewSelectionMode.FullRowSelect, ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize,
+        };
+        foreach (var col in node.Nodes.Where(n => n.Kind == "column"))
+            grid.Columns.Add(col.Attrs.GetValueOrDefault("field", col.Text), col.Text);
         return grid;
     }
 
     private static TreeView Tree(ZuiNode node)
     {
-        var tree = new TreeView { Width = 240, Height = 320, BorderStyle = BorderStyle.FixedSingle };
+        var tree = new TreeView { MinimumSize = new Size(0, 140), BorderStyle = BorderStyle.FixedSingle, ShowLines = true };
         foreach (var child in node.Nodes) tree.Nodes.Add(TreeItem(child));
+        tree.ExpandAll();
         return tree;
     }
 
@@ -344,6 +499,45 @@ public sealed class ZuiHost : IDisposable
         var item = new TreeNode(node.Text);
         foreach (var child in node.Nodes) item.Nodes.Add(TreeItem(child));
         return item;
+    }
+
+    private MenuStrip BuildMenuStrip(ZuiNode node)
+    {
+        var strip = new MenuStrip { Dock = DockStyle.Top, GripStyle = ToolStripGripStyle.Hidden };
+        foreach (var menu in node.Nodes) strip.Items.Add(BuildMenuItem(menu));
+        return strip;
+    }
+
+    private ToolStripItem BuildMenuItem(ZuiNode node)
+    {
+        if (node.Kind == "sep") return new ToolStripSeparator();
+        var item = new ToolStripMenuItem(node.Text);
+        if (node.Attrs.TryGetValue("shortcut", out var text) && TryParseShortcut(text, out var keys))
+        {
+            item.ShortcutKeys = keys;
+            item.ShowShortcutKeys = true;
+        }
+        if (node.Attrs.TryGetValue("on", out var channel))
+            item.Click += (_, _) => Dispatch(channel, "");
+        foreach (var child in node.Nodes) item.DropDownItems.Add(BuildMenuItem(child));
+        return item;
+    }
+
+    private static bool TryParseShortcut(string text, out Keys keys)
+    {
+        keys = Keys.None;
+        foreach (var part in text.Split('+', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+        {
+            keys |= part.ToLowerInvariant() switch
+            {
+                "ctrl" or "control" => Keys.Control,
+                "alt" => Keys.Alt,
+                "shift" => Keys.Shift,
+                _ when Enum.TryParse<Keys>(part, true, out var k) => k,
+                _ => Keys.None,
+            };
+        }
+        return keys != Keys.None && (keys & Keys.KeyCode) != Keys.None;
     }
 
     private void WireEvent(Control control, string channel)
@@ -360,6 +554,12 @@ public sealed class ZuiHost : IDisposable
         root.ForeColor = Theme.Text;
         if (root is Button button) { button.FlatAppearance.BorderColor = Theme.Border; button.BackColor = Theme.Raised; }
         if (root is GroupBox) root.ForeColor = Theme.Accent;
+        if (root is MenuStrip menu)
+        {
+            menu.BackColor = Theme.Raised; menu.ForeColor = Theme.Text;
+            menu.RenderMode = ToolStripRenderMode.System;
+            foreach (ToolStripItem item in menu.Items) ThemeMenuItem(item);
+        }
         if (root is DataGridView grid)
         {
             grid.BackgroundColor = Theme.Surface; grid.DefaultCellStyle.BackColor = Theme.Surface;
@@ -368,6 +568,14 @@ public sealed class ZuiHost : IDisposable
             grid.ColumnHeadersDefaultCellStyle.ForeColor = Theme.Text; grid.EnableHeadersVisualStyles = false;
         }
         foreach (Control child in root.Controls) ApplyTheme(child);
+    }
+
+    private void ThemeMenuItem(ToolStripItem item)
+    {
+        item.BackColor = Theme.Raised;
+        item.ForeColor = Theme.Text;
+        if (item is ToolStripMenuItem menuItem)
+            foreach (ToolStripItem sub in menuItem.DropDownItems) ThemeMenuItem(sub);
     }
 
     private static int Int(ZuiNode node, string key, int fallback) => node.Attrs.TryGetValue(key, out var value) && int.TryParse(value, out var parsed) ? parsed : fallback;

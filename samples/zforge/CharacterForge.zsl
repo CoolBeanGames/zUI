@@ -28,9 +28,9 @@ window "zForge — Character Forge" {
   }
 
   nav bind:tab {
-    item "Identity" value="identity" active
-    item "Attributes" value="attributes"
-    item "Equipment" value="equipment"
+    item "Identity" id="navIdentity" value="identity" active -> tab.identity
+    item "Attributes" id="navAttributes" value="attributes" -> tab.attributes
+    item "Equipment" id="navEquipment" value="equipment" -> tab.equipment
   }
 
   workspace {
@@ -60,7 +60,7 @@ window "zForge — Character Forge" {
 
     fill {
 
-      panel "Identity" {
+      panel "Identity" id="tabIdentity" {
         row {
           text "Character name"
           input bind:name placeholder="e.g. Mirena Vos"
@@ -99,7 +99,7 @@ window "zForge — Character Forge" {
         }
       }
 
-      panel "Attributes" {
+      panel "Attributes" id="tabAttributes" {
         row {
           text "Strength"
           slider bind:str min=3 max=18
@@ -123,7 +123,7 @@ window "zForge — Character Forge" {
         }
       }
 
-      panel "Equipment" {
+      panel "Equipment" id="tabEquipment" {
         table id="pack" source=pack selectable {
           column "Item" field="item"
           column "Slot" field="slot"
