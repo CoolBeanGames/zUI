@@ -75,6 +75,40 @@
     <filesChanged>core/css/tokens.css, core/css/themes/holo.css, core/css/themes/clean.css, core/css/THEMES.md, core/css/base.css, core/css/components/{button,layout,panel,scrollbar,table,tooltip,window}.css, showcase/index.html, showcase/music.html, README.md, design.txt, task_images/ZU-33.png</filesChanged>
     <image>ZU-33.png</image>
   </task>
+  <task id="ZU-43">
+    <name>make zUI deploy-ready for a hand-off agent</name>
+    <prompt>Close the gap between 'the pieces work' and 'another agent can be handed the repo and integrate it without getting stuck'. In scope: (1) FIX the compiler source= table binding - generated render() glue crashes in a real WebView2 (elist.querySelector('tbody') returns null -&gt; tb.innerHTML throws); (2) docs/QUICKSTART.md - a one-page followable-without-other-docs guide: prereqs (Python 3 for zslc, WebView2 runtime, .NET 8 / MSVC), one copy-paste hello-world (author one .zml -&gt; zslc --backend html -&gt; new ZuiHost(view); LoadAsync -&gt; wire one message each way), and say plainly 'use --backend html + LoadAsync, the csharp/cpp backends are advanced'; (3) cut git tag v0.1.0 + a short compat note; (4) minor: ZuiHost flush buffered Send() on NavigationCompleted too; close stale CI diag issue #1; review the continue-on-error on the C++ sample CI step. Verify the source= fix with ONE minimal headless or WebView2 check - do NOT build a whole demo app.</prompt>
+    <requirements>source= table binding renders in a real host (verified); QUICKSTART.md is followable end-to-end alone; v0.1.0 tag pushed.</requirements>
+    <inProgress>false</inProgress>
+    <done>true</done>
+    <bug>false</bug>
+    <error>false</error>
+    <errorMessage></errorMessage>
+    <lockKey></lockKey>
+    <locked>false</locked>
+    <archived>true</archived>
+    <blockedBy></blockedBy>
+    <dateStarted></dateStarted>
+    <dueDate></dueDate>
+    <commit>true</commit>
+    <build>false</build>
+    <release>false</release>
+    <merge>false</merge>
+    <branch>refactor</branch>
+    <tags>coding,binding,docs</tags>
+    <notes>Fixed generated source= tables by creating a tbody when WebView2 omits an empty one; added a minimal generated-document headless regression test. Added a standalone .NET/WebView2 quickstart and v0.1 compatibility note, including prerequisites and the supported html+LoadAsync path. ZuiHost now flushes queued sends on successful NavigationCompleted as well as DOMContentLoaded. Made the C++ WebView2 CI sample directly required while retaining diagnostics, and closed stale GitHub issue #1. Full test build passed: 11 compiler tests, token audit, three headless runtime checks, C# binding/sample, C++ envelope test, and generated C++ WebView2 sample.</notes>
+    <filesChanged>.github/workflows/ci.yml, README.md, bindings/csharp/ZuiHost.cs, build.ps1, compiler/zslc.py, compiler/tests/test_compile.py, docs/QUICKSTART.md, docs/COMPATIBILITY.md, design.txt, tests/table-binding-selftest.zml</filesChanged>
+    <image></image>
+    <subtasks>
+      <subtask done="true">fix compiler source= table glue (tbody null in WebView2): tb = e.tBodies[0] || e.appendChild(document.createElement('tbody'))</subtask>
+      <subtask done="true">docs/QUICKSTART.md - prereqs + copy-paste hello-world + 'use --backend html' + link from README/design.txt</subtask>
+      <subtask done="true">add missing prereqs line to design.txt Part 1</subtask>
+      <subtask done="true">git tag v0.1.0 + compat note</subtask>
+      <subtask done="true">ZuiHost: flush pending Send on NavigationCompleted too</subtask>
+      <subtask done="true">close stale CI issue #1; finalize C++ sample CI step (drop continue-on-error or keep intentionally)</subtask>
+      <subtask done="true">Run the focused source-table regression check and full validation, then record metadata, commit, push, and tag the verified branch</subtask>
+    </subtasks>
+  </task>
   <task id="ZU-45">
     <name>fix the issues</name>
     <prompt>I asked chatGPT to look through the github repo and identify issues, go through its reply, create tasks, and implement its changes. this is priority 1</prompt>
