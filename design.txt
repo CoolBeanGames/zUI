@@ -84,10 +84,14 @@ Layout
 ------
 
 Structural nodes (`window`, `workspace`, `row`, `col`, `fill`, `panel`,
-`sidebar`, `statusbar`) create native containers. C# currently uses FlowLayout,
-GroupBox, and related layout controls. C++ currently positions child HWNDs in a
-deterministic vertical layout. Layout improvements belong in the native hosts,
-not in generated ad-hoc drawing or runtime markup.
+`sidebar`, `menubar`, `nav`, `statusbar`) create native containers. C# maps a
+vertical container to a single-column TableLayoutPanel and a horizontal band to a
+single-row one, docks each child to fill its cell, and lets one child per
+container (a table/tree/textarea or a nested fill/workspace) take the leftover
+space; `menubar` becomes a MenuStrip and `workspace` lays out horizontally. C++
+currently positions child HWNDs in a deterministic vertical layout. Layout
+improvements belong in the native hosts, not in generated ad-hoc drawing or
+runtime markup.
 
 Controls
 --------

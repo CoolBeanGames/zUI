@@ -40,5 +40,7 @@ py compiler/zslc.py examples/showcase.zml --backend cpp -o showcase.g.cpp
 ```
 
 The C# runtime is in `bindings/csharp`; the C++ runtime is in `bindings/cpp`.
-Runnable native examples are in `samples/csharp`, `samples/cpp`, and
-`samples/zsheets`. See `docs/QUICKSTART.md` for integration.
+Runnable native examples are in `samples/csharp`, `samples/cpp`, `samples/zforge`
+(state / bind / tabbed layout), and `samples/zsheets`. See `docs/QUICKSTART.md`
+for the minimal path and [docs/INTEGRATION.md](docs/INTEGRATION.md) for the full
+guide to pulling zUI into a host project (plus the visual design standard).
