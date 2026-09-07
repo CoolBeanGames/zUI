@@ -1,5 +1,43 @@
 <?xml version="1.0" encoding="utf-8"?>
 <tasks project="zUI" nextIndex="61">
+  <task id="ZU-55">
+    <name>still using webview</name>
+    <prompt>we are still using a webview for rendering, create whatever tasks and subtasks as needed but dont stop working on this until webview is NO LONGER IN USE for rendering our widgets, we need to use native windows code, NO CHROMIUM NO WEBVIEW native code only
+
+DO NOT CLEAR THIS TASK UNTIL THOSE REQUIREMENTS ARE MET</prompt>
+    <requirements>-no chromium used for rendering
+-no webview used for rendering
+-all widgets/layouts/themes resolve to native c#/cpp/and later python code, not rendered as  webpage
+-ZML/CSS used only for themeing, not in the final file</requirements>
+    <inProgress>false</inProgress>
+    <done>true</done>
+    <bug>true</bug>
+    <error>false</error>
+    <errorMessage></errorMessage>
+    <lockKey></lockKey>
+    <locked>false</locked>
+    <archived>true</archived>
+    <blockedBy></blockedBy>
+    <dateStarted></dateStarted>
+    <dueDate></dueDate>
+    <commit>true</commit>
+    <build>true</build>
+    <release>true</release>
+    <merge>false</merge>
+    <branch>main</branch>
+    <tags></tags>
+    <notes>Replaced browser widget rendering end-to-end. zslc now emits native C# ZuiNode and C++ zui::Node construction; C# materializes WinForms controls and C++ creates Win32/common-control HWNDs. Removed the browser backend, browser packages, page/script assets, browser demos, and browser tests. Rebuilt zSheets with ToolStrip/DataGridView. Added native-only policy enforcement and native CI. Full builds/test passed (11 compiler tests, policy, zero-warning C#, two CTests); debug/release builds and six executable smoke checks passed. Pushed main commit 6440d8a and published https://github.com/CoolBeanGames/zUI/releases/tag/zUI_build2.</notes>
+    <filesChanged>.github/workflows/ci.yml, README.md, bindings/csharp/*, bindings/cpp/*, build.ps1, compiler/*, core/PROTOCOL.md, core/css/components/scrollbar.css, docs/*, examples/generated/*, examples/showcase.zsl, samples/csharp/*, samples/cpp/*, samples/zsheets/*, tests/check-native.py; removed obsolete browser backend/assets/samples/tests</filesChanged>
+    <image></image>
+    <subtasks>
+      <subtask done="true">Audit all rendering, runtime, build, and packaging paths for WebView or Chromium dependencies</subtask>
+      <subtask done="true">Replace webpage-based widget rendering with native Windows controls and drawing</subtask>
+      <subtask done="true">Remove obsolete WebView and Chromium source, dependencies, assets, and packaging</subtask>
+      <subtask done="true">Run the full test gate and resolve all failures</subtask>
+      <subtask done="true">Build and smoke-check debug and release artifacts</subtask>
+      <subtask done="true">Update release notes, commit and push verified changes, and publish the numbered GitHub release</subtask>
+    </subtasks>
+  </task>
   <task id="ZU-60">
     <name>native host lookup omits control ids</name>
     <prompt>Both native hosts register export/bind names but omit ordinary id attributes. Generated showcase table id=tracks exists as a native control but Find/find returns null, causing debug/release smoke tests to fail. Expected ids to be available through host lookup.</prompt>
