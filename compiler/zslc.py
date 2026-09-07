@@ -25,6 +25,16 @@ class LexError(Exception): pass
 class ParseError(Exception): pass
 
 
+_STRING_ESCAPES = {"n": "\n", "t": "\t", "r": "\r", '"': '"', "\\": "\\", "'": "'", "0": "\0"}
+
+
+def _unescape(body: str) -> str:
+    """Resolves backslash escapes in a string literal without disturbing any
+    non-ASCII (UTF-8) content. `str.decode("unicode_escape")` mangles multibyte
+    characters, so it must not be used here."""
+    return re.sub(r"\\(.)", lambda m: _STRING_ESCAPES.get(m.group(1), m.group(0)), body)
+
+
 def lex(source: str) -> list[Tok]:
     result: list[Tok] = []
     offset, line = 0, 1
@@ -38,7 +48,7 @@ def lex(source: str) -> list[Tok]:
         offset = match.end()
         if kind in ("ws", "lc", "bc"): continue
         if kind == "str":
-            result.append(Tok("str", bytes(text[1:-1], "utf-8").decode("unicode_escape"), token_line))
+            result.append(Tok("str", _unescape(text[1:-1]), token_line))
         elif kind == "num": result.append(Tok("num", text, token_line))
         elif kind == "arrow": result.append(Tok("arrow", text, token_line))
         elif kind == "punct": result.append(Tok(text, text, token_line))

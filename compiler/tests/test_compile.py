@@ -22,6 +22,16 @@ def test_lex_basic():
     _check(kinds[-1] == "eof", "no eof")
 
 
+def test_string_literals_keep_unicode_and_escapes():
+    toks = [t for t in zslc.lex(r'heading "zForge — café \"quoted\"\nline"') if t.kind == "str"]
+    _check(len(toks) == 1, "expected one string token")
+    # Backslash escapes resolve; the raw em-dash / accented bytes survive verbatim
+    # (unicode_escape would have mangled the multibyte UTF-8).
+    _check(toks[0].value == 'zForge — café "quoted"\nline', f"bad unescape: {toks[0].value!r}")
+    cs = zslc.gen_csharp(zslc.compile_source('window "Mañana — test" { }'), "U", "N")
+    _check('"Mañana — test"' in cs, "unicode window title not emitted intact")
+
+
 def test_parse_counter():
     src = open(os.path.join(EXAMPLES, "counter.zsl"), encoding="utf-8").read()
     prog = zslc.compile_source(src)
