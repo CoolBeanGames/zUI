@@ -63,10 +63,6 @@ public:
                                 if (SUCCEEDED(webview_->get_Settings(settings.put())))
                                     settings->put_AreDefaultContextMenusEnabled(FALSE);
 
-                                webview_->AddScriptToExecuteOnDocumentCreated(
-                                    L"window.__zuiHost={postMessage:function(m){window.chrome.webview.postMessage(m);}};",
-                                    nullptr);
-
                                 webview_->add_WebMessageReceived(
                                     Callback<ICoreWebView2WebMessageReceivedEventHandler>(
                                         [this](ICoreWebView2*, ICoreWebView2WebMessageReceivedEventArgs* args) -> HRESULT {
@@ -84,10 +80,7 @@ public:
                                     wv2->add_DOMContentLoaded(
                                         Callback<ICoreWebView2DOMContentLoadedEventHandler>(
                                             [this](ICoreWebView2*, ICoreWebView2DOMContentLoadedEventArgs*) -> HRESULT {
-                                                dom_ready_ = true;
-                                                for (auto& m : pending_msgs_)
-                                                    webview_->PostWebMessageAsString(widen(m).c_str());
-                                                pending_msgs_.clear();
+                                                mark_document_ready();
                                                 return S_OK;
                                             }).Get(),
                                         &dom_token_);
@@ -99,6 +92,14 @@ public:
                                             return S_OK;
                                         }).Get(),
                                     &nav_token_);
+                                webview_->add_NavigationCompleted(
+                                    Callback<ICoreWebView2NavigationCompletedEventHandler>(
+                                        [this](ICoreWebView2*, ICoreWebView2NavigationCompletedEventArgs* args) -> HRESULT {
+                                            BOOL ok = FALSE;
+                                            if (SUCCEEDED(args->get_IsSuccess(&ok)) && ok) mark_document_ready();
+                                            return S_OK;
+                                        }).Get(),
+                                    &nav_completed_token_);
 
                                 flush_pending();
                                 return S_OK;
@@ -136,6 +137,13 @@ public:
     }
 
 private:
+    void mark_document_ready() {
+        dom_ready_ = true;
+        for (auto& m : pending_msgs_)
+            webview_->PostWebMessageAsString(widen(m).c_str());
+        pending_msgs_.clear();
+    }
+
     void flush_pending() {
         for (auto& s : pending_scripts_) inject_startup_script(s);
         for (auto& h : pending_hosts_) map_virtual_host(h.first, h.second);
@@ -151,6 +159,7 @@ private:
     EventRegistrationToken msg_token_{};
     EventRegistrationToken dom_token_{};
     EventRegistrationToken nav_token_{};
+    EventRegistrationToken nav_completed_token_{};
     bool dom_ready_ = false;
     std::function<void(const std::string&)> on_msg_;
 

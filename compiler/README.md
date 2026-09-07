@@ -50,7 +50,9 @@ example programs. `build.ps1` runs this in the `test` configuration.
   later line starts the next sibling. This is the only place newlines matter.
 - Expression language is intentionally tiny: literals, `state` refs, and the
   `x.plus1` / `x.minus1` helpers. Richer expressions are a later task.
-- `csharp` / `cpp` backends emit a class whose `Attach(host)` wires the typed
-  per-event hooks and then calls `host.LoadDocument(...)` (C#) /
-  `host.load_document(...)` (C++) with the embedded document. Direct
-  widget-tree construction APIs (no HTML string) are a possible follow-up.
+- `csharp` emits a class whose `Attach(host)` wires typed partial hooks and then
+  calls `host.LoadDocument(...)` with the embedded document.
+- `cpp` emits a translation unit with a build function that accepts a map of
+  ordinary `zui::MessageHandler` callbacks. It has no unresolved generated
+  callback stubs, so it can be compiled and linked directly into a native app
+  (as `samples/cpp/CMakeLists.txt` does).

@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <UseWindowsForms>true</UseWindowsForms>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <AssemblyName>zBrowser.zUI</AssemblyName>
+    <RootNamespace>ZBrowser.Zui</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\bindings\csharp\ZUI.csproj" />
+    <None Include="toolbar.html" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+</Project>

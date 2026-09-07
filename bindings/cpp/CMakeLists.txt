@@ -26,4 +26,8 @@ if(ZUI_BUILD_TESTS)
     target_link_libraries(zui_envelope_test PRIVATE zui_util)   # no backend needed
     enable_testing()
     add_test(NAME envelope COMMAND zui_envelope_test)
+
+    add_executable(zui_host_test tests/host_test.cpp)
+    target_link_libraries(zui_host_test PRIVATE zui)
+    add_test(NAME host COMMAND zui_host_test)
 endif()

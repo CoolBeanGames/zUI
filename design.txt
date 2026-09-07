@@ -7,6 +7,7 @@ pull zUI in and use it. The visual rules are in Part 2.
 
 Repo: https://github.com/CoolBeanGames/zUI
 Reference docs (read these before extending anything):
+  docs/QUICKSTART.md           standalone prerequisites + first native app
   README.md                     overview + architecture
   core/PROTOCOL.md              host <-> UI message + component-IO contract
   core/css/THEMES.md            theme catalogue + how to add one
@@ -16,6 +17,13 @@ Reference docs (read these before extending anything):
 
 --------------------------------------------------------------------------------
 # PART 1 — USING zUI
+
+Prerequisites: Python 3 for `zslc.py`; the WebView2 Runtime and .NET 8 SDK for
+the C# host; Visual Studio/MSVC, the Windows SDK, CMake, WebView2 SDK and WIL
+only when building the C++ host. For the normal integration path use
+`zslc.py --backend html` and `ZuiHost.LoadAsync`; the `csharp` and `cpp`
+backends are advanced AOT options. A complete copy-paste walkthrough is in
+`docs/QUICKSTART.md`.
 
 ## 1. Get it
 
@@ -94,10 +102,13 @@ scroll positions, both directions. Full table in `core/PROTOCOL.md`.
 
 ## 5. Keep it consistent
 
-- `build.ps1 -Config test` runs the compiler tests, the runtime IO self-test and
-  `tests/check-tokens.py` (which fails if any component CSS hard-codes a colour).
+- `build.ps1 -Config test` runs the compiler tests, runtime/app self-tests and
+  `tests/check-tokens.py` (which fails if component/app CSS hard-codes a colour,
+  uses an undefined token, or a first-party zUI surface does not default to Holo).
 - When you add a reusable widget: give it an IO adapter in `core/js/zui.js`, a
   row in `core/PROTOCOL.md`, and a token-only stylesheet (no literal colours).
+- The native WPF browser under `samples/wpf-browser-native/` is a deliberate
+  before/after comparison only. It is not an exception for future application UI.
 - A new theme is ONE file re-declaring the tokens — never touch component CSS.
 
 --------------------------------------------------------------------------------

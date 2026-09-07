@@ -13,6 +13,17 @@ host.SetTheme("holo");
 host.Send("device", new { name = "HAPTICS' IPOD", freeGb = 234.6 });
 ```
 
+For faster startup, `ZuiHost` reuses one process-wide WebView2 environment.
+Applications with additional WebView2 controls can share it too:
+
+```csharp
+var environment = await ZuiHost.GetSharedEnvironmentAsync(); // may be started early
+await otherView.EnsureCoreWebView2Async(environment);
+```
+
+Starting `GetSharedEnvironmentAsync()` while constructing the window overlaps
+the expensive browser-process warm-up with normal application initialization.
+
 ## Build
 
 ```
@@ -28,5 +39,7 @@ references `ZUI.dll` ships the assets automatically.
 - Targets `net8.0-windows` (uses `System.Text.Json` / `IAsyncDisposable`).
 - Requires the WebView2 runtime (evergreen) on the target machine.
 - Channels are plain JSON `{ "channel": string, "payload": any }`.
+- `InitializeAsync()` and `DisposeAsync()` are idempotent; disposal detaches the
+  binding's WebView2 event handlers but does not dispose the caller-owned view.
 
 [WebView2]: https://learn.microsoft.com/microsoft-edge/webview2/

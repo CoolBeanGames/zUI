@@ -68,6 +68,7 @@ public:
     void set_theme(const std::string& name);
 
 private:
+    void configure_backend();
     void dispatch(const std::string& raw_json);
 
     std::unique_ptr<WebViewBackend> backend_;

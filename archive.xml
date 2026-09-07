@@ -1,5 +1,153 @@
 <?xml version="1.0" encoding="utf-8"?>
-<tasks project="zUI" nextIndex="45">
+<tasks project="zUI" nextIndex="55">
+  <task id="ZU-54">
+    <name>build.ps1 ignores failed dotnet commands</name>
+    <prompt>A dotnet build failed with MSB3021/MSB3027 because its output DLL was locked, but build.ps1 continued into C++/release work and printed built C# binding + samples. Expected: any dotnet build or test process nonzero exit terminates the build immediately.</prompt>
+    <requirements>Every required Python and dotnet process invoked by build.ps1 is followed by an exit-code check and any nonzero result terminates the build before later success messages.</requirements>
+    <inProgress>false</inProgress>
+    <done>true</done>
+    <bug>true</bug>
+    <error>false</error>
+    <errorMessage></errorMessage>
+    <lockKey></lockKey>
+    <locked>false</locked>
+    <archived>true</archived>
+    <blockedBy></blockedBy>
+    <dateStarted></dateStarted>
+    <dueDate></dueDate>
+    <commit>false</commit>
+    <build>false</build>
+    <release>false</release>
+    <merge>false</merge>
+    <branch>refactor</branch>
+    <tags></tags>
+    <notes>Added immediate LASTEXITCODE checks after compiler tests, token/Holo checks, every generated example/test document, and all five .NET builds. A locked or otherwise failed external build now throws before any later success message. Verified 12 guarded external paths and a full green test build.</notes>
+    <filesChanged>build.ps1</filesChanged>
+    <image></image>
+    <subtasks>
+      <subtask done="true">Add immediate exit-code enforcement for compiler, token, generation, and every .NET build command</subtask>
+      <subtask done="true">Verify source contract, successful test/release builds, and a controlled failing external-command path</subtask>
+    </subtasks>
+  </task>
+  <task id="ZU-52">
+    <name>Injected C++ backend misses bridge and navigation fallback</name>
+    <prompt>Host(unique_ptr&lt;WebViewBackend&gt;) does not inject the __zuiHost startup bridge unlike Host(void*), so alternative backends cannot carry UI-to-host messages without reimplementing hidden setup. The WebView2 backend also flushes queued host messages only from DOMContentLoaded, unlike the hardened C# path. Expected: both constructors configure the same bridge and successful navigation completion is a fallback readiness signal.</prompt>
+    <requirements>Both C++ Host constructors inject the same __zuiHost bridge; WebView2 flushes queued host messages once per document on DOMContentLoaded or successful NavigationCompleted; automated C++ tests verify constructor setup.</requirements>
+    <inProgress>false</inProgress>
+    <done>true</done>
+    <bug>true</bug>
+    <error>false</error>
+    <errorMessage></errorMessage>
+    <lockKey></lockKey>
+    <locked>false</locked>
+    <archived>true</archived>
+    <blockedBy></blockedBy>
+    <dateStarted></dateStarted>
+    <dueDate></dueDate>
+    <commit>false</commit>
+    <build>false</build>
+    <release>false</release>
+    <merge>false</merge>
+    <branch>refactor</branch>
+    <tags></tags>
+    <notes>Centralized C++ Host backend setup so both constructors install the message callback and __zuiHost startup bridge exactly once. WebView2 queued sends now flush idempotently on DOMContentLoaded or successful NavigationCompleted. Added a mock injected-backend test; both C++ tests and the full native WebView2 sample build pass.</notes>
+    <filesChanged>bindings/cpp/zui.h, bindings/cpp/zui.cpp, bindings/cpp/zui_webview2.cpp, bindings/cpp/CMakeLists.txt, bindings/cpp/tests/host_test.cpp</filesChanged>
+    <image></image>
+    <subtasks>
+      <subtask done="true">Centralize C++ Host backend setup so native-parent and injected constructors install identical message and startup bridges</subtask>
+      <subtask done="true">Add successful NavigationCompleted as an idempotent fallback for queued message readiness</subtask>
+      <subtask done="true">Add focused mock-backend coverage and run the C++ test/sample build</subtask>
+    </subtasks>
+  </task>
+  <task id="ZU-53">
+    <name>zSheets grid ID collides with SVG sprite symbol</name>
+    <prompt>samples/zsheets/app.html names its visible table grid, while the injected zUI SVG sprite contains symbol id=grid. document.getElementById(grid) can select the hidden symbol, rendering generated cells invisibly. Rename the table to sheetGrid, update selectors, and require the self-test cells to descend from the visible table.</prompt>
+    <requirements>The spreadsheet table has a unique sheetGrid ID; every generated cell is a descendant of that visible table; the headless self-test fails on any future SVG/DOM ID collision.</requirements>
+    <inProgress>false</inProgress>
+    <done>true</done>
+    <bug>true</bug>
+    <error>false</error>
+    <errorMessage></errorMessage>
+    <lockKey></lockKey>
+    <locked>false</locked>
+    <archived>true</archived>
+    <blockedBy></blockedBy>
+    <dateStarted></dateStarted>
+    <dueDate></dueDate>
+    <commit>false</commit>
+    <build>false</build>
+    <release>false</release>
+    <merge>false</merge>
+    <branch>refactor</branch>
+    <tags></tags>
+    <notes>Renamed the spreadsheet table and all JavaScript references to sheetGrid, eliminating the collision with SVG symbol id=grid. The headless self-test now requires 225 generated cells to be descendants of the connected, rendered TABLE element. zSheets build, visible-grid headless test, and CSV round-trip all pass.</notes>
+    <filesChanged>samples/zsheets/app.html</filesChanged>
+    <image></image>
+    <subtasks>
+      <subtask done="true">Rename the visible table and every JS reference from grid to sheetGrid</subtask>
+      <subtask done="true">Strengthen the headless assertion to verify ownership and visibility of generated cells</subtask>
+      <subtask done="true">Run zSheets UI and CSV tests and record the fix</subtask>
+    </subtasks>
+  </task>
+  <task id="ZU-51">
+    <name>ZuiHost initialization and disposal leak WebView2 subscriptions</name>
+    <prompt>Calling InitializeAsync more than once attaches duplicate WebView2 handlers, so UI messages dispatch multiple times. DisposeAsync clears local collections but leaves WebView2 events subscribed, retaining the host. Expected: initialization is idempotent and disposal detaches subscriptions.</prompt>
+    <requirements>InitializeAsync is idempotent; DisposeAsync detaches every WebView2 event installed by the host, prevents later use, and does not retain handlers or queued messages.</requirements>
+    <inProgress>false</inProgress>
+    <done>true</done>
+    <bug>true</bug>
+    <error>false</error>
+    <errorMessage></errorMessage>
+    <lockKey></lockKey>
+    <locked>false</locked>
+    <archived>true</archived>
+    <blockedBy></blockedBy>
+    <dateStarted></dateStarted>
+    <dueDate></dueDate>
+    <commit>false</commit>
+    <build>false</build>
+    <release>false</release>
+    <merge>false</merge>
+    <branch>refactor</branch>
+    <tags></tags>
+    <notes>ZuiHost initialization now shares a single cached initialization task, preventing duplicate WebView2 subscriptions. Named event handlers are detached during idempotent disposal, state and queues are cleared, and public operations throw ObjectDisposedException afterward. The .NET binding builds clean and focused lifecycle contract checks pass.</notes>
+    <filesChanged>bindings/csharp/ZuiHost.cs</filesChanged>
+    <image></image>
+    <subtasks>
+      <subtask done="true">Refactor WebView2 event wiring into detachable named handlers and make initialization idempotent</subtask>
+      <subtask done="true">Make disposal idempotent, detach subscriptions, and guard public operations after disposal</subtask>
+      <subtask done="true">Build the binding and verify lifecycle behavior with focused source-contract checks</subtask>
+    </subtasks>
+  </task>
+  <task id="ZU-50">
+    <name>Test builds do not fail on runtime self-test regressions</name>
+    <prompt>build.ps1 prints a warning and exits successfully when IO, navigation/reactivity, or compiler-table headless markers are missing. Reproduce by changing a marker and running build.ps1 -Config test. Expected: nonzero build failure. Actual: warning-only success.</prompt>
+    <requirements>build.ps1 -Config test exits nonzero whenever any executed headless runtime self-test marker is absent; passing tests remain green.</requirements>
+    <inProgress>false</inProgress>
+    <done>true</done>
+    <bug>true</bug>
+    <error>false</error>
+    <errorMessage></errorMessage>
+    <lockKey></lockKey>
+    <locked>false</locked>
+    <archived>true</archived>
+    <blockedBy></blockedBy>
+    <dateStarted></dateStarted>
+    <dueDate></dueDate>
+    <commit>false</commit>
+    <build>false</build>
+    <release>false</release>
+    <merge>false</merge>
+    <branch>refactor</branch>
+    <tags></tags>
+    <notes>Changed executed headless runtime self-test marker failures from warning-only to terminating errors. Full build.ps1 -Config test remains green and the fatal branch is present in the build contract.</notes>
+    <filesChanged>build.ps1</filesChanged>
+    <image></image>
+    <subtasks>
+      <subtask done="true">Make executed runtime self-test failures terminate the test build</subtask>
+      <subtask done="true">Verify the passing suite and a deliberate missing-marker failure path</subtask>
+    </subtasks>
+  </task>
   <task id="ZU-41">
     <name>CI: green the verifiable jobs; C++ WebView2 sample build best-effort</name>
     <prompt>The first CI run failed only on the C++ step that compiles zui_webview2.cpp against the WebView2 SDK (all python/token/C#/nuget steps passed). Local machine has no C++ toolchain and the Actions log needs auth to read. Split CI: pure-core cmake+ctest (bindings/cpp, no SDK) is required; the WebView2 backend+sample build is continue-on-error until the exact compiler error is available. Requirement: CI overall status green; when the WebView2 build error text is obtained, fix zui_webview2.cpp and drop continue-on-error.</prompt>
@@ -18,6 +166,8 @@
     <commit>true</commit>
     <build>false</build>
     <release>false</release>
+    <merge>false</merge>
+    <branch>main</branch>
     <tags>ci,coding</tags>
     <notes>CI 'build' workflow is GREEN on windows-latest, run 74d1402: python compiler tests, token check, headless IO+nav self-tests, C# binding+sample, C++ pure-core (+ envelope ctest), AND C++ WebView2 sample (zui_webview2.cpp + samples/cpp compiled+linked vs WebView2 1.0.2478.35 + WIL 1.0.240122.1). Two real C++ bugs found via CI and fixed: (1) zui_envelope_test pulled the whole zui lib whose zui.cpp references make_default_backend (backend-only) -&gt; split make_envelope/parse_envelope into zui_envelope.cpp / zui_util lib, test links that alone; (2) add_DOMContentLoaded is on ICoreWebView2_2 not ICoreWebView2 -&gt; QI to _2. Diagnosis path: CI writes cpp-build.log, uploads it as an artifact, and on failure appends the tail to the run's job summary. Local C++ build not possible - this machine has no cmake/MSVC/clang/winget/scoop.</notes>
     <filesChanged>bindings/cpp/{CMakeLists.txt,zui.cpp,zui_envelope.cpp,tests/envelope_test.cpp}, .github/workflows/ci.yml, README.md</filesChanged>
@@ -41,6 +191,8 @@
     <commit>true</commit>
     <build>false</build>
     <release>false</release>
+    <merge>false</merge>
+    <branch>main</branch>
     <tags>qa,coding</tags>
     <notes>ROOT CAUSE: zui.send() only posted to the host - it never invoked in-page zui.receive() handlers, so a hostless page (docs site, showcase theme switcher, showcase selection/drop demos) could not respond to its own components. FIX: zui.send() now also delivers to local zui.receive() handlers for that channel (shared deliver() with _dispatch), with a per-channel re-entrancy guard so a handler that re-sends the same channel can't loop. A real host that handles a channel does not echo it, so no double-handling. Re-verified via new tests/nav-selftest.html (7 assertions: tree nav, tab, tab-panel switch, theme-select switch, IO value, loop guard - all pass) plus the existing 10 compiler + 19 IO-selftest + token check, all green through build.ps1 -Config test. Also wired nav-selftest into build.ps1 and .github/workflows/ci.yml. Manual sweep of showcase Components/Data/Layout, music.html and docs pages - no console errors, all render; the showcase demos (selection toast, drop toast, theme switch) now work live without the fake host.</notes>
     <filesChanged>core/js/zui.js, tests/nav-selftest.html, build.ps1, .github/workflows/ci.yml</filesChanged>
@@ -64,10 +216,177 @@
     <commit>false</commit>
     <build>false</build>
     <release>false</release>
+    <merge>false</merge>
+    <branch>main</branch>
     <tags>ui,design,coding</tags>
     <notes>Reworked the default theme to genuine Android Holo. tokens.css :root now holds the Holo dark palette: bg #0c0c0c/#1b1b1b/#202020, Holo-blue #33b5e5 accent, #2c2c2c dividers, light text, --zui-label-color = accent. themes/holo.css restates it (explicit selection + runtime switch back). themes/clean.css = the previous light design.txt palette as an opt-in theme. Tokenised the last hard-coded colours (scrollbar thumb, tooltip, selected+hover, on-danger) via new tokens so a theme fully controls appearance - component CSS is now 100% token-driven. Holo signatures added: .zui-section-label and .zui-panel__header are accent caps with an underline rule; active sidebar item gets an inset left accent bar. Showcases link both themes and the View menu switches holo&lt;-&gt;clean. design.txt got a top note reconciling default(holo)/clean. New core/css/THEMES.md. Rebuilt debug+release; verified both themes via headless screenshots.</notes>
     <filesChanged>core/css/tokens.css, core/css/themes/holo.css, core/css/themes/clean.css, core/css/THEMES.md, core/css/base.css, core/css/components/{button,layout,panel,scrollbar,table,tooltip,window}.css, showcase/index.html, showcase/music.html, README.md, design.txt, task_images/ZU-33.png</filesChanged>
     <image>ZU-33.png</image>
+  </task>
+  <task id="ZU-49">
+    <name>make sure everything is up to snuff</name>
+    <prompt>make 100% sure this is fully functional and optimized, i want this working RIGHT and no more huge mistakes with implementation. I want ALL ui going forward based on googles HoloUI through this themeing system we have built using our custom widgets, please fix all issues and once they are done let me know and away further instructions</prompt>
+    <requirements></requirements>
+    <inProgress>false</inProgress>
+    <done>true</done>
+    <bug>false</bug>
+    <error>false</error>
+    <errorMessage></errorMessage>
+    <lockKey></lockKey>
+    <locked>false</locked>
+    <archived>true</archived>
+    <blockedBy></blockedBy>
+    <dateStarted></dateStarted>
+    <dueDate></dueDate>
+    <commit>false</commit>
+    <build>false</build>
+    <release>false</release>
+    <merge>false</merge>
+    <branch>refactor</branch>
+    <tags></tags>
+    <notes>Completed the repository quality/performance audit. Filed and fixed ZU-50 (runtime failures warning-only), ZU-51 (C# duplicate/leaked event subscriptions), ZU-52 (C++ injected bridge/readiness), ZU-53 (zSheets SVG grid ID collision), and ZU-54 (ignored native command failures). Startup improvements across zSheets and both WPF browser test apps: early WebView2 environment warm-up, shared environment for zUI browser chrome/content, selective component CSS, unused sprite removal, and deferred large-grid creation. Added enforceable Holo policy across five first-party surfaces and QUALITY.md. Test/debug/release builds pass; 11 compiler tests, five Holo surfaces, three headless core/compiler tests, app CSV/URI/headless checks, two C++ tests, C# and native WebView2 samples all pass. All three release and refreshed debug app processes started and remained responsive. No vulnerable NuGet dependencies found.</notes>
+    <filesChanged>README.md, design.txt, docs/index.html, docs/README.md, docs/QUALITY.md, bindings/csharp/ZuiHost.cs, bindings/csharp/README.md, bindings/cpp/zui.h, bindings/cpp/zui.cpp, bindings/cpp/zui_webview2.cpp, bindings/cpp/CMakeLists.txt, bindings/cpp/tests/host_test.cpp, build.ps1, tests/check-tokens.py, samples/zsheets/Program.cs, samples/zsheets/app.html, samples/wpf-browser-native/Program.cs, samples/wpf-browser-zui/Program.cs, samples/wpf-browser-zui/toolbar.html, samples/README.md</filesChanged>
+    <image></image>
+    <subtasks>
+      <subtask done="true">Audit compiler, runtime, bindings, build outputs, and all first-party UI surfaces for correctness, performance, and Holo-policy violations</subtask>
+      <subtask done="true">File bug tasks for any defects found, then fix correctness and lifecycle issues in priority order</subtask>
+      <subtask done="true">Add enforceable Holo UI policy checks and optimize remaining hot paths without changing behavior</subtask>
+      <subtask done="true">Run clean test, debug, and release builds plus focused executable and headless smoke checks</subtask>
+      <subtask done="true">Update integration documentation and record the verified quality baseline</subtask>
+      <subtask done="true">Record task metadata, mark completion, release the ownership lock, commit, and push refactor without merging</subtask>
+    </subtasks>
+  </task>
+  <task id="ZU-48">
+    <name>second test app</name>
+    <prompt>write a second program (maybe a full on web browser) using wpf. push commit build, then as a second build convert it to use zUI. I want executables for BOTH versions to test)</prompt>
+    <requirements></requirements>
+    <inProgress>false</inProgress>
+    <done>true</done>
+    <bug>false</bug>
+    <error>false</error>
+    <errorMessage></errorMessage>
+    <lockKey></lockKey>
+    <locked>false</locked>
+    <archived>true</archived>
+    <blockedBy></blockedBy>
+    <dateStarted></dateStarted>
+    <dueDate></dueDate>
+    <commit>false</commit>
+    <build>false</build>
+    <release>false</release>
+    <merge>false</merge>
+    <branch>refactor</branch>
+    <tags></tags>
+    <notes>Created two independently runnable WPF WebView2 browser builds. The native baseline uses stock WPF controls and was committed/pushed first as 0a4b366. The zUI conversion keeps WPF as the application host but replaces browser chrome with a Holo zUI surface; address/navigation commands and URL/title/history/status updates cross the zUI message bus. Added URL and headless toolbar self-tests, build.ps1/CI integration, and comparison documentation. Full test/debug builds pass. Executables: builds/debug/wpf-browser-native/zBrowser.Native.exe and builds/debug/wpf-browser-zui/zBrowser.zUI.exe. zUI conversion committed/pushed as 21467df.</notes>
+    <filesChanged>samples/wpf-browser-native/WpfBrowserNative.csproj, samples/wpf-browser-native/Program.cs, samples/wpf-browser-zui/WpfBrowserZui.csproj, samples/wpf-browser-zui/Program.cs, samples/wpf-browser-zui/toolbar.html, build.ps1, .github/workflows/ci.yml, samples/README.md</filesChanged>
+    <image></image>
+    <subtasks>
+      <subtask done="true">Implement and build a native-control WPF WebView2 browser baseline</subtask>
+      <subtask done="true">Commit and push the verified native WPF baseline as the first comparison build</subtask>
+      <subtask done="true">Implement the second WPF browser with Holo zUI chrome and host-to-content navigation wiring</subtask>
+      <subtask done="true">Integrate both browser variants into build.ps1, CI, and sample documentation</subtask>
+      <subtask done="true">Build and smoke-test both executables, then push the zUI conversion commit</subtask>
+      <subtask done="true">Record task metadata, mark completion, and release the ownership lock</subtask>
+    </subtasks>
+  </task>
+  <task id="ZU-47">
+    <name>create a test note taking app with zUI to test it</name>
+    <prompt>make a app to test this new system fully, maybe a spreadsheet editor that saves to csv? call it zSheets</prompt>
+    <requirements></requirements>
+    <inProgress>false</inProgress>
+    <done>true</done>
+    <bug>false</bug>
+    <error>false</error>
+    <errorMessage></errorMessage>
+    <lockKey></lockKey>
+    <locked>false</locked>
+    <archived>true</archived>
+    <blockedBy></blockedBy>
+    <dateStarted></dateStarted>
+    <dueDate></dueDate>
+    <commit>false</commit>
+    <build>false</build>
+    <release>false</release>
+    <merge>false</merge>
+    <branch>refactor</branch>
+    <tags></tags>
+    <notes>Created zSheets, a native .NET 8/WebView2 CSV editor using the Holo zUI runtime. The theme-token-only grid supports editable headers/cells, keyboard navigation, adding/deleting rows and columns, dirty state, notifications, and file status. Native C# owns Open/Save/Save As and a quoted CSV codec supporting commas, escaped quotes, and multiline fields. Added CSV and headless UI self-tests, build.ps1/CI integration, and sample docs. Full test and debug builds pass; runnable executable is builds/debug/zsheets/zSheets.exe.</notes>
+    <filesChanged>samples/zsheets/ZSheets.csproj, samples/zsheets/Program.cs, samples/zsheets/CsvCodec.cs, samples/zsheets/app.html, build.ps1, .github/workflows/ci.yml, samples/README.md</filesChanged>
+    <image></image>
+    <subtasks>
+      <subtask done="true">Define the zSheets native-host architecture and spreadsheet interaction contract</subtask>
+      <subtask done="true">Implement the Holo zUI spreadsheet surface with editable cells and row/column operations</subtask>
+      <subtask done="true">Implement the native C# host with CSV new, open, save, and save-as message handling</subtask>
+      <subtask done="true">Integrate zSheets into the repository build and sample documentation</subtask>
+      <subtask done="true">Build the executable and run focused spreadsheet and full regression checks</subtask>
+      <subtask done="true">Record task metadata, mark completion, and release the ownership lock</subtask>
+    </subtasks>
+  </task>
+  <task id="ZU-43">
+    <name>make zUI deploy-ready for a hand-off agent</name>
+    <prompt>Close the gap between 'the pieces work' and 'another agent can be handed the repo and integrate it without getting stuck'. In scope: (1) FIX the compiler source= table binding - generated render() glue crashes in a real WebView2 (elist.querySelector('tbody') returns null -&gt; tb.innerHTML throws); (2) docs/QUICKSTART.md - a one-page followable-without-other-docs guide: prereqs (Python 3 for zslc, WebView2 runtime, .NET 8 / MSVC), one copy-paste hello-world (author one .zml -&gt; zslc --backend html -&gt; new ZuiHost(view); LoadAsync -&gt; wire one message each way), and say plainly 'use --backend html + LoadAsync, the csharp/cpp backends are advanced'; (3) cut git tag v0.1.0 + a short compat note; (4) minor: ZuiHost flush buffered Send() on NavigationCompleted too; close stale CI diag issue #1; review the continue-on-error on the C++ sample CI step. Verify the source= fix with ONE minimal headless or WebView2 check - do NOT build a whole demo app.</prompt>
+    <requirements>source= table binding renders in a real host (verified); QUICKSTART.md is followable end-to-end alone; v0.1.0 tag pushed.</requirements>
+    <inProgress>false</inProgress>
+    <done>true</done>
+    <bug>false</bug>
+    <error>false</error>
+    <errorMessage></errorMessage>
+    <lockKey></lockKey>
+    <locked>false</locked>
+    <archived>true</archived>
+    <blockedBy></blockedBy>
+    <dateStarted></dateStarted>
+    <dueDate></dueDate>
+    <commit>true</commit>
+    <build>false</build>
+    <release>false</release>
+    <merge>false</merge>
+    <branch>refactor</branch>
+    <tags>coding,binding,docs</tags>
+    <notes>Fixed generated source= tables by creating a tbody when WebView2 omits an empty one; added a minimal generated-document headless regression test. Added a standalone .NET/WebView2 quickstart and v0.1 compatibility note, including prerequisites and the supported html+LoadAsync path. ZuiHost now flushes queued sends on successful NavigationCompleted as well as DOMContentLoaded. Made the C++ WebView2 CI sample directly required while retaining diagnostics, and closed stale GitHub issue #1. Full test build passed: 11 compiler tests, token audit, three headless runtime checks, C# binding/sample, C++ envelope test, and generated C++ WebView2 sample.</notes>
+    <filesChanged>.github/workflows/ci.yml, README.md, bindings/csharp/ZuiHost.cs, build.ps1, compiler/zslc.py, compiler/tests/test_compile.py, docs/QUICKSTART.md, docs/COMPATIBILITY.md, design.txt, tests/table-binding-selftest.zml</filesChanged>
+    <image></image>
+    <subtasks>
+      <subtask done="true">fix compiler source= table glue (tbody null in WebView2): tb = e.tBodies[0] || e.appendChild(document.createElement('tbody'))</subtask>
+      <subtask done="true">docs/QUICKSTART.md - prereqs + copy-paste hello-world + 'use --backend html' + link from README/design.txt</subtask>
+      <subtask done="true">add missing prereqs line to design.txt Part 1</subtask>
+      <subtask done="true">git tag v0.1.0 + compat note</subtask>
+      <subtask done="true">ZuiHost: flush pending Send on NavigationCompleted too</subtask>
+      <subtask done="true">close stale CI issue #1; finalize C++ sample CI step (drop continue-on-error or keep intentionally)</subtask>
+      <subtask done="true">Run the focused source-table regression check and full validation, then record metadata, commit, push, and tag the verified branch</subtask>
+    </subtasks>
+  </task>
+  <task id="ZU-45">
+    <name>fix the issues</name>
+    <prompt>I asked chatGPT to look through the github repo and identify issues, go through its reply, create tasks, and implement its changes. this is priority 1</prompt>
+    <requirements>zUI should Actually compile to native code while retaining the themeing, not JUST a html website displayer but a native C# or CPP (or python) app. speed issues should be solved and make it easier on the agents to impliment</requirements>
+    <inProgress>false</inProgress>
+    <done>true</done>
+    <bug>false</bug>
+    <error>false</error>
+    <errorMessage></errorMessage>
+    <lockKey></lockKey>
+    <locked>false</locked>
+    <archived>true</archived>
+    <blockedBy></blockedBy>
+    <dateStarted></dateStarted>
+    <dueDate></dueDate>
+    <commit>false</commit>
+    <build>false</build>
+    <release>false</release>
+    <merge>false</merge>
+    <branch>refactor</branch>
+    <tags>refactor</tags>
+    <notes>Audited the AOT/native path. Refactored C++ generation to accept an explicit handler map with no undefined callback stubs, compiled the generated showcase translation unit into the native WebView2 sample, documented that ZSL/ZML is AOT-compiled into the executable while CSS theming is preserved, and optimized virtual-list rendering by coalescing animation frames and skipping unchanged ranges. Verified build.ps1 -Config test: 10 compiler tests, token check, both headless runtime suites, C# binding/sample, C++ core test, and generated C++ WebView2 sample link all pass.</notes>
+    <filesChanged>compiler/zslc.py, compiler/tests/test_compile.py, examples/generated/showcase.g.cpp, samples/cpp/CMakeLists.txt, samples/cpp/main.cpp, core/js/zui.js, README.md, compiler/README.md</filesChanged>
+    <image></image>
+    <subtasks>
+      <subtask done="true">Audit the current compiler, native bindings, runtime, tests, and documentation against the native-code and performance requirements</subtask>
+      <subtask done="true">Define and implement a native compiled UI model and generation path while preserving zUI theming</subtask>
+      <subtask done="true">Improve runtime performance and simplify integration APIs and agent-facing documentation</subtask>
+      <subtask done="true">Add focused tests and run the full verification suite</subtask>
+      <subtask done="true">Record task notes and changed files, mark the task complete, and release the ownership lock</subtask>
+    </subtasks>
   </task>
   <task id="ZU-42">
     <name>wire local C++ builds (VS 2026 is installed)</name>
@@ -87,6 +406,8 @@
     <commit>true</commit>
     <build>false</build>
     <release>false</release>
+    <merge>false</merge>
+    <branch>main</branch>
     <tags>coding,binding,build</tags>
     <notes>Machine DOES have VS 18 Community (MSVC 19.51, bundled CMake 4.3.1 + Ninja) - cl/cmake just aren't on PATH outside a dev prompt. build.ps1 now: Find-CppToolchain via vswhere (falls back to VS-bundled cmake), writes a .bat that calls vcvars64 then runs cmake/ctest, resolves the WebView2 SDK from pkgs/ (vendored .nupkg, gitignored) or WEBVIEW2_DIR. Verified locally: bindings/cpp builds + envelope ctest passes; samples/cpp builds zui_webview2.cpp + links zui_sample.exe; the exe RUNS (was crashing 0xC0000005 - fixed: added CoInitializeEx(STA) in wWinMain, WebView2 needs an STA UI thread; also FAILED()/null guards in the env+controller callbacks and controller put_IsVisible(TRUE)). samples/cpp CMake also stages core/ (like the C# csproj) and WebView2Loader.dll. debug+release+test all build the C++ side now. samples/README.md updated with the working recipe.</notes>
     <filesChanged>build.ps1, bindings/cpp/zui_webview2.cpp, samples/cpp/main.cpp, samples/cpp/CMakeLists.txt, samples/README.md, .gitignore</filesChanged>
@@ -110,6 +431,8 @@
     <commit>true</commit>
     <build>false</build>
     <release>false</release>
+    <merge>false</merge>
+    <branch>main</branch>
     <tags>coding,binding</tags>
     <notes>No C++ toolchain on this machine (no cmake/MSVC/clang/gcc, no winget/scoop) - installing VS Build Tools + SDK unprompted was not appropriate. Instead: (1) reviewed zui_webview2.cpp and fixed real bugs - wil::com_ptr misuse with IID_PPV_ARGS(&amp;p) -&gt; .put(), get_CoreWebView2(&amp;webview_) -&gt; .put(), leaked ICoreWebView2Settings* -&gt; com_ptr, and added DOMContentLoaded/NavigationStarting handlers so host-&gt;UI messages buffer until the page JS is listening (the same class of bug fixed in the C# binding in ZU-38). (2) Added .github/workflows/ci.yml: a windows-latest job that runs the python compiler+token tests, builds the C# binding+sample, nuget-installs WebView2 1.0.2478.35 + WIL 1.0.240122.1, and cmake-builds bindings/cpp (+ ctest) and samples/cpp - this is the canonical verified build. (3) samples/README.md now has the exact reproducible recipe (tool prereqs, pinned package versions, cmake invocation) plus the no-SDK path for the pure-core TU + envelope test. build.ps1 already runs the same locally when cmake+SDK env vars are present.</notes>
     <filesChanged>bindings/cpp/zui_webview2.cpp, .github/workflows/ci.yml, samples/README.md</filesChanged>
@@ -133,6 +456,8 @@
     <commit>true</commit>
     <build>false</build>
     <release>false</release>
+    <merge>false</merge>
+    <branch>main</branch>
     <tags>coding,binding</tags>
     <notes>Built + launched builds/debug/sample-csharp/ZuiSample.exe on the installed WebView2 runtime (152.0.4191.53). VERIFIED LIVE: InitializeAsync + SetVirtualHostNameToFolderMapping + AddScriptToExecuteOnDocumentCreatedAsync + Navigate all work; the showcase renders with full Holo styling, icons and all components. host-&gt;UI confirmed: the 'device' message arrives and the status bar shows 'HAPTICS' IPOD / 238.2 GB capacity / 234.6 GB free' connected (blue) - so the DOMContentLoaded send-buffering fix works. UI-&gt;host uses the same chrome.webview bridge (confirmed running) via WebMessageReceived. BUG FOUND + FIXED: the sample loaded unstyled because showcase/index.html links ../core/... but the csproj only staged core as zui/; added a copy of core/ (and docs/) to ZuiSample.csproj so the bundled showcase resolves. Screenshot: task_images/ZU-38.png. __zui_compiled.html (runtime scratch) gitignored.</notes>
     <filesChanged>samples/csharp/ZuiSample.csproj, .gitignore, task_images/ZU-38.png</filesChanged>
@@ -156,6 +481,8 @@
     <commit>true</commit>
     <build>false</build>
     <release>false</release>
+    <merge>false</merge>
+    <branch>main</branch>
     <tags>coding,scripting</tags>
     <notes>HtmlGen takes asset_base (html: ../core; csharp/cpp: zui, resolving against the binding's virtual host). DOC_TEMPLATE parameterised (+ now links clean.css and sprite.js). gen_csharp Attach() wires hooks then calls host.LoadDocument(Document); gen_cpp calls host.load_document(kZslDocument). ZuiHost.LoadDocument(html): writes __zui_compiled.html under the virtual root and navigates it; also buffers Send() until DOMContentLoaded (fixes early-send message loss) and resets on NavigationStarting; switched WebMessage read to TryGetWebMessageAsString. zui::Host::load_document writes the file next to core_root and load()s it. zui.js: inbound __document channel does document.open/write/close for in-place screen swaps. Generated ShowcaseUi.g.cs added to samples/csharp and compiles clean against ZUI.dll (verified: dotnet build 0 errors). --asset-base CLI flag. examples/generated refreshed. 10/10 compiler tests + IO self-test + token check pass; full test build green.</notes>
     <filesChanged>compiler/zslc.py, compiler/README.md, core/js/zui.js, bindings/csharp/ZuiHost.cs, bindings/cpp/zui.h, bindings/cpp/zui.cpp, samples/csharp/Program.cs, samples/csharp/generated/ShowcaseUi.g.cs, examples/generated/*</filesChanged>
@@ -181,6 +508,8 @@ Any changes in the future should be reflected in this document</prompt>
     <commit>false</commit>
     <build>false</build>
     <release>false</release>
+    <merge>false</merge>
+    <branch>main</branch>
     <tags>Documentation</tags>
     <notes>Built docs/index.html - a click-through documentation site styled with zUI itself (dogfooding: window shell, tree TOC nav, theme switcher, hash deep-links). Sections: Overview, Getting started, Embedding (C#/C++), ZSL/ZML language, Layout &amp; components, Message bus &amp; IO, Interaction &amp; keyboard, Theming &amp; tokens, Icons, Building &amp; tests - covering both how to script (ZSL/ZML) and how to use/stream the engine from a host. Each section summarises and links the authoritative markdown (PROTOCOL.md, THEMES.md, GRAMMAR.md, etc). docs/README.md notes the sync obligation. build.ps1 stages docs/ alongside showcase/; README links it. All test suites green.</notes>
     <filesChanged>docs/index.html, docs/README.md, build.ps1, README.md</filesChanged>
@@ -206,6 +535,8 @@ I will manually populate it to the other agents and projects for now just re-cre
     <commit>false</commit>
     <build>false</build>
     <release>false</release>
+    <merge>false</merge>
+    <branch>main</branch>
     <tags>Documentation</tags>
     <notes>Rewrote design.txt as a toolchain guide for agents in other projects. Part 1 (USING zUI): repo URL + doc map; get it as a git submodule; what's under core/ + bindings; embed via C#/C++ (with code) or a plain zUI HTML doc; author screens in ZSL/ZML and compile AOT with zslc.py; the message bus + component-IO in one paragraph pointing at PROTOCOL.md; how to keep it consistent (build.ps1 -Config test, add IO adapter + PROTOCOL row + token-only CSS, themes are one file). Part 2 (VISUAL DESIGN STANDARD): condensed the original rules - identity (holo default / clean alt), structure, type, controls, spacing/borders, iconography, interaction, the consistency rule - all still binding, palette-agnostic.</notes>
     <filesChanged>design.txt</filesChanged>
@@ -229,6 +560,8 @@ I will manually populate it to the other agents and projects for now just re-cre
     <commit>true</commit>
     <build>false</build>
     <release>false</release>
+    <merge>false</merge>
+    <branch>main</branch>
     <tags>ui,coding</tags>
     <notes>samples/csharp: WinForms + WebView2 app (ZuiSample.csproj refs bindings/csharp/ZUI.csproj), initialises ZuiHost, loads showcase/index.html, subscribes selection/theme-changed/save/transport, pushes device + now-playing. Builds clean via build.ps1 -&gt; builds/&lt;cfg&gt;/sample-csharp/ZuiSample.exe (verified). samples/cpp: Win32 + WebView2 main.cpp doing the identical round-trip; wrote the missing bindings/cpp/zui_webview2.cpp WebView2 backend (env/controller creation, WebMessageReceived, virtual-host mapping, pending-op queue) that make_default_backend() returns; CMakeLists takes -DWEBVIEW2_DIR/-DWIL_DIR. build.ps1 builds the C# sample always and the C++ sample when cmake + WEBVIEW2_DIR/WIL_DIR are present (skips with a pointer to samples/README.md otherwise - this machine has no cmake). Both embed the same core/ assets so the UI is identical.</notes>
     <filesChanged>samples/csharp/{ZuiSample.csproj,Program.cs}, samples/cpp/{main.cpp,CMakeLists.txt}, samples/README.md, bindings/cpp/zui_webview2.cpp, build.ps1</filesChanged>
@@ -252,6 +585,8 @@ I will manually populate it to the other agents and projects for now just re-cre
     <commit>true</commit>
     <build>false</build>
     <release>false</release>
+    <merge>false</merge>
+    <branch>main</branch>
     <tags>ui,coding</tags>
     <notes>showcase/index.html: added a 'Layout' tab (panels + draggable splitter, tree with collapsed group, responsive grid, tooltip + submenu context menu), a theme switcher select in the nav strip (emits select -&gt; zui.setTheme via showcase.js), and a link to music.html. Combined with existing Components/Forms/Data tabs the gallery now covers buttons (all variants), dropdown, tabs (+closeable), spinner/progress/skeleton, toasts + glyphs, drop target/empty state, reorder list, table (sortable/selectable/context), 10k virtual list, component-IO round-trip panel, form validation, rename-in-place, checkboxes/radios/switches, sliders, dialog/popover, interaction/undo. music.html is the realistic music-browser mock (window shell, menu, nav, tree sidebar, artist|album|track panels+splitters, device bar, playback bar) - all zUI components, Holo. 10/10 tests pass.</notes>
     <filesChanged>showcase/index.html, showcase/showcase.js</filesChanged>
@@ -275,6 +610,8 @@ I will manually populate it to the other agents and projects for now just re-cre
     <commit>true</commit>
     <build>false</build>
     <release>false</release>
+    <merge>false</merge>
+    <branch>main</branch>
     <tags>ui,coding</tags>
     <notes>Added the interaction layer to zui.js: global keydown handler (capture) with a combo normaliser; zui.shortcuts(map)-&gt;unregister; zui.history (push/undo/redo/clear/canUndo/canRedo) with Ctrl+Z / Ctrl+Y / Ctrl+Shift+Z wired by default and 'history'/'undo'/'redo' channels; field-typing guarded (needs Ctrl/Alt/Meta). Declarative data-zui-shortcut (clicks el) and data-zui-dblclick (emits). The other behaviours were already centralised (menus, drag/drop+reorder, selection helpers, tooltips, cursor manager, renameInPlace) - now documented together in core/PROTOCOL.md. Showcase: reversible 'Add item' + Ctrl+K demo. Verified via headless (history, Ctrl+Z, declarative + programmatic shortcuts). 10/10 + token check pass.</notes>
     <filesChanged>core/js/zui.js, core/PROTOCOL.md, showcase/index.html, showcase/showcase.js</filesChanged>
@@ -298,6 +635,8 @@ I will manually populate it to the other agents and projects for now just re-cre
     <commit>true</commit>
     <build>false</build>
     <release>false</release>
+    <merge>false</merge>
+    <branch>main</branch>
     <tags>ui,coding</tags>
     <notes>Tokenised the last colour literals: --zui-scrim, --zui-shadow-modal, --zui-skeleton-sheen, --zui-scrollbar-overlay (dialog.css, loading.css, scrollbar.css now 100% token-driven -&gt; every component is). Added tests/check-tokens.py: fails on any hard-coded colour in component/base CSS, any undefined var(--zui-*), or holo/clean token drift; wired into build.ps1 -Config test (currently: OK, 52 tokens / 19 files). THEMES.md updated with the complete required token set + the check. Runtime zui.setTheme (emits theme-changed) and inbound 'theme' channel already in place; holo is :root + themes/holo.css, clean is themes/clean.css.</notes>
     <filesChanged>core/css/tokens.css, core/css/themes/holo.css, core/css/themes/clean.css, core/css/components/dialog.css, core/css/components/loading.css, core/css/components/scrollbar.css, core/css/THEMES.md, tests/check-tokens.py, build.ps1</filesChanged>
@@ -321,6 +660,8 @@ I will manually populate it to the other agents and projects for now just re-cre
     <commit>true</commit>
     <build>false</build>
     <release>false</release>
+    <merge>false</merge>
+    <branch>main</branch>
     <tags>ui,coding</tags>
     <notes>core/icons/zui-icons.svg: 30-symbol sprite (transport, nav, list/grid/folder, check/close/plus/minus/chevrons, eject/sync/gear/warning/info/trash/edit/device/download/podcast). core/icons/sprite.js injects it into &lt;body&gt; so &lt;use href=#name&gt; resolves from any origin incl. file:// (host apps may reference the .svg directly). base.css: .zui-icon (14px, currentColor, fill), --sm/--lg/--muted. Showcases: nav items, transport buttons, shuffle/repeat, search field and empty state now use sprite icons instead of emoji; sprite.js loaded before zui.js. core/icons/README.md documents conventions. 10/10 tests pass.</notes>
     <filesChanged>core/icons/zui-icons.svg, core/icons/sprite.js, core/icons/README.md, core/css/base.css, showcase/index.html, showcase/music.html</filesChanged>
@@ -344,6 +685,8 @@ I will manually populate it to the other agents and projects for now just re-cre
     <commit>true</commit>
     <build>false</build>
     <release>false</release>
+    <merge>false</merge>
+    <branch>main</branch>
     <tags>ui,coding</tags>
     <notes>window.css: .zui-contextbar promoted to a full component (__transport/__art/__meta/__title/__sub/__time/__scrub/__opts). zui.js [data-zui=contextbar]: [data-transport] buttons emit 'transport'; host pushes 'now-playing' {title,sub,position,duration,positionPct} to update text/times/scrub (mm:ss formatting). shuffle/repeat reuse data-zui=toggle. music.html playback bar rebuilt on the component; removed the local .mb-player CSS. Compiler HTML_MAP gains 'contextbar'. 10/10 tests pass.</notes>
     <filesChanged>core/css/components/window.css, core/js/zui.js, compiler/zslc.py, showcase/music.html</filesChanged>
@@ -367,6 +710,8 @@ I will manually populate it to the other agents and projects for now just re-cre
     <commit>true</commit>
     <build>false</build>
     <release>false</release>
+    <merge>false</merge>
+    <branch>main</branch>
     <tags>ui,coding</tags>
     <notes>window.css: .zui-statusbar__name (accent when connected), __dot (grey-&gt;accent), __capacity/__free, __actions (right-aligned), __when-connected (hidden while disconnected), __sep bullet. zui.js: .zui-statusbar[data-zui-device] subscribes to 'device' - {name,capacity,free} connects, null disconnects; [data-device-action] buttons emit 'device-action'. Compiler _n_statusbar renders the scaffold from &lt;statusbar device connected&gt; + &lt;text&gt;/&lt;button action=&gt;. music.html device bar rebuilt. 10/10 tests pass.</notes>
     <filesChanged>core/css/components/window.css, core/js/zui.js, compiler/zslc.py, showcase/music.html</filesChanged>
@@ -390,6 +735,8 @@ I will manually populate it to the other agents and projects for now just re-cre
     <commit>true</commit>
     <build>false</build>
     <release>false</release>
+    <merge>false</merge>
+    <branch>main</branch>
     <tags>ui,coding</tags>
     <notes>dialog.css: .zui-dialog on a native &lt;dialog&gt; (platform focus-trap + Esc), 30px title bar, alt-surface footer, subtle heavy shadow, ::backdrop; .zui-popover fixed + clamped. zui.js: zui.dialog({title,body,buttons,dismissable}) -&gt; Promise of the chosen value (null on dismiss), autofocus body input else primary button; zui.confirm(msg,opts); zui.popover(anchor,content,{placement}) -&gt; {close} with outside-click/Esc dismiss. Inbound 'dialog' channel -&gt; opens + replies 'dialog-result'. Showcase: confirm + popover buttons. Verified via headless (modal, focus, resolve, cleanup). 10/10 tests pass.</notes>
     <filesChanged>core/css/components/dialog.css, core/css/zui.css, core/js/zui.js, showcase/index.html</filesChanged>
@@ -413,6 +760,8 @@ I will manually populate it to the other agents and projects for now just re-cre
     <commit>true</commit>
     <build>false</build>
     <release>false</release>
+    <merge>false</merge>
+    <branch>main</branch>
     <tags>ui,coding</tags>
     <notes>tree.css: flat-row model (.zui-tree__item with data-depth -&gt; --depth indent, aria-expanded twisty, .zui-tree__section heading, selected = pale accent + inset bar). zui.js [data-zui=tree]: descendants = following rows of greater depth; collapse walks the ancestor chain hiding rows; click/twisty/dblclick toggle; keyboard Up/Down/Home/End, Right expand-or-into, Left collapse-or-out, Enter activate, F2 rename; ctrl/shift multi-select; roving tabindex; emits 'tree' {name,id,action,selected}. IO 'tree' kind get/set selected ids. Compiler _n_tree/_n_treeitem (nesting -&gt; depth, &lt;section&gt;, selected/collapsed flags, event -&gt; data-zui-rename). music.html sidebar rebuilt on the tree (Smart Playlists group with children). 10/10 tests pass.</notes>
     <filesChanged>core/css/components/tree.css, core/css/zui.css, core/js/zui.js, compiler/zslc.py, showcase/music.html</filesChanged>
@@ -436,6 +785,8 @@ I will manually populate it to the other agents and projects for now just re-cre
     <commit>true</commit>
     <build>false</build>
     <release>false</release>
+    <merge>false</merge>
+    <branch>main</branch>
     <tags>ui,coding</tags>
     <notes>core/css/components/slider.css (imported in zui.css): .zui-slider on a native &lt;input type=range&gt; - 4px track, 12px accent thumb, WebKit accent-fill via --zui-slider-fill gradient (Firefox uses ::-moz-range-progress), focus ring, disabled; .zui-slider-row with &lt;output&gt;; .zui-range for two stacked thumbs. zui.js: 'range' IO kind (numeric value, syncs fill + output, emits on input); generic .zui-slider wiring keeps fill/output synced without an id; .zui-range wiring stops the thumbs crossing and emits {kind:'range2', value:[lo,hi]}. Compiler: _n_slider node (min/max/step/value, labelled flag -&gt; output, export/bind). Showcase Forms: volume, crossfade, and a year-range dual slider. 10/10 compiler tests pass.</notes>
     <filesChanged>core/css/components/slider.css, core/css/zui.css, core/js/zui.js, compiler/zslc.py, showcase/index.html</filesChanged>
@@ -459,6 +810,8 @@ I will manually populate it to the other agents and projects for now just re-cre
     <commit>true</commit>
     <build>false</build>
     <release>false</release>
+    <merge>false</merge>
+    <branch>main</branch>
     <tags>ui,coding</tags>
     <notes>input.css: unified .zui-check/.zui-radio (native inputs, accent-color), .zui-choice-group (+ --row), and .zui-switch (native checkbox + styled track/thumb, focus-visible ring, disabled). zui.js IO: new 'radio' kind on a [role=radiogroup]/.zui-choice-group[data-zui-id] container - get returns the checked value, set picks by value, change emits; checkbox set accepts 'indeterminate'. Showcase Forms: checkbox group with an indeterminate item, a radio group (data-zui-id), and two toggle switches. 10/10 compiler tests pass.</notes>
     <filesChanged>core/css/components/input.css, core/js/zui.js, showcase/index.html</filesChanged>
@@ -482,6 +835,8 @@ I will manually populate it to the other agents and projects for now just re-cre
     <commit>true</commit>
     <build>false</build>
     <release>false</release>
+    <merge>false</merge>
+    <branch>main</branch>
     <tags>ui,coding</tags>
     <notes>table.css: sort caret + column resize grip. zui.js: table[data-zui-table] wiring - th[data-field] sorts tbody in place (numeric-aware) emitting sort; every th gets a drag grip emitting column-resize. zui.virtualList(scrollEl,{count,rowHeight,render,overscan}): windowed rendering with a sizer + rAF relayout, returns refresh/scrollToIndex/destroy. Compiler _n_table always emits data-zui-table + per-column data-field (num column flag adds zui-num, nosort opts out). Showcase: sortable Tracks table + live 10000-row virtual list. 10/10 compiler tests pass.</notes>
     <filesChanged>core/css/components/table.css, core/js/zui.js, compiler/zslc.py, showcase/index.html, showcase/showcase.js</filesChanged>
@@ -505,6 +860,8 @@ I will manually populate it to the other agents and projects for now just re-cre
     <commit>true</commit>
     <build>false</build>
     <release>false</release>
+    <merge>false</merge>
+    <branch>main</branch>
     <tags>ui,coding</tags>
     <notes>input.css: validation classes (.zui-invalid/.zui-warn on input/textarea/select) + .zui-field__msg(--error/--warn), readonly style, number input width, .zui-rename. zui.js: zui.mark(id,level,msg) sets border+message, zui.validate(scope,rules) with required/pattern/min/max/validate-fn returning pass/fail and marking each field, zui.renameInPlace(el,onCommit) (Enter/blur commit, Esc cancel), and data-zui-rename wiring (dblclick/F2 -&gt; emits {channel,{value}}). Text values themselves round-trip through the ZU-35 IO layer. Showcase Forms: required+range validation on Create, rename-in-place list. Verified via headless test (validation + rename).</notes>
     <filesChanged>core/css/components/input.css, core/js/zui.js, core/PROTOCOL.md, showcase/index.html</filesChanged>
@@ -528,6 +885,8 @@ I will manually populate it to the other agents and projects for now just re-cre
     <commit>true</commit>
     <build>false</build>
     <release>false</release>
+    <merge>false</merge>
+    <branch>main</branch>
     <tags>ui,coding</tags>
     <notes>zui.toast rebuilt: kind glyph (checkmark/warn/x), optional {action:{label,channel|onClick}}, close button, timeout:0 = sticky, stack capped at 4 (oldest dropped), subtle slide-in (motion-safe). New 'toast' inbound channel (string or {message,kind,action,...}). notification.css: .zui-badge--muted, .zui-glyph(+--ok/warn/error/accent) inline status marks, toast action/close/glyph styling, keyframe. Showcase: ok + actionable error toast, status glyphs.</notes>
     <filesChanged>core/js/zui.js, core/css/components/notification.css, showcase/index.html</filesChanged>
@@ -551,6 +910,8 @@ I will manually populate it to the other agents and projects for now just re-cre
     <commit>true</commit>
     <build>false</build>
     <release>false</release>
+    <merge>false</merge>
+    <branch>main</branch>
     <tags>ui,coding</tags>
     <notes>loading.css: added .zui-spinner--sm, .zui-loading inline row, .zui-progress--tall, .zui-progress-labelled (+ __text caption row), and skeleton placeholders (.zui-skeleton / --text/--title/--row, .zui-skeleton-list, low-contrast shimmer). prefers-reduced-motion now also slows the indeterminate bar and disables the skeleton shimmer. Progress bars carry data-zui-id -&gt; host sets fill % or 'indeterminate' through the ZU-35 IO layer (no bespoke helper needed). Showcase Feedback block reworked + a skeleton example added.</notes>
     <filesChanged>core/css/components/loading.css, showcase/index.html</filesChanged>
@@ -574,6 +935,8 @@ I will manually populate it to the other agents and projects for now just re-cre
     <commit>true</commit>
     <build>false</build>
     <release>false</release>
+    <merge>false</merge>
+    <branch>main</branch>
     <tags>ui,coding</tags>
     <notes>Reworked zui.menu into a submenu stack (menuStack, openSubmenu, closeMenusBelow). Items with items[]/submenu render a &gt; arrow, open on hover or click/ArrowRight, close on ArrowLeft/Escape (one level at a time). Mnemonics: '&amp;File' underlines F, sets data-mnemonic, and a single matching key press in an open menu activates it. Menu bar: Alt toggles body.zui-alt (underlines first letters), Alt+&lt;letter&gt; opens the matching top-level menu, Escape drops the Alt state. Context menus (data-zui-context) use the same renderer so they inherit submenus + keyboard. Showcase: File&gt;Export submenu, and a right-click track menu with an 'Add to playlist' submenu. Verified via headless menu test + IO/compiler suites.</notes>
     <filesChanged>core/js/zui.js, core/css/components/dropdown.css, core/css/components/menubar.css, showcase/index.html</filesChanged>
@@ -597,6 +960,8 @@ I will manually populate it to the other agents and projects for now just re-cre
     <commit>true</commit>
     <build>false</build>
     <release>false</release>
+    <merge>false</merge>
+    <branch>main</branch>
     <tags>ui,coding,io</tags>
     <notes>The ZU-35 adapters are generic on [data-zui-id] so all components (text/search/textarea, label &amp; text nodes, progress incl. indeterminate, button click-out + programmatic click/flash/busy/disabled/label/pressed, checkbox, toggle, native + .zui-select, scrolling panels top/left/pct + scrollTo) are covered. Compiler: new _zid() helper - export="name" on any node, and any bind:name, now emit data-zui-id; .zui-select also emits data-value for round-trip. zui.js: auto handler for inbound 'theme' channel; tabs runtime honours a #hash to preselect a tab. Showcase: a 'Component IO' panel on the Data tab with a demo host in showcase.js that echoes 'value'/'submit' (type Name -&gt; Host sees; +/- drive the progress bar via zui.set; Go emits clicks, 'trigger from host' calls zui.set(id,'click'); Submit form dumps zui.values). core/PROTOCOL.md documents the full channel + IO contract; GRAMMAR.md/README updated. 10/10 compiler tests + IO self-test pass; debug+release+test build clean.</notes>
     <filesChanged>compiler/zslc.py, compiler/tests/test_compile.py, compiler/GRAMMAR.md, core/js/zui.js, core/PROTOCOL.md, README.md, showcase/index.html, showcase/showcase.js</filesChanged>
@@ -620,6 +985,8 @@ I will manually populate it to the other agents and projects for now just re-cre
     <commit>true</commit>
     <build>false</build>
     <release>false</release>
+    <merge>false</merge>
+    <branch>main</branch>
     <tags>ui,coding,io</tags>
     <notes>Added the component IO core to core/js/zui.js. Public API: zui.values(scope) snapshot, zui.field(id), zui.set(id,value | {id:value}), zui.bind(id,fn) local subscribe. Kinds + adapters: text (input/textarea), boolean (checkbox + aria-pressed toggle), select (native + .zui-select), progress (0-100 + 'indeterminate'), button (out: {event:'click'}; in: 'click' w/ flash, {busy|disabled|pressed|label}), scroll (top/left + topPct/leftPct, on-scroll export throttled 100ms, scrollTo in). Outbound 'value' message per change + zui.bind handlers. Inbound auto-handlers: 'set', 'set-many', 'query' (replies 'value'/'values'). [data-zui-submit] button -&gt; 'submit' {form, values} scoped to nearest [data-zui-form]. Programmatic set() never re-emits (loop-safe); a programmatic button 'click' does fire the real handler by design. .zui-btn--flash style. tests/io-selftest.html (19 assertions, all pass) wired into build.ps1 -Config test via headless Chrome/Edge.</notes>
     <filesChanged>core/js/zui.js, core/css/components/button.css, tests/io-selftest.html, build.ps1</filesChanged>
@@ -643,6 +1010,8 @@ I will manually populate it to the other agents and projects for now just re-cre
     <commit>true</commit>
     <build>false</build>
     <release>false</release>
+    <merge>false</merge>
+    <branch>main</branch>
     <tags>ui,scripting,coding</tags>
     <notes>Added ZML - an XML-style front end for the UI language - alongside brace ZSL. zslc.compile_source auto-detects: first significant char '&lt;' -&gt; ZmlParser, else the brace Parser; both build the same Program AST and feed the unchanged html/csharp/cpp backends. ZmlParser: permissive hand-written scanner (no namespaces/PI/DOCTYPE/CDATA), supports nesting, attributes, boolean flags + x="true", text content -&gt; node label, self-closing tags, &lt;!-- --&gt; and // comments, entities, and &lt;state&gt;&lt;var/&gt;&lt;/state&gt; / &lt;on event&gt;&lt;emit|call|set/&gt;&lt;/on&gt;. Attribute mapping: bind=/source=/on= special, title|label -&gt; text, kind/id/shortcut/etc -&gt; attrs. examples/counter.zml + showcase.zml compile byte-identical to their .zsl twins on all 3 backends (asserted by new test_zml_equals_zsl). build.ps1 compiles both .zsl and .zml. GRAMMAR.md/README/compiler README document ZML. 8/8 compiler tests pass.</notes>
     <filesChanged>compiler/zslc.py, compiler/tests/test_compile.py, compiler/GRAMMAR.md, compiler/README.md, README.md, build.ps1, examples/counter.zml, examples/showcase.zml, examples/showcase.zsl, examples/generated/*</filesChanged>
@@ -666,6 +1035,8 @@ I will manually populate it to the other agents and projects for now just re-cre
     <commit>true</commit>
     <build>false</build>
     <release>false</release>
+    <merge>false</merge>
+    <branch>main</branch>
     <tags>ui,coding</tags>
     <notes>zui.js: zui.cursor manager - zui.cursor(name) sets, zui.cursor(name, el) one-off on an element, zui.cursor.push(name) returns an idempotent release fn, zui.cursor.pop/clear, zui.cursor.while(name, promiseOrFn) scopes a cursor to async work and always restores. Splitter drag now uses cursor.push/release instead of ad-hoc body classes. data-zui-cursor="link|text|busy|forbidden|..." applies a hover cursor per element. Classes defined in tooltip.css.</notes>
     <filesChanged>core/js/zui.js</filesChanged>
@@ -689,6 +1060,8 @@ I will manually populate it to the other agents and projects for now just re-cre
     <commit>true</commit>
     <build>false</build>
     <release>false</release>
+    <merge>false</merge>
+    <branch>main</branch>
     <tags>ui,coding</tags>
     <notes>zui.js: .zui-drop 'drop' payload now includes files[] (name/path/size/type) and a paths[] convenience array (path when the host exposes it, else name). Added [data-zui="reorder"] behaviour: direct children become draggable, dragover shows a thin insertion line (.zui-reorder-into) and live-moves the row, drop emits 'reorder' with the new id order (data-zui-row / data-id / text). drop-target.css: ghost + insertion-line styles. Showcase adds a reorderable queue list.</notes>
     <filesChanged>core/js/zui.js, core/css/components/drop-target.css, showcase/index.html</filesChanged>
@@ -712,6 +1085,8 @@ I will manually populate it to the other agents and projects for now just re-cre
     <commit>true</commit>
     <build>false</build>
     <release>false</release>
+    <merge>false</merge>
+    <branch>main</branch>
     <tags>ui,coding</tags>
     <notes>Rewrote the tabs runtime in zui.js: role/aria-selected/roving-tabindex init, activate() toggles class + hidden on owned panels only, keyboard nav (Left/Right/Up/Down/Home/End, Delete/Backspace closes), .zui-tab__close removes tab+panel and re-activates a neighbour. tabs.css: strips scroll horizontally with hidden scrollbar, non-shrinking tabs, styled close affordance. Showcase gains a closeable document-tab example.</notes>
     <filesChanged>core/js/zui.js, core/css/components/tabs.css, showcase/index.html</filesChanged>
@@ -735,6 +1110,8 @@ I will manually populate it to the other agents and projects for now just re-cre
     <commit>true</commit>
     <build>false</build>
     <release>false</release>
+    <merge>false</merge>
+    <branch>main</branch>
     <tags>ui,coding</tags>
     <notes>Expanded layout.css: added wrap, items-/justify- alignment helpers, .zui-spacer, gap-6 + pad-1/2/6 to complete the design.txt spacing scale, .zui-scroll-y/-x, .zui-stack (thin-rule-divided children), and .zui-form-grid (label|control grid with right-aligned small labels and __full spanning row). Showcase Forms page rebuilt on .zui-form-grid. All values reference spacing/border/type tokens.</notes>
     <filesChanged>core/css/components/layout.css, showcase/index.html</filesChanged>
@@ -758,6 +1135,8 @@ I will manually populate it to the other agents and projects for now just re-cre
     <commit>true</commit>
     <build>false</build>
     <release>false</release>
+    <merge>false</merge>
+    <branch>main</branch>
     <tags>ui,coding</tags>
     <notes>button.css: added toggle (aria-pressed -&gt; pale-accent), .zui-btn--busy (label hidden, inline spinner, box size preserved), .zui-btn-split + .zui-btn--caret. zui.js: data-zui="toggle" flips aria-pressed and emits 'toggle'; split-button caret opens its data-menu via the shared renderer; zui.busy(el,on) helper. Showcase Buttons block demos toggle, split and busy. All variants keep thin border / light fill / minimal radius.</notes>
     <filesChanged>core/css/components/button.css, core/js/zui.js, showcase/index.html</filesChanged>
@@ -781,6 +1160,8 @@ I will manually populate it to the other agents and projects for now just re-cre
     <commit>true</commit>
     <build>false</build>
     <release>false</release>
+    <merge>false</merge>
+    <branch>main</branch>
     <tags>ui,coding</tags>
     <notes>Reworked scrollbar.css: styling now applies to all descendants of .zui-window (not just .zui-scroll), 12px thin track/thumb with 3px inset, hover/active thumb states, min thumb length, horizontal track border, step buttons hidden. Added .zui-scroll--stable (scrollbar-gutter: stable) and .zui-scroll--overlay (transparent overlay bars for dense grids). Firefox scrollbar-color fallback for non-Chromium hosts; both bindings use WebView2/Chromium so the WebKit pseudo-elements are the identical path. Dark-theme thumb colour under prefers-color-scheme.</notes>
     <filesChanged>core/css/components/scrollbar.css</filesChanged>
@@ -804,6 +1185,8 @@ I will manually populate it to the other agents and projects for now just re-cre
     <commit>true</commit>
     <build>false</build>
     <release>false</release>
+    <merge>false</merge>
+    <branch>main</branch>
     <tags>ui,coding</tags>
     <notes>zui.menu is already the single renderer for select/menubar/context menus; added full keyboard operation to it: focus moves to the menu on open, ArrowUp/Down/Home/End move the active item, Enter/Space activate, Escape closes, printable keys do prefix type-ahead (600ms window), disabled items skipped. Select trigger: Enter/Space/ArrowDown opens and highlights the first item. Menu-bar items: tabindex, Enter/Space/ArrowDown opens; ArrowLeft/Right walk to the adjacent top-level menu while open. Popover stays on-screen (existing clamp).</notes>
     <filesChanged>core/js/zui.js</filesChanged>
@@ -827,6 +1210,8 @@ I will manually populate it to the other agents and projects for now just re-cre
     <commit>true</commit>
     <build>false</build>
     <release>false</release>
+    <merge>false</merge>
+    <branch>main</branch>
     <tags>ui,coding</tags>
     <notes>zui.js: title-bar buttons carrying data-window (minimize|maximize|restore|close) forward a 'window' channel message to the host. window.css: documented -webkit-app-region drag/no-drag contract, added .zui-contextbar (generic compact contextual/playback bar, visually secondary), tidied titlebar button. showcase/index.html + music.html title bars now use data-window (+ tooltips).</notes>
     <filesChanged>core/js/zui.js, core/css/components/window.css, showcase/index.html, showcase/music.html</filesChanged>
@@ -850,6 +1235,8 @@ I will manually populate it to the other agents and projects for now just re-cre
     <commit>true</commit>
     <build>false</build>
     <release>false</release>
+    <merge>false</merge>
+    <branch>main</branch>
     <tags>ui,coding</tags>
     <notes>Added splitter drag behaviour to zui.js (.zui-splitter between two flex siblings: mousedown-drag sets explicit flex-basis on the previous pane with a 48px min, dblclick resets, emits 'splitter' on release, shows col/row-resize cursor during drag). Enlarged splitter hit area via ::before overflow in layout.css while keeping a 1px visible line; accent on hover/active. showcase/music.html Artist|Album|Tracks panels now separated by real draggable --v splitters. Panels keep shared-background, thin-border, non-card treatment.</notes>
     <filesChanged>core/js/zui.js, core/css/components/layout.css, showcase/music.html</filesChanged>
@@ -873,6 +1260,8 @@ I will manually populate it to the other agents and projects for now just re-cre
     <commit>true</commit>
     <build>false</build>
     <release>false</release>
+    <merge>false</merge>
+    <branch>main</branch>
     <tags>ui,coding</tags>
     <notes>Added core/css/fonts.css (applies the type tokens to text-bearing elements, native font rendering defaults, and .zui-t-* text utilities). Moved the full native font stack + annotated type scale into tokens.css as the single source of truth; removed duplicate font declarations from base.css. Wired fonts.css into zui.css (after tokens, before base). Audited every component stylesheet: all font-size values already reference --zui-fs-* tokens - zero literals remain. Documented the system in core/css/TYPOGRAPHY.md (token table + rules + utilities). Windows-first stack: Segoe UI Variable Text, Segoe UI, then cross-platform fallbacks.</notes>
     <filesChanged>core/css/fonts.css, core/css/tokens.css, core/css/base.css, core/css/zui.css, core/css/TYPOGRAPHY.md</filesChanged>
@@ -896,6 +1285,8 @@ I will manually populate it to the other agents and projects for now just re-cre
     <commit>true</commit>
     <build>true</build>
     <release>true</release>
+    <merge>false</merge>
+    <branch>main</branch>
     <tags></tags>
     <notes>Implemented the holo theme end-to-end and made it visible. core/css/themes/holo.css completed (light palette + holo-dark scaffold). Fixed tabpanel visibility (attribute-based rule) and rewrote the tabs runtime so nested tab groups only control their own panels. Added showcase/music.html: a full holo music-browser screen (title bar, File/Edit/View/Playback/Help menu, Music/Podcasts/Download/iPod nav, library+playlists sidebar, Artist|Album|Tracks list/table panels, connected device/status bar, compact playback bar) assembled entirely from zUI components per design.txt. Dropped net472 from the C# binding (System.Text.Json unavailable there); fixed build.ps1 staging (clean before copy; stage core as both zui/ and core/ so the bundled showcase resolves). Verified by headless-Chrome screenshots of builds/release output: showcase, music browser, and the ZSL-compiled counter all render correctly in holo. Built to builds/debug and builds/release (C++ binding skipped - cmake not installed on this machine; core is source-only + has its own test).</notes>
     <filesChanged>core/css/themes/holo.css, core/css/components/tabs.css, core/js/zui.js, showcase/music.html, bindings/csharp/ZUI.csproj, bindings/csharp/README.md, build.ps1, task_images/ZU-4.png</filesChanged>
@@ -919,6 +1310,8 @@ I will manually populate it to the other agents and projects for now just re-cre
     <commit>true</commit>
     <build>false</build>
     <release>false</release>
+    <merge>false</merge>
+    <branch>main</branch>
     <tags></tags>
     <notes>Designed ZSL (zUI Scripting Language) + zslc.py compiler. compiler/GRAMMAR.md: lexical spec + EBNF grammar (nodes map to zUI components; bind:/source=/-&gt; for bindings, list repetition and events). compiler/zslc.py: regex lexer, recursive-descent parser to Program{roots,state,handlers}, and 3 codegen backends - html (self-contained zUI doc + generated glue JS wiring state/events/tables to the zui.js message bus), csharp (auto-gen partial class embedding the compiled doc + typed On_&lt;event&gt; partial hooks for a ZuiHost), cpp (translation unit with the doc as a raw string literal + on_&lt;event&gt; callbacks for zui::Host). AOT: the .zsl and parser are never shipped. examples/counter.zsl + examples/showcase.zsl compile on all backends; examples/generated/ holds sample output. compiler/tests/test_compile.py (5 tests, lexer/parser/errors/all backends) passes. build.ps1 compiles examples and runs compiler tests in the test config.</notes>
     <filesChanged>compiler/GRAMMAR.md, compiler/README.md, compiler/zslc.py, compiler/tests/test_compile.py, examples/counter.zsl, examples/showcase.zsl, examples/generated/{counter.html,showcase.html,CompiledUi.g.cs,showcase.g.cpp}, build.ps1, README.md</filesChanged>
@@ -942,6 +1335,8 @@ I will manually populate it to the other agents and projects for now just re-cre
     <commit>true</commit>
     <build>false</build>
     <release>false</release>
+    <merge>false</merge>
+    <branch>main</branch>
     <tags></tags>
     <notes>Created 26 barebones-element tasks (ZU-5..ZU-30), one per widget/subsystem: fonts, panels, window shell, dropdowns, scroll bars, buttons, layout groups, tabbed displays, drop targets, cursor indicators, menu bars, loading/progress, notifications/toasts, plus identified additions: text inputs/forms, tables/lists, checkboxes-radios-toggles, sliders, tree navigation, modal dialogs/popovers, status-device bar, playback/contextual bar, iconography set, theme system, interaction/keyboard layer, showcase gallery expansion, host integration samples. All tagged commit=true. All 14 subtasks ticked.</notes>
     <filesChanged>tasks.xml (via operator)</filesChanged>
@@ -981,6 +1376,8 @@ I will manually populate it to the other agents and projects for now just re-cre
     <commit>true</commit>
     <build>false</build>
     <release>false</release>
+    <merge>false</merge>
+    <branch>main</branch>
     <tags>ui,coding,scripting,project</tags>
     <notes>Established zUI base architecture: CSS design-token system (core/css/tokens.css) + base reset, 14 component stylesheets (button, panel, window shell, dropdown/menu, scrollbar, menubar, tabs/nav, table/list, input, layout, tooltip/cursor, notification/toast, loading, drop-target/empty), single-import core/css/zui.css, holo theme (+ dark scaffold). JS runtime core/js/zui.js: transport-agnostic host&lt;-&gt;UI JSON message bus (send/receive/dispatch), theme switch, context menus, toasts, and declarative wiring for tabs, selects, menubar, tooltips, drop targets, multi-select tables. Bindings: C# ZuiHost (WebView2, ZUI.csproj net8/net472) and C++ zui::Host (pluggable WebViewBackend, dependency-free JSON envelope + unit test). Standalone showcase app (window shell, menu, nav, sidebar, forms, data table, feedback widgets). build.ps1 stages core to builds/&lt;config&gt; and builds available bindings.</notes>
     <filesChanged>README.md, .gitignore, build.ps1, core/css/tokens.css, core/css/base.css, core/css/zui.css, core/css/themes/holo.css, core/css/components/{button,panel,window,dropdown,scrollbar,menubar,tabs,table,input,layout,tooltip,notification,loading,drop-target}.css, core/js/zui.js, bindings/csharp/{ZUI.csproj,ZuiHost.cs,README.md}, bindings/cpp/{zui.h,zui.cpp,CMakeLists.txt,README.md,tests/envelope_test.cpp}, showcase/{index.html,showcase.css,showcase.js}</filesChanged>

@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en" data-zui-theme="holo">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <!-- The compact browser chrome loads only its shared widgets instead of the
+       full zUI catalogue (20 component imports). -->
+  <link rel="stylesheet" href="zui/css/tokens.css"><link rel="stylesheet" href="zui/css/fonts.css"><link rel="stylesheet" href="zui/css/base.css">
+  <link rel="stylesheet" href="zui/css/components/button.css"><link rel="stylesheet" href="zui/css/components/input.css"><link rel="stylesheet" href="zui/css/themes/holo.css">
+  <style>
+    html,body{height:100%;margin:0;overflow:hidden;background:var(--zui-bg-app)}
+    .zb-chrome{height:100%;display:flex;flex-direction:column;background:var(--zui-bg-surface-alt);border-bottom:var(--zui-border-w) solid var(--zui-border-strong)}
+    .zb-title{display:flex;align-items:center;padding:var(--zui-space-1) var(--zui-space-2);color:var(--zui-accent);font-weight:var(--zui-fw-medium);text-transform:uppercase}
+    .zb-title span:last-child{margin-left:auto;color:var(--zui-text-secondary);font-weight:var(--zui-fw-normal);text-transform:none}
+    .zb-nav{display:flex;align-items:center;gap:var(--zui-space-1);padding:var(--zui-space-1) var(--zui-space-2)}
+    .zb-nav form{display:flex;flex:1;gap:var(--zui-space-1)}.zb-nav input{flex:1}.zb-status{padding:0 var(--zui-space-2) var(--zui-space-1);color:var(--zui-text-secondary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  </style>
+</head>
+<body>
+<header class="zb-chrome">
+  <div class="zb-title"><span>zBrowser</span><span id="pageTitle">Holo zUI chrome</span></div>
+  <nav class="zb-nav">
+    <button class="zui-btn" data-action="back" title="Back">‹</button>
+    <button class="zui-btn" data-action="forward" title="Forward">›</button>
+    <button class="zui-btn" data-action="refresh" title="Refresh">↻</button>
+    <button class="zui-btn" data-action="home" title="Home">Home</button>
+    <form id="addressForm"><input class="zui-input" id="address" value="https://example.com" aria-label="Address"><button class="zui-btn zui-btn--primary">Go</button></form>
+  </nav>
+  <div class="zb-status" id="status">Ready</div>
+</header>
+<script src="zui/js/zui.js"></script>
+<script>
+(function(){
+  var address=document.getElementById('address'),status=document.getElementById('status');
+  document.getElementById('addressForm').addEventListener('submit',function(e){e.preventDefault();zui.send('browser.navigate',address.value)});
+  document.querySelector('.zb-nav').addEventListener('click',function(e){var a=e.target.dataset.action;if(a)zui.send('browser.action',a)});
+  zui.receive('browser-state',function(p){if(!p)return;if(p.url&&document.activeElement!==address)address.value=p.url;document.getElementById('pageTitle').textContent=p.title||'zUI chrome';status.textContent=p.status||'Ready';document.querySelector('[data-action="back"]').disabled=!p.canBack;document.querySelector('[data-action="forward"]').disabled=!p.canForward});
+  if(new URLSearchParams(location.search).has('selftest')){address.value='example.org';document.getElementById('addressForm').dispatchEvent(new Event('submit',{bubbles:true,cancelable:true}));document.body.insertAdjacentHTML('beforeend','<p>ZBROWSER ZUI SELFTEST OK</p>')}
+})();
+</script>
+</body>
+</html>

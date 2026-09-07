@@ -8,7 +8,6 @@ on:
 
 permissions:
   contents: read
-  issues: write
 
 jobs:
   windows:
@@ -47,6 +46,21 @@ jobs:
         run: dotnet build bindings/csharp/ZUI.csproj -c Release
       - name: build C# sample
         run: dotnet build samples/csharp/ZuiSample.csproj -c Release
+      - name: build + test zSheets sample
+        shell: pwsh
+        run: |
+          dotnet build samples/zsheets/ZSheets.csproj -c Release
+          & samples/zsheets/bin/Release/net8.0-windows/zSheets.exe --self-test
+          if ($LASTEXITCODE -ne 0) { throw 'zSheets CSV self-test failed' }
+      - name: build + test WPF browser comparison
+        shell: pwsh
+        run: |
+          dotnet build samples/wpf-browser-native/WpfBrowserNative.csproj -c Release
+          dotnet build samples/wpf-browser-zui/WpfBrowserZui.csproj -c Release
+          & samples/wpf-browser-native/bin/Release/net8.0-windows/zBrowser.Native.exe --self-test
+          if ($LASTEXITCODE -ne 0) { throw 'native WPF browser self-test failed' }
+          & samples/wpf-browser-zui/bin/Release/net8.0-windows/zBrowser.zUI.exe --self-test
+          if ($LASTEXITCODE -ne 0) { throw 'zUI WPF browser self-test failed' }
 
       # ---- C++ pure core (no WebView2) - required ---------------------
       - name: build + test C++ core
@@ -64,7 +78,6 @@ jobs:
           nuget install Microsoft.Windows.ImplementationLibrary -Version 1.0.240122.1 -OutputDirectory pkgs -ExcludeVersion
       - name: build C++ WebView2 sample
         id: cppsample
-        continue-on-error: true
         shell: pwsh
         run: |
           $wv2 = "$PWD/pkgs/Microsoft.Web.WebView2"
@@ -87,6 +100,3 @@ jobs:
           "## C++ WebView2 build failed`n`n``````" + "`n" +
             $log.Substring([Math]::Max(0, $log.Length - 15000)) + "`n``````" |
             Out-File -Append $env:GITHUB_STEP_SUMMARY
-      - name: fail if C++ sample failed
-        if: steps.cppsample.outcome == 'failure'
-        run: exit 1

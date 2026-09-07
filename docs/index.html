@@ -77,7 +77,7 @@
           <tr><td><code>compiler/zslc.py</code></td><td>the ZSL / ZML compiler (html / csharp / cpp backends)</td></tr>
           <tr><td><code>bindings/csharp</code>, <code>bindings/cpp</code></td><td>host bindings (WebView2)</td></tr>
           <tr><td><code>showcase/</code></td><td>gallery + a realistic music-browser mock</td></tr>
-          <tr><td><code>samples/</code></td><td>runnable C# and C++ host apps</td></tr>
+          <tr><td><code>samples/</code></td><td>runnable native hosts, zSheets, and WPF browser comparison</td></tr>
         </table>
         <h2>Design identity</h2>
         <p>Default theme <strong>holo</strong> — Google's Android Holo look (dark, Holo-blue
@@ -87,6 +87,8 @@
 
       <section class="doc__page" data-page="start" hidden>
         <h1>Getting started</h1>
+        <p>The standalone <code>docs/QUICKSTART.md</code> contains prerequisites and
+        a complete copy-paste ZML-to-native-.NET walkthrough.</p>
         <h2>1. Vendor it</h2>
         <pre><code>git submodule add https://github.com/CoolBeanGames/zUI.git third_party/zui</code></pre>
         <h2>2. A zUI document</h2>
@@ -111,6 +113,9 @@ await ui.InitializeAsync();
 await ui.LoadAsync("ui/main.html");
 ui.On("save", json =&gt; Save(json));
 ui.Send("theme", "holo");</code></pre>
+        <p>For faster startup, begin <code>ZuiHost.GetSharedEnvironmentAsync()</code>
+        while constructing the window and reuse that environment for additional
+        WebView2 controls in the same process.</p>
         <h2>C++ (Win32 + WebView2)</h2>
         <pre><code>zui::Host ui(hwnd);
 ui.set_core_root("zui");
@@ -241,6 +246,10 @@ host.Send("theme", "clean");  // from the host</code></pre>
         <pre><code>./build.ps1 -Config debug     # -> builds/debug
 ./build.ps1 -Config test      # + runs every test suite
 ./build.ps1 -Config release   # -> builds/release</code></pre>
+        <p>The test configuration is a required zero-exit gate. It covers compiler,
+        Holo/token policy, headless runtime and sample UI checks, .NET executables,
+        C++ unit tests, and the native WebView2 sample. See
+        <code>docs/QUALITY.md</code> for the full matrix.</p>
         <p>It stages <code>core/</code>, compiles the ZSL/ZML examples, and builds
         whichever bindings have a toolchain (missing ones are skipped with a warning).</p>
         <h3>Test config runs</h3>

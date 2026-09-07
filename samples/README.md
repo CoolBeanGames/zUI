@@ -1,5 +1,50 @@
 # zUI host samples
 
+## zSheets — native C# CSV editor
+
+`zsheets/` is a practical native-host test application rather than a component
+gallery. Its Holo zUI screen supports editable cells, keyboard movement, and
+row/column insertion and deletion. The .NET host owns Open/Save/Save As dialogs
+and robust quoted CSV parsing/writing; all data crosses the normal zUI message
+bus.
+
+```powershell
+dotnet run --project samples/zsheets/ZSheets.csproj
+```
+
+`build.ps1 -Config debug` writes the runnable application to
+`builds/debug/zsheets/zSheets.exe`. Test builds also run its CSV round-trip and
+headless grid-operation self-tests.
+
+## WPF browser comparison
+
+Two executables implement the same small WebView2 browser so the UI approaches
+can be compared directly:
+
+- `wpf-browser-native/` uses stock WPF buttons and a WPF text box.
+- `wpf-browser-zui/` remains a WPF application, but its browser chrome is the
+  shared Holo zUI surface. Navigation commands and browser state cross the zUI
+  message bus; a separate WebView2 displays the requested page.
+
+`build.ps1 -Config debug` produces:
+
+```text
+builds/debug/wpf-browser-native/zBrowser.Native.exe
+builds/debug/wpf-browser-zui/zBrowser.zUI.exe
+```
+
+Both support Back, Forward, Refresh, Home, address navigation, title updates,
+and basic URL normalization. Test builds run native URI checks for both and a
+headless interaction check for the zUI toolbar.
+
+The stock-WPF build is intentionally the sole visual-policy exception: it is a
+comparison baseline, not a template for new product UI. New first-party UI uses
+the Holo zUI widgets. Both browser builds warm WebView2 while their windows are
+being assembled; the zUI build additionally shares one environment across its
+chrome and content views and loads only the component styles its compact chrome
+needs. zSheets applies the same warm-up/selective-style path and builds its large
+cell DOM only after zUI wires the static chrome.
+
 Two minimal host apps that open the **same** `showcase/index.html` through their
 binding and round-trip the same messages (`device`, `now-playing`, `selection`,
 `theme-changed`, `transport`). Because both embed the identical `core/` assets,

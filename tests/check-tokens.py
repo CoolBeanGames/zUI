@@ -10,7 +10,8 @@ import os
 import re
 import sys
 
-ROOT = os.path.normpath(os.path.join(os.path.dirname(__file__), "..", "core", "css"))
+REPO = os.path.normpath(os.path.join(os.path.dirname(__file__), ".."))
+ROOT = os.path.join(REPO, "core", "css")
 
 TOKEN_DEF = re.compile(r"(--zui-[a-z0-9-]+)\s*:")
 TOKEN_USE = re.compile(r"var\((--zui-[a-z0-9-]+)")
@@ -63,12 +64,35 @@ def main():
     for t in sorted(only_clean):
         errors.append(f"themes: {t} defined in clean.css but not holo.css")
 
+    # First-party zUI application surfaces must opt into Holo explicitly and
+    # keep their app-specific CSS token-driven. The stock-WPF browser baseline
+    # is intentionally excluded: it exists only as a comparison build.
+    ui_files = (
+        "showcase/index.html",
+        "showcase/music.html",
+        "docs/index.html",
+        "samples/zsheets/app.html",
+        "samples/wpf-browser-zui/toolbar.html",
+    )
+    for rel in ui_files:
+        src = read(os.path.join(REPO, rel))
+        if not re.search(r'<html\b[^>]*data-zui-theme=["\']holo["\']', src, re.I):
+            errors.append(f"{rel}: first-party zUI surface must default to Holo")
+        inline_css = "\n".join(re.findall(r"<style[^>]*>(.*?)</style>", src, re.I | re.S))
+        for tok in set(TOKEN_USE.findall(strip_comments(inline_css))):
+            if tok not in defined:
+                errors.append(f"{rel}: uses undefined token {tok}")
+        for m in re.finditer(r"([a-z-]+)\s*:\s*([^;{}]+)", strip_comments(inline_css)):
+            prop, val = m.group(1).strip(), m.group(2)
+            if prop in COLOR_PROPS and COLOR_LIT.search(val):
+                errors.append(f"{rel}: inline colour literal in `{prop}: {val.strip()[:60]}`")
+
     if errors:
         print("TOKEN CHECK FAILED:")
         for e in errors:
             print("  -", e)
         return 1
-    print(f"token check OK  ({len(defined)} tokens, {len(comp_files)} files)")
+    print(f"token check OK  ({len(defined)} tokens, {len(comp_files)} core files, {len(ui_files)} Holo surfaces)")
     return 0
 
 

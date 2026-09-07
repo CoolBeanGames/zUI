@@ -1,9 +1,10 @@
 // generated from ZSL by zslc.py - do not edit.
 #include "zui.h"
 #include <string>
+#include <unordered_map>
 
 namespace {
-const char* kZslDocument = R"ZSL(<!DOCTYPE html>
+constexpr const char* kZslDocument = R"ZSL(<!DOCTYPE html>
 <html lang="en" data-zui-theme="holo">
 <head>
 <meta charset="utf-8">
@@ -50,12 +51,12 @@ const char* kZslDocument = R"ZSL(<!DOCTYPE html>
 )ZSL";
 }
 
-void on_playlist_new(const std::string& payload);  // implement in host
-void on_track_edit(const std::string& payload);  // implement in host
-
-// Call after constructing the host. Wires generated hooks, then renders.
-void build_ui(zui::Host& host) {
-    host.on("playlist.new", [](const std::string& p){ on_playlist_new(p); });
-    host.on("track.edit", [](const std::string& p){ on_track_edit(p); });
+// Call after constructing the host. Native handlers are optional: screens with
+// no host-side behavior still compile and link without generated global stubs.
+void build_ui(
+    zui::Host& host,
+    const std::unordered_map<std::string, zui::MessageHandler>& handlers) {
+    if (auto it = handlers.find("playlist.new"); it != handlers.end()) host.on("playlist.new", it->second);
+    if (auto it = handlers.find("track.edit"); it != handlers.end()) host.on("track.edit", it->second);
     host.load_document(kZslDocument);
 }

@@ -63,8 +63,10 @@ panel "Tracks" { button "Play" }                          # brace  .zsl
 <panel title="Tracks"><button>Play</button></panel>       # ZML    .zml
 ```
 
-Backends: `html` (a self-contained zUI document), `csharp` and `cpp` (native
-source built into the host). See [`compiler/GRAMMAR.md`](compiler/GRAMMAR.md) and
+Backends: `html` (a self-contained zUI document), `csharp` and `cpp` (AOT-generated
+source compiled and linked into a native host executable). The native backends
+embed the themed zUI document as program data and expose normal C#/C++ callbacks;
+they do not ship or interpret ZSL/ZML at runtime. See [`compiler/GRAMMAR.md`](compiler/GRAMMAR.md) and
 [`examples/`](examples/).
 
 ```
@@ -73,12 +75,18 @@ py compiler/zslc.py examples/showcase.zml --backend html -o showcase.html
 
 ## Using it
 
+Start with the standalone [`docs/QUICKSTART.md`](docs/QUICKSTART.md): it goes
+from one `.zml` file to a running native .NET executable and wires a message in
+each direction. Deployment support for the `v0.1` line is summarized in
+[`docs/COMPATIBILITY.md`](docs/COMPATIBILITY.md).
+
 ### C#
 
 ```csharp
 using ZUI;
 
 var ui = new ZuiHost(webView2Control);
+await ui.InitializeAsync();
 await ui.LoadAsync("showcase/index.html");   // or your own zUI document
 ui.On("save", json => Save(json));
 ui.Send("theme", "holo");
@@ -117,7 +125,8 @@ and the C++ WebView2 backend + sample against pinned WebView2/WIL packages.
 
 ## Status
 
-Task ZU-1: base systems / "bones". Component CSS, the token system, the JS runtime,
-both bindings and the showcase shell are in place. Later tasks flesh out
-individual widgets (ZU-2), the UI scripting language (ZU-3) and the full holo
-implementation (ZU-4).
+`v0.1.0` is the integration baseline. The Holo token system, component runtime,
+ZSL/ZML compiler, C# and C++ native-host bindings, generated native samples,
+zSheets CSV editor, and WPF browser comparison all build from `build.ps1`.
+`-Config test` enforces compiler, message-bus, table-binding, theme policy,
+native binding, executable self-test, and headless application checks.

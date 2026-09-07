@@ -10,6 +10,11 @@
 #include <windows.h>
 #include <objbase.h>
 #include <string>
+#include <unordered_map>
+
+void build_ui(
+    zui::Host& host,
+    const std::unordered_map<std::string, zui::MessageHandler>& handlers);
 
 static zui::Host* g_ui = nullptr;
 
@@ -51,7 +56,12 @@ int WINAPI wWinMain(HINSTANCE hInst, HINSTANCE, PWSTR, int nShow) {
         OutputDebugStringA(("transport: " + json + "\n").c_str());
     });
 
-    ui.load("showcase/index.html");
+    // The ZSL/ZML screen is AOT-compiled into showcase.g.cpp and linked into
+    // this native executable. Handlers are ordinary C++ callbacks.
+    build_ui(ui, {
+        {"playlist.new", [](const std::string&) { OutputDebugStringA("playlist.new\n"); }},
+        {"track.edit", [](const std::string&) { OutputDebugStringA("track.edit\n"); }},
+    });
     ui.send("device", R"({"name":"HAPTICS' IPOD","capacity":"238.2 GB","free":"234.6 GB"})");
     ui.send("now-playing", R"({"title":"Nightdrive","sub":"Aria Kane - Long Exposure","position":108,"duration":281})");
 
