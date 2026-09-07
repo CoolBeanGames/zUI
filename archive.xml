@@ -223,6 +223,39 @@
     <filesChanged>core/css/tokens.css, core/css/themes/holo.css, core/css/themes/clean.css, core/css/THEMES.md, core/css/base.css, core/css/components/{button,layout,panel,scrollbar,table,tooltip,window}.css, showcase/index.html, showcase/music.html, README.md, design.txt, task_images/ZU-33.png</filesChanged>
     <image>ZU-33.png</image>
   </task>
+  <task id="ZU-46">
+    <name>do NOT merge this branch until i tell you otherwise!</name>
+    <prompt>Release the verified refactor work, merge it into main, push GitHub, publish the next GitHub release, and close all tasks.</prompt>
+    <requirements>Full test and release builds pass; refactor is merged and pushed to main; the next numbered GitHub release is published with patch notes; no open task records remain.</requirements>
+    <inProgress>false</inProgress>
+    <done>true</done>
+    <bug>false</bug>
+    <error>false</error>
+    <errorMessage></errorMessage>
+    <lockKey></lockKey>
+    <locked>false</locked>
+    <archived>true</archived>
+    <blockedBy></blockedBy>
+    <dateStarted></dateStarted>
+    <dueDate></dueDate>
+    <commit>true</commit>
+    <build>true</build>
+    <release>true</release>
+    <merge>true</merge>
+    <branch>refactor</branch>
+    <tags></tags>
+    <notes>Updated instructions.txt with the verified release/merge/close-out workflow. Full builds/test and builds/release gates passed: 11 compiler tests, Holo/token policy, all headless/app checks, C# applications, two C++ tests, and the native C++ WebView2 sample. All five release executables started responsive. Pushed refactor, merged it into main at 78dfa4e, and pushed main. Created/pushed zUI_build1 and published GitHub release zUI build 1 with full notes at https://github.com/CoolBeanGames/zUI/releases/tag/zUI_build1.</notes>
+    <filesChanged>instructions.txt, docs/releases/zUI_build1.md, tasks.xml, archive.xml</filesChanged>
+    <image></image>
+    <subtasks>
+      <subtask done="true">Verify the refactor branch, determine the next build/release identifier, and prepare patch notes</subtask>
+      <subtask done="true">Run the complete test and release builds and smoke-check the release executables</subtask>
+      <subtask done="true">Merge refactor into main without discarding history and push main to GitHub</subtask>
+      <subtask done="true">Create and push the release tag and publish the GitHub release with patch notes</subtask>
+      <subtask done="true">Close all task records, record release metadata, commit bookkeeping, and push final state</subtask>
+      <subtask done="true">Audit and update instructions.txt so branch, verification, release, and task-closing guidance matches the current workflow</subtask>
+    </subtasks>
+  </task>
   <task id="ZU-49">
     <name>make sure everything is up to snuff</name>
     <prompt>make 100% sure this is fully functional and optimized, i want this working RIGHT and no more huge mistakes with implementation. I want ALL ui going forward based on googles HoloUI through this themeing system we have built using our custom widgets, please fix all issues and once they are done let me know and away further instructions</prompt>
