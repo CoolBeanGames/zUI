@@ -60,3 +60,13 @@ Common metadata: `id`, `export`, `bind`, `source`, `on`, `value`, `placeholder`,
 
 The compiler preserves this information in typed node constructors. Native host
 implementations decide the concrete control, layout, theme properties, and event.
+
+## Runtime semantics
+
+Compiling a screen produces a **construction** description. The generated
+`Build()` / `build_ui()` entry point builds the native control tree once. `state`,
+`bind`, top-level `on` handlers, and `source` are declarative relationships that
+the native runtime wires to in-place control mutation — they are never a signal
+to re-run `Build()`. See [../core/RUNTIME_CONTRACT.md](../core/RUNTIME_CONTRACT.md)
+for the frozen contract that generated code and both hosts must honour, including
+C#/C++ semantic parity and the prohibition on any browser/DOM/JS runtime.

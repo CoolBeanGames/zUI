@@ -47,6 +47,7 @@ private:
     static long long subclass_proc(void*, unsigned, unsigned long long, long long, unsigned long long, unsigned long long);
 
     void* parent_ = nullptr;
+    int build_count_ = 0;
     Theme theme_{};
     std::unordered_map<std::string, std::vector<MessageHandler>> handlers_;
     std::unordered_map<void*, std::string> control_channels_;

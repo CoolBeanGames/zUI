@@ -1,5 +1,75 @@
 <?xml version="1.0" encoding="utf-8"?>
-<tasks project="zUI" nextIndex="62">
+<tasks project="zUI" nextIndex="74">
+  <task id="ZU-62">
+    <name>Freeze and Document the zUI Runtime Contract</name>
+    <prompt>Freeze and Document the zUI Runtime Contract
+
+Review the current zUI native architecture and establish a stable public runtime contract before further application adoption.
+
+The goal is to make future internal changes to zUI possible without forcing applications using zUI to be rewritten.
+
+Define and document these rules:
+
+Build() is a construction operation only. It creates the native UI tree.
+
+Normal state/property changes must never require rebuilding the UI tree.
+
+Application code must be able to retrieve or reference named/bound controls after construction.
+
+Changing text, visibility, enabled state, selection, numeric values, collections, etc. must mutate existing native controls.
+
+Lists/tables must not require rebuilding the screen when their contents change.
+
+C# and C++ backends must expose equivalent zUI semantics even when the underlying Windows implementation differs.
+
+No WebView2, HTML runtime, DOM, JavaScript runtime, browser IPC, or browser dependency may be reintroduced.
+
+Update the appropriate README, grammar/runtime documentation, and integration documentation so this contract is explicit.
+
+Where practical, add warnings/assertions/documentation around misuse of Build() so future agents do not treat it as a render/update operation.
+
+Do not redesign the entire framework in this task. This task establishes the contract subsequent tasks will implement.</prompt>
+    <requirements>The runtime contract is clearly documented.
+
+Build() is explicitly documented as construction-only.
+
+Incremental mutation is documented as the required update model.
+
+C# and C++ parity is stated as a framework requirement.
+
+The documentation clearly states that zUI is a native UI framework with web-like authoring, not a web UI framework.</requirements>
+    <inProgress>false</inProgress>
+    <done>true</done>
+    <priority>false</priority>
+    <bug>false</bug>
+    <error>false</error>
+    <errorMessage></errorMessage>
+    <lockKey></lockKey>
+    <locked>false</locked>
+    <archived>false</archived>
+    <blockedBy></blockedBy>
+    <dateStarted></dateStarted>
+    <dueDate></dueDate>
+    <dateFinished>2026-09-07 16:09</dateFinished>
+    <commit>false</commit>
+    <build>false</build>
+    <release>false</release>
+    <merge>false</merge>
+    <branch>final-build-push</branch>
+    <tags></tags>
+    <notes>Added core/RUNTIME_CONTRACT.md (runtime-contract/1): Build() is construction-only; incremental in-place mutation is the update model; control lookup by export&gt;bind&gt;id; C#/C++ semantic parity required; no browser/DOM/JS ever. Added second-Build() guardrails: C# Trace.TraceWarning + Debug.WriteLine, C++ OutputDebugStringW + assert (build_count_). Cross-linked README, design.txt, core/PROTOCOL.md, compiler/GRAMMAR.md, docs/QUICKSTART.md. Test gate (build.ps1 -Config test) green: compiler 12/12, native-only OK, C# 0 warnings, C++ ctest 2/2.</notes>
+    <filesChanged>core/RUNTIME_CONTRACT.md (new), bindings/csharp/ZuiHost.cs, bindings/cpp/zui.h, bindings/cpp/zui.cpp, README.md, design.txt, core/PROTOCOL.md, compiler/GRAMMAR.md, docs/QUICKSTART.md</filesChanged>
+    <image></image>
+    <subtasks>
+      <subtask done="true">Audit current native architecture (compiler, C# host, C++ host, protocol)</subtask>
+      <subtask done="true">Write core/RUNTIME_CONTRACT.md defining the frozen public contract</subtask>
+      <subtask done="true">Document Build() as construction-only; incremental mutation as the update model</subtask>
+      <subtask done="true">State C#/C++ parity and the no-browser rule as framework requirements</subtask>
+      <subtask done="true">Add Build() misuse warnings/assertions in C# and C++ hosts</subtask>
+      <subtask done="true">Update README, compiler/GRAMMAR.md, core/PROTOCOL.md, docs/QUICKSTART.md to reference the contract</subtask>
+      <subtask done="true">Run test gate (build.ps1 -Config test)</subtask>
+    </subtasks>
+  </task>
   <task id="ZU-56">
     <name>update design</name>
     <prompt>now that you have FULLY corrected the webview stuff, update global design.txt so that every agent knows how to implement the new stuff and delete the old undeeded stuff since we are no longer using web view</prompt>
@@ -12,10 +82,11 @@
     <errorMessage></errorMessage>
     <lockKey></lockKey>
     <locked>false</locked>
-    <archived>true</archived>
+    <archived>false</archived>
     <blockedBy></blockedBy>
     <dateStarted></dateStarted>
     <dueDate></dueDate>
+    <dateFinished>2026-09-07 15:48</dateFinished>
     <commit>true</commit>
     <build>true</build>
     <release>true</release>
@@ -44,10 +115,11 @@
     <errorMessage></errorMessage>
     <lockKey></lockKey>
     <locked>false</locked>
-    <archived>true</archived>
+    <archived>false</archived>
     <blockedBy></blockedBy>
     <dateStarted></dateStarted>
     <dueDate></dueDate>
+    <dateFinished>2026-09-07 15:48</dateFinished>
     <commit>false</commit>
     <build>false</build>
     <release>false</release>
@@ -78,10 +150,11 @@ DO NOT CLEAR THIS TASK UNTIL THOSE REQUIREMENTS ARE MET</prompt>
     <errorMessage></errorMessage>
     <lockKey></lockKey>
     <locked>false</locked>
-    <archived>true</archived>
+    <archived>false</archived>
     <blockedBy></blockedBy>
     <dateStarted></dateStarted>
     <dueDate></dueDate>
+    <dateFinished>2026-09-07 15:48</dateFinished>
     <commit>true</commit>
     <build>true</build>
     <release>true</release>
@@ -112,10 +185,11 @@ DO NOT CLEAR THIS TASK UNTIL THOSE REQUIREMENTS ARE MET</prompt>
     <errorMessage></errorMessage>
     <lockKey></lockKey>
     <locked>false</locked>
-    <archived>true</archived>
+    <archived>false</archived>
     <blockedBy></blockedBy>
     <dateStarted></dateStarted>
     <dueDate></dueDate>
+    <dateFinished>2026-09-07 15:48</dateFinished>
     <commit>false</commit>
     <build>false</build>
     <release>false</release>
@@ -141,10 +215,11 @@ DO NOT CLEAR THIS TASK UNTIL THOSE REQUIREMENTS ARE MET</prompt>
     <errorMessage></errorMessage>
     <lockKey></lockKey>
     <locked>false</locked>
-    <archived>true</archived>
+    <archived>false</archived>
     <blockedBy></blockedBy>
     <dateStarted></dateStarted>
     <dueDate></dueDate>
+    <dateFinished>2026-09-07 15:48</dateFinished>
     <commit>false</commit>
     <build>false</build>
     <release>false</release>
@@ -170,10 +245,11 @@ DO NOT CLEAR THIS TASK UNTIL THOSE REQUIREMENTS ARE MET</prompt>
     <errorMessage></errorMessage>
     <lockKey></lockKey>
     <locked>false</locked>
-    <archived>true</archived>
+    <archived>false</archived>
     <blockedBy></blockedBy>
     <dateStarted></dateStarted>
     <dueDate></dueDate>
+    <dateFinished>2026-09-07 15:48</dateFinished>
     <commit>false</commit>
     <build>false</build>
     <release>false</release>
@@ -199,10 +275,11 @@ DO NOT CLEAR THIS TASK UNTIL THOSE REQUIREMENTS ARE MET</prompt>
     <errorMessage></errorMessage>
     <lockKey></lockKey>
     <locked>false</locked>
-    <archived>true</archived>
+    <archived>false</archived>
     <blockedBy></blockedBy>
     <dateStarted></dateStarted>
     <dueDate></dueDate>
+    <dateFinished>2026-09-07 15:48</dateFinished>
     <commit>false</commit>
     <build>false</build>
     <release>false</release>
@@ -228,10 +305,11 @@ DO NOT CLEAR THIS TASK UNTIL THOSE REQUIREMENTS ARE MET</prompt>
     <errorMessage></errorMessage>
     <lockKey></lockKey>
     <locked>false</locked>
-    <archived>true</archived>
+    <archived>false</archived>
     <blockedBy></blockedBy>
     <dateStarted></dateStarted>
     <dueDate></dueDate>
+    <dateFinished>2026-09-07 15:48</dateFinished>
     <commit>false</commit>
     <build>false</build>
     <release>false</release>
@@ -258,10 +336,11 @@ DO NOT CLEAR THIS TASK UNTIL THOSE REQUIREMENTS ARE MET</prompt>
     <errorMessage></errorMessage>
     <lockKey></lockKey>
     <locked>false</locked>
-    <archived>true</archived>
+    <archived>false</archived>
     <blockedBy></blockedBy>
     <dateStarted></dateStarted>
     <dueDate></dueDate>
+    <dateFinished>2026-09-07 15:48</dateFinished>
     <commit>false</commit>
     <build>false</build>
     <release>false</release>
@@ -289,10 +368,11 @@ DO NOT CLEAR THIS TASK UNTIL THOSE REQUIREMENTS ARE MET</prompt>
     <errorMessage></errorMessage>
     <lockKey></lockKey>
     <locked>false</locked>
-    <archived>true</archived>
+    <archived>false</archived>
     <blockedBy></blockedBy>
     <dateStarted></dateStarted>
     <dueDate></dueDate>
+    <dateFinished>2026-09-07 15:48</dateFinished>
     <commit>false</commit>
     <build>false</build>
     <release>false</release>
@@ -320,10 +400,11 @@ DO NOT CLEAR THIS TASK UNTIL THOSE REQUIREMENTS ARE MET</prompt>
     <errorMessage></errorMessage>
     <lockKey></lockKey>
     <locked>false</locked>
-    <archived>true</archived>
+    <archived>false</archived>
     <blockedBy></blockedBy>
     <dateStarted></dateStarted>
     <dueDate></dueDate>
+    <dateFinished>2026-09-07 15:48</dateFinished>
     <commit>false</commit>
     <build>false</build>
     <release>false</release>
@@ -351,10 +432,11 @@ DO NOT CLEAR THIS TASK UNTIL THOSE REQUIREMENTS ARE MET</prompt>
     <errorMessage></errorMessage>
     <lockKey></lockKey>
     <locked>false</locked>
-    <archived>true</archived>
+    <archived>false</archived>
     <blockedBy></blockedBy>
     <dateStarted></dateStarted>
     <dueDate></dueDate>
+    <dateFinished>2026-09-07 15:48</dateFinished>
     <commit>false</commit>
     <build>false</build>
     <release>false</release>
@@ -381,10 +463,11 @@ DO NOT CLEAR THIS TASK UNTIL THOSE REQUIREMENTS ARE MET</prompt>
     <errorMessage></errorMessage>
     <lockKey></lockKey>
     <locked>false</locked>
-    <archived>true</archived>
+    <archived>false</archived>
     <blockedBy></blockedBy>
     <dateStarted></dateStarted>
     <dueDate></dueDate>
+    <dateFinished>2026-09-07 15:48</dateFinished>
     <commit>true</commit>
     <build>false</build>
     <release>false</release>
@@ -407,10 +490,11 @@ DO NOT CLEAR THIS TASK UNTIL THOSE REQUIREMENTS ARE MET</prompt>
     <errorMessage></errorMessage>
     <lockKey></lockKey>
     <locked>false</locked>
-    <archived>true</archived>
+    <archived>false</archived>
     <blockedBy></blockedBy>
     <dateStarted></dateStarted>
     <dueDate></dueDate>
+    <dateFinished>2026-09-07 15:48</dateFinished>
     <commit>true</commit>
     <build>false</build>
     <release>false</release>
@@ -433,10 +517,11 @@ DO NOT CLEAR THIS TASK UNTIL THOSE REQUIREMENTS ARE MET</prompt>
     <errorMessage></errorMessage>
     <lockKey></lockKey>
     <locked>false</locked>
-    <archived>true</archived>
+    <archived>false</archived>
     <blockedBy></blockedBy>
     <dateStarted></dateStarted>
     <dueDate></dueDate>
+    <dateFinished>2026-09-07 15:48</dateFinished>
     <commit>false</commit>
     <build>false</build>
     <release>false</release>
@@ -446,6 +531,9 @@ DO NOT CLEAR THIS TASK UNTIL THOSE REQUIREMENTS ARE MET</prompt>
     <notes>Reworked the default theme to genuine Android Holo. tokens.css :root now holds the Holo dark palette: bg #0c0c0c/#1b1b1b/#202020, Holo-blue #33b5e5 accent, #2c2c2c dividers, light text, --zui-label-color = accent. themes/holo.css restates it (explicit selection + runtime switch back). themes/clean.css = the previous light design.txt palette as an opt-in theme. Tokenised the last hard-coded colours (scrollbar thumb, tooltip, selected+hover, on-danger) via new tokens so a theme fully controls appearance - component CSS is now 100% token-driven. Holo signatures added: .zui-section-label and .zui-panel__header are accent caps with an underline rule; active sidebar item gets an inset left accent bar. Showcases link both themes and the View menu switches holo&lt;-&gt;clean. design.txt got a top note reconciling default(holo)/clean. New core/css/THEMES.md. Rebuilt debug+release; verified both themes via headless screenshots.</notes>
     <filesChanged>core/css/tokens.css, core/css/themes/holo.css, core/css/themes/clean.css, core/css/THEMES.md, core/css/base.css, core/css/components/{button,layout,panel,scrollbar,table,tooltip,window}.css, showcase/index.html, showcase/music.html, README.md, design.txt, task_images/ZU-33.png</filesChanged>
     <image>ZU-33.png</image>
+    <attachments>
+      <attachment>ZU-33.png</attachment>
+    </attachments>
   </task>
   <task id="ZU-46">
     <name>do NOT merge this branch until i tell you otherwise!</name>
@@ -459,10 +547,11 @@ DO NOT CLEAR THIS TASK UNTIL THOSE REQUIREMENTS ARE MET</prompt>
     <errorMessage></errorMessage>
     <lockKey></lockKey>
     <locked>false</locked>
-    <archived>true</archived>
+    <archived>false</archived>
     <blockedBy></blockedBy>
     <dateStarted></dateStarted>
     <dueDate></dueDate>
+    <dateFinished>2026-09-07 15:48</dateFinished>
     <commit>true</commit>
     <build>true</build>
     <release>true</release>
@@ -493,10 +582,11 @@ DO NOT CLEAR THIS TASK UNTIL THOSE REQUIREMENTS ARE MET</prompt>
     <errorMessage></errorMessage>
     <lockKey></lockKey>
     <locked>false</locked>
-    <archived>true</archived>
+    <archived>false</archived>
     <blockedBy></blockedBy>
     <dateStarted></dateStarted>
     <dueDate></dueDate>
+    <dateFinished>2026-09-07 15:48</dateFinished>
     <commit>false</commit>
     <build>false</build>
     <release>false</release>
@@ -527,10 +617,11 @@ DO NOT CLEAR THIS TASK UNTIL THOSE REQUIREMENTS ARE MET</prompt>
     <errorMessage></errorMessage>
     <lockKey></lockKey>
     <locked>false</locked>
-    <archived>true</archived>
+    <archived>false</archived>
     <blockedBy></blockedBy>
     <dateStarted></dateStarted>
     <dueDate></dueDate>
+    <dateFinished>2026-09-07 15:48</dateFinished>
     <commit>false</commit>
     <build>false</build>
     <release>false</release>
@@ -561,10 +652,11 @@ DO NOT CLEAR THIS TASK UNTIL THOSE REQUIREMENTS ARE MET</prompt>
     <errorMessage></errorMessage>
     <lockKey></lockKey>
     <locked>false</locked>
-    <archived>true</archived>
+    <archived>false</archived>
     <blockedBy></blockedBy>
     <dateStarted></dateStarted>
     <dueDate></dueDate>
+    <dateFinished>2026-09-07 15:48</dateFinished>
     <commit>false</commit>
     <build>false</build>
     <release>false</release>
@@ -595,10 +687,11 @@ DO NOT CLEAR THIS TASK UNTIL THOSE REQUIREMENTS ARE MET</prompt>
     <errorMessage></errorMessage>
     <lockKey></lockKey>
     <locked>false</locked>
-    <archived>true</archived>
+    <archived>false</archived>
     <blockedBy></blockedBy>
     <dateStarted></dateStarted>
     <dueDate></dueDate>
+    <dateFinished>2026-09-07 15:48</dateFinished>
     <commit>true</commit>
     <build>false</build>
     <release>false</release>
@@ -630,10 +723,11 @@ DO NOT CLEAR THIS TASK UNTIL THOSE REQUIREMENTS ARE MET</prompt>
     <errorMessage></errorMessage>
     <lockKey></lockKey>
     <locked>false</locked>
-    <archived>true</archived>
+    <archived>false</archived>
     <blockedBy></blockedBy>
     <dateStarted></dateStarted>
     <dueDate></dueDate>
+    <dateFinished>2026-09-07 15:48</dateFinished>
     <commit>false</commit>
     <build>false</build>
     <release>false</release>
@@ -663,10 +757,11 @@ DO NOT CLEAR THIS TASK UNTIL THOSE REQUIREMENTS ARE MET</prompt>
     <errorMessage></errorMessage>
     <lockKey></lockKey>
     <locked>false</locked>
-    <archived>true</archived>
+    <archived>false</archived>
     <blockedBy></blockedBy>
     <dateStarted></dateStarted>
     <dueDate></dueDate>
+    <dateFinished>2026-09-07 15:48</dateFinished>
     <commit>true</commit>
     <build>false</build>
     <release>false</release>
@@ -689,10 +784,11 @@ DO NOT CLEAR THIS TASK UNTIL THOSE REQUIREMENTS ARE MET</prompt>
     <errorMessage></errorMessage>
     <lockKey></lockKey>
     <locked>false</locked>
-    <archived>true</archived>
+    <archived>false</archived>
     <blockedBy></blockedBy>
     <dateStarted></dateStarted>
     <dueDate></dueDate>
+    <dateFinished>2026-09-07 15:48</dateFinished>
     <commit>true</commit>
     <build>false</build>
     <release>false</release>
@@ -715,10 +811,11 @@ DO NOT CLEAR THIS TASK UNTIL THOSE REQUIREMENTS ARE MET</prompt>
     <errorMessage></errorMessage>
     <lockKey></lockKey>
     <locked>false</locked>
-    <archived>true</archived>
+    <archived>false</archived>
     <blockedBy>ZU-37</blockedBy>
     <dateStarted></dateStarted>
     <dueDate></dueDate>
+    <dateFinished>2026-09-07 15:48</dateFinished>
     <commit>true</commit>
     <build>false</build>
     <release>false</release>
@@ -728,6 +825,9 @@ DO NOT CLEAR THIS TASK UNTIL THOSE REQUIREMENTS ARE MET</prompt>
     <notes>Built + launched builds/debug/sample-csharp/ZuiSample.exe on the installed WebView2 runtime (152.0.4191.53). VERIFIED LIVE: InitializeAsync + SetVirtualHostNameToFolderMapping + AddScriptToExecuteOnDocumentCreatedAsync + Navigate all work; the showcase renders with full Holo styling, icons and all components. host-&gt;UI confirmed: the 'device' message arrives and the status bar shows 'HAPTICS' IPOD / 238.2 GB capacity / 234.6 GB free' connected (blue) - so the DOMContentLoaded send-buffering fix works. UI-&gt;host uses the same chrome.webview bridge (confirmed running) via WebMessageReceived. BUG FOUND + FIXED: the sample loaded unstyled because showcase/index.html links ../core/... but the csproj only staged core as zui/; added a copy of core/ (and docs/) to ZuiSample.csproj so the bundled showcase resolves. Screenshot: task_images/ZU-38.png. __zui_compiled.html (runtime scratch) gitignored.</notes>
     <filesChanged>samples/csharp/ZuiSample.csproj, .gitignore, task_images/ZU-38.png</filesChanged>
     <image>ZU-38.png</image>
+    <attachments>
+      <attachment>ZU-38.png</attachment>
+    </attachments>
   </task>
   <task id="ZU-37">
     <name>wire __document channel: make csharp/cpp compiler backends real</name>
@@ -741,10 +841,11 @@ DO NOT CLEAR THIS TASK UNTIL THOSE REQUIREMENTS ARE MET</prompt>
     <errorMessage></errorMessage>
     <lockKey></lockKey>
     <locked>false</locked>
-    <archived>true</archived>
+    <archived>false</archived>
     <blockedBy></blockedBy>
     <dateStarted></dateStarted>
     <dueDate></dueDate>
+    <dateFinished>2026-09-07 15:48</dateFinished>
     <commit>true</commit>
     <build>false</build>
     <release>false</release>
@@ -769,10 +870,11 @@ Any changes in the future should be reflected in this document</prompt>
     <errorMessage></errorMessage>
     <lockKey></lockKey>
     <locked>false</locked>
-    <archived>true</archived>
+    <archived>false</archived>
     <blockedBy></blockedBy>
     <dateStarted></dateStarted>
     <dueDate></dueDate>
+    <dateFinished>2026-09-07 15:48</dateFinished>
     <commit>false</commit>
     <build>false</build>
     <release>false</release>
@@ -797,10 +899,11 @@ I will manually populate it to the other agents and projects for now just re-cre
     <errorMessage></errorMessage>
     <lockKey></lockKey>
     <locked>false</locked>
-    <archived>true</archived>
+    <archived>false</archived>
     <blockedBy></blockedBy>
     <dateStarted></dateStarted>
     <dueDate></dueDate>
+    <dateFinished>2026-09-07 15:48</dateFinished>
     <commit>false</commit>
     <build>false</build>
     <release>false</release>
@@ -823,10 +926,11 @@ I will manually populate it to the other agents and projects for now just re-cre
     <errorMessage></errorMessage>
     <lockKey></lockKey>
     <locked>false</locked>
-    <archived>true</archived>
+    <archived>false</archived>
     <blockedBy></blockedBy>
     <dateStarted></dateStarted>
     <dueDate></dueDate>
+    <dateFinished>2026-09-07 15:48</dateFinished>
     <commit>true</commit>
     <build>false</build>
     <release>false</release>
@@ -849,10 +953,11 @@ I will manually populate it to the other agents and projects for now just re-cre
     <errorMessage></errorMessage>
     <lockKey></lockKey>
     <locked>false</locked>
-    <archived>true</archived>
+    <archived>false</archived>
     <blockedBy></blockedBy>
     <dateStarted></dateStarted>
     <dueDate></dueDate>
+    <dateFinished>2026-09-07 15:48</dateFinished>
     <commit>true</commit>
     <build>false</build>
     <release>false</release>
@@ -875,10 +980,11 @@ I will manually populate it to the other agents and projects for now just re-cre
     <errorMessage></errorMessage>
     <lockKey></lockKey>
     <locked>false</locked>
-    <archived>true</archived>
+    <archived>false</archived>
     <blockedBy></blockedBy>
     <dateStarted></dateStarted>
     <dueDate></dueDate>
+    <dateFinished>2026-09-07 15:48</dateFinished>
     <commit>true</commit>
     <build>false</build>
     <release>false</release>
@@ -901,10 +1007,11 @@ I will manually populate it to the other agents and projects for now just re-cre
     <errorMessage></errorMessage>
     <lockKey></lockKey>
     <locked>false</locked>
-    <archived>true</archived>
+    <archived>false</archived>
     <blockedBy></blockedBy>
     <dateStarted></dateStarted>
     <dueDate></dueDate>
+    <dateFinished>2026-09-07 15:48</dateFinished>
     <commit>true</commit>
     <build>false</build>
     <release>false</release>
@@ -927,10 +1034,11 @@ I will manually populate it to the other agents and projects for now just re-cre
     <errorMessage></errorMessage>
     <lockKey></lockKey>
     <locked>false</locked>
-    <archived>true</archived>
+    <archived>false</archived>
     <blockedBy></blockedBy>
     <dateStarted></dateStarted>
     <dueDate></dueDate>
+    <dateFinished>2026-09-07 15:48</dateFinished>
     <commit>true</commit>
     <build>false</build>
     <release>false</release>
@@ -953,10 +1061,11 @@ I will manually populate it to the other agents and projects for now just re-cre
     <errorMessage></errorMessage>
     <lockKey></lockKey>
     <locked>false</locked>
-    <archived>true</archived>
+    <archived>false</archived>
     <blockedBy></blockedBy>
     <dateStarted></dateStarted>
     <dueDate></dueDate>
+    <dateFinished>2026-09-07 15:48</dateFinished>
     <commit>true</commit>
     <build>false</build>
     <release>false</release>
@@ -979,10 +1088,11 @@ I will manually populate it to the other agents and projects for now just re-cre
     <errorMessage></errorMessage>
     <lockKey></lockKey>
     <locked>false</locked>
-    <archived>true</archived>
+    <archived>false</archived>
     <blockedBy></blockedBy>
     <dateStarted></dateStarted>
     <dueDate></dueDate>
+    <dateFinished>2026-09-07 15:48</dateFinished>
     <commit>true</commit>
     <build>false</build>
     <release>false</release>
@@ -1005,10 +1115,11 @@ I will manually populate it to the other agents and projects for now just re-cre
     <errorMessage></errorMessage>
     <lockKey></lockKey>
     <locked>false</locked>
-    <archived>true</archived>
+    <archived>false</archived>
     <blockedBy></blockedBy>
     <dateStarted></dateStarted>
     <dueDate></dueDate>
+    <dateFinished>2026-09-07 15:48</dateFinished>
     <commit>true</commit>
     <build>false</build>
     <release>false</release>
@@ -1031,10 +1142,11 @@ I will manually populate it to the other agents and projects for now just re-cre
     <errorMessage></errorMessage>
     <lockKey></lockKey>
     <locked>false</locked>
-    <archived>true</archived>
+    <archived>false</archived>
     <blockedBy></blockedBy>
     <dateStarted></dateStarted>
     <dueDate></dueDate>
+    <dateFinished>2026-09-07 15:48</dateFinished>
     <commit>true</commit>
     <build>false</build>
     <release>false</release>
@@ -1057,10 +1169,11 @@ I will manually populate it to the other agents and projects for now just re-cre
     <errorMessage></errorMessage>
     <lockKey></lockKey>
     <locked>false</locked>
-    <archived>true</archived>
+    <archived>false</archived>
     <blockedBy></blockedBy>
     <dateStarted></dateStarted>
     <dueDate></dueDate>
+    <dateFinished>2026-09-07 15:48</dateFinished>
     <commit>true</commit>
     <build>false</build>
     <release>false</release>
@@ -1083,10 +1196,11 @@ I will manually populate it to the other agents and projects for now just re-cre
     <errorMessage></errorMessage>
     <lockKey></lockKey>
     <locked>false</locked>
-    <archived>true</archived>
+    <archived>false</archived>
     <blockedBy></blockedBy>
     <dateStarted></dateStarted>
     <dueDate></dueDate>
+    <dateFinished>2026-09-07 15:48</dateFinished>
     <commit>true</commit>
     <build>false</build>
     <release>false</release>
@@ -1109,10 +1223,11 @@ I will manually populate it to the other agents and projects for now just re-cre
     <errorMessage></errorMessage>
     <lockKey></lockKey>
     <locked>false</locked>
-    <archived>true</archived>
+    <archived>false</archived>
     <blockedBy></blockedBy>
     <dateStarted></dateStarted>
     <dueDate></dueDate>
+    <dateFinished>2026-09-07 15:48</dateFinished>
     <commit>true</commit>
     <build>false</build>
     <release>false</release>
@@ -1135,10 +1250,11 @@ I will manually populate it to the other agents and projects for now just re-cre
     <errorMessage></errorMessage>
     <lockKey></lockKey>
     <locked>false</locked>
-    <archived>true</archived>
+    <archived>false</archived>
     <blockedBy></blockedBy>
     <dateStarted></dateStarted>
     <dueDate></dueDate>
+    <dateFinished>2026-09-07 15:48</dateFinished>
     <commit>true</commit>
     <build>false</build>
     <release>false</release>
@@ -1161,10 +1277,11 @@ I will manually populate it to the other agents and projects for now just re-cre
     <errorMessage></errorMessage>
     <lockKey></lockKey>
     <locked>false</locked>
-    <archived>true</archived>
+    <archived>false</archived>
     <blockedBy></blockedBy>
     <dateStarted></dateStarted>
     <dueDate></dueDate>
+    <dateFinished>2026-09-07 15:48</dateFinished>
     <commit>true</commit>
     <build>false</build>
     <release>false</release>
@@ -1187,10 +1304,11 @@ I will manually populate it to the other agents and projects for now just re-cre
     <errorMessage></errorMessage>
     <lockKey></lockKey>
     <locked>false</locked>
-    <archived>true</archived>
+    <archived>false</archived>
     <blockedBy></blockedBy>
     <dateStarted></dateStarted>
     <dueDate></dueDate>
+    <dateFinished>2026-09-07 15:48</dateFinished>
     <commit>true</commit>
     <build>false</build>
     <release>false</release>
@@ -1213,10 +1331,11 @@ I will manually populate it to the other agents and projects for now just re-cre
     <errorMessage></errorMessage>
     <lockKey></lockKey>
     <locked>false</locked>
-    <archived>true</archived>
+    <archived>false</archived>
     <blockedBy></blockedBy>
     <dateStarted></dateStarted>
     <dueDate></dueDate>
+    <dateFinished>2026-09-07 15:48</dateFinished>
     <commit>true</commit>
     <build>false</build>
     <release>false</release>
@@ -1239,10 +1358,11 @@ I will manually populate it to the other agents and projects for now just re-cre
     <errorMessage></errorMessage>
     <lockKey></lockKey>
     <locked>false</locked>
-    <archived>true</archived>
+    <archived>false</archived>
     <blockedBy>ZU-35</blockedBy>
     <dateStarted></dateStarted>
     <dueDate></dueDate>
+    <dateFinished>2026-09-07 15:48</dateFinished>
     <commit>true</commit>
     <build>false</build>
     <release>false</release>
@@ -1265,10 +1385,11 @@ I will manually populate it to the other agents and projects for now just re-cre
     <errorMessage></errorMessage>
     <lockKey></lockKey>
     <locked>false</locked>
-    <archived>true</archived>
+    <archived>false</archived>
     <blockedBy></blockedBy>
     <dateStarted></dateStarted>
     <dueDate></dueDate>
+    <dateFinished>2026-09-07 15:48</dateFinished>
     <commit>true</commit>
     <build>false</build>
     <release>false</release>
@@ -1291,10 +1412,11 @@ I will manually populate it to the other agents and projects for now just re-cre
     <errorMessage></errorMessage>
     <lockKey></lockKey>
     <locked>false</locked>
-    <archived>true</archived>
+    <archived>false</archived>
     <blockedBy></blockedBy>
     <dateStarted></dateStarted>
     <dueDate></dueDate>
+    <dateFinished>2026-09-07 15:48</dateFinished>
     <commit>true</commit>
     <build>false</build>
     <release>false</release>
@@ -1317,10 +1439,11 @@ I will manually populate it to the other agents and projects for now just re-cre
     <errorMessage></errorMessage>
     <lockKey></lockKey>
     <locked>false</locked>
-    <archived>true</archived>
+    <archived>false</archived>
     <blockedBy></blockedBy>
     <dateStarted></dateStarted>
     <dueDate></dueDate>
+    <dateFinished>2026-09-07 15:48</dateFinished>
     <commit>true</commit>
     <build>false</build>
     <release>false</release>
@@ -1343,10 +1466,11 @@ I will manually populate it to the other agents and projects for now just re-cre
     <errorMessage></errorMessage>
     <lockKey></lockKey>
     <locked>false</locked>
-    <archived>true</archived>
+    <archived>false</archived>
     <blockedBy></blockedBy>
     <dateStarted></dateStarted>
     <dueDate></dueDate>
+    <dateFinished>2026-09-07 15:48</dateFinished>
     <commit>true</commit>
     <build>false</build>
     <release>false</release>
@@ -1369,10 +1493,11 @@ I will manually populate it to the other agents and projects for now just re-cre
     <errorMessage></errorMessage>
     <lockKey></lockKey>
     <locked>false</locked>
-    <archived>true</archived>
+    <archived>false</archived>
     <blockedBy></blockedBy>
     <dateStarted></dateStarted>
     <dueDate></dueDate>
+    <dateFinished>2026-09-07 15:48</dateFinished>
     <commit>true</commit>
     <build>false</build>
     <release>false</release>
@@ -1395,10 +1520,11 @@ I will manually populate it to the other agents and projects for now just re-cre
     <errorMessage></errorMessage>
     <lockKey></lockKey>
     <locked>false</locked>
-    <archived>true</archived>
+    <archived>false</archived>
     <blockedBy></blockedBy>
     <dateStarted></dateStarted>
     <dueDate></dueDate>
+    <dateFinished>2026-09-07 15:48</dateFinished>
     <commit>true</commit>
     <build>false</build>
     <release>false</release>
@@ -1421,10 +1547,11 @@ I will manually populate it to the other agents and projects for now just re-cre
     <errorMessage></errorMessage>
     <lockKey></lockKey>
     <locked>false</locked>
-    <archived>true</archived>
+    <archived>false</archived>
     <blockedBy></blockedBy>
     <dateStarted></dateStarted>
     <dueDate></dueDate>
+    <dateFinished>2026-09-07 15:48</dateFinished>
     <commit>true</commit>
     <build>false</build>
     <release>false</release>
@@ -1447,10 +1574,11 @@ I will manually populate it to the other agents and projects for now just re-cre
     <errorMessage></errorMessage>
     <lockKey></lockKey>
     <locked>false</locked>
-    <archived>true</archived>
+    <archived>false</archived>
     <blockedBy></blockedBy>
     <dateStarted></dateStarted>
     <dueDate></dueDate>
+    <dateFinished>2026-09-07 15:48</dateFinished>
     <commit>true</commit>
     <build>false</build>
     <release>false</release>
@@ -1473,10 +1601,11 @@ I will manually populate it to the other agents and projects for now just re-cre
     <errorMessage></errorMessage>
     <lockKey></lockKey>
     <locked>false</locked>
-    <archived>true</archived>
+    <archived>false</archived>
     <blockedBy></blockedBy>
     <dateStarted></dateStarted>
     <dueDate></dueDate>
+    <dateFinished>2026-09-07 15:48</dateFinished>
     <commit>true</commit>
     <build>false</build>
     <release>false</release>
@@ -1499,10 +1628,11 @@ I will manually populate it to the other agents and projects for now just re-cre
     <errorMessage></errorMessage>
     <lockKey></lockKey>
     <locked>false</locked>
-    <archived>true</archived>
+    <archived>false</archived>
     <blockedBy></blockedBy>
     <dateStarted></dateStarted>
     <dueDate></dueDate>
+    <dateFinished>2026-09-07 15:48</dateFinished>
     <commit>true</commit>
     <build>false</build>
     <release>false</release>
@@ -1525,10 +1655,11 @@ I will manually populate it to the other agents and projects for now just re-cre
     <errorMessage></errorMessage>
     <lockKey></lockKey>
     <locked>false</locked>
-    <archived>true</archived>
+    <archived>false</archived>
     <blockedBy></blockedBy>
     <dateStarted></dateStarted>
     <dueDate></dueDate>
+    <dateFinished>2026-09-07 15:48</dateFinished>
     <commit>true</commit>
     <build>false</build>
     <release>false</release>
@@ -1551,10 +1682,11 @@ I will manually populate it to the other agents and projects for now just re-cre
     <errorMessage></errorMessage>
     <lockKey></lockKey>
     <locked>false</locked>
-    <archived>true</archived>
+    <archived>false</archived>
     <blockedBy></blockedBy>
     <dateStarted></dateStarted>
     <dueDate></dueDate>
+    <dateFinished>2026-09-07 15:48</dateFinished>
     <commit>true</commit>
     <build>false</build>
     <release>false</release>
@@ -1577,10 +1709,11 @@ I will manually populate it to the other agents and projects for now just re-cre
     <errorMessage></errorMessage>
     <lockKey></lockKey>
     <locked>false</locked>
-    <archived>true</archived>
+    <archived>false</archived>
     <blockedBy></blockedBy>
     <dateStarted></dateStarted>
     <dueDate></dueDate>
+    <dateFinished>2026-09-07 15:48</dateFinished>
     <commit>true</commit>
     <build>true</build>
     <release>true</release>
@@ -1590,6 +1723,9 @@ I will manually populate it to the other agents and projects for now just re-cre
     <notes>Implemented the holo theme end-to-end and made it visible. core/css/themes/holo.css completed (light palette + holo-dark scaffold). Fixed tabpanel visibility (attribute-based rule) and rewrote the tabs runtime so nested tab groups only control their own panels. Added showcase/music.html: a full holo music-browser screen (title bar, File/Edit/View/Playback/Help menu, Music/Podcasts/Download/iPod nav, library+playlists sidebar, Artist|Album|Tracks list/table panels, connected device/status bar, compact playback bar) assembled entirely from zUI components per design.txt. Dropped net472 from the C# binding (System.Text.Json unavailable there); fixed build.ps1 staging (clean before copy; stage core as both zui/ and core/ so the bundled showcase resolves). Verified by headless-Chrome screenshots of builds/release output: showcase, music browser, and the ZSL-compiled counter all render correctly in holo. Built to builds/debug and builds/release (C++ binding skipped - cmake not installed on this machine; core is source-only + has its own test).</notes>
     <filesChanged>core/css/themes/holo.css, core/css/components/tabs.css, core/js/zui.js, showcase/music.html, bindings/csharp/ZUI.csproj, bindings/csharp/README.md, build.ps1, task_images/ZU-4.png</filesChanged>
     <image>ZU-4.png</image>
+    <attachments>
+      <attachment>ZU-4.png</attachment>
+    </attachments>
   </task>
   <task id="ZU-3">
     <name>create a scripting language</name>
@@ -1603,10 +1739,11 @@ I will manually populate it to the other agents and projects for now just re-cre
     <errorMessage></errorMessage>
     <lockKey></lockKey>
     <locked>false</locked>
-    <archived>true</archived>
+    <archived>false</archived>
     <blockedBy></blockedBy>
     <dateStarted></dateStarted>
     <dueDate></dueDate>
+    <dateFinished>2026-09-07 15:48</dateFinished>
     <commit>true</commit>
     <build>false</build>
     <release>false</release>
@@ -1629,10 +1766,11 @@ I will manually populate it to the other agents and projects for now just re-cre
     <errorMessage></errorMessage>
     <lockKey></lockKey>
     <locked>false</locked>
-    <archived>true</archived>
+    <archived>false</archived>
     <blockedBy></blockedBy>
     <dateStarted></dateStarted>
     <dueDate></dueDate>
+    <dateFinished>2026-09-07 15:48</dateFinished>
     <commit>true</commit>
     <build>false</build>
     <release>false</release>
@@ -1671,10 +1809,11 @@ I will manually populate it to the other agents and projects for now just re-cre
     <errorMessage></errorMessage>
     <lockKey></lockKey>
     <locked>false</locked>
-    <archived>true</archived>
+    <archived>false</archived>
     <blockedBy></blockedBy>
     <dateStarted></dateStarted>
     <dueDate></dueDate>
+    <dateFinished>2026-09-07 15:48</dateFinished>
     <commit>true</commit>
     <build>false</build>
     <release>false</release>

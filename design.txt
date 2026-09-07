@@ -8,6 +8,12 @@ screens are authored in ZML or ZSL, compiled to C# or C++, compiled again by the
 language toolchain, and materialized as operating-system controls. The deployed
 application contains native code and framework controls only.
 
+The public runtime behaviour applications depend on is frozen separately in
+core/RUNTIME_CONTRACT.md (construction vs. in-place mutation, Build() is
+construction-only, control lookup by id/export/bind, C#/C++ semantic parity).
+This file governs architecture and repository practice; that file governs what
+zUI promises callers. Both are mandatory.
+
 This contract is mandatory for every agent and every new feature:
 
 1. Never introduce an embedded browser, browser process, DOM, page document,

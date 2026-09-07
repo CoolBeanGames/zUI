@@ -33,13 +33,32 @@ public sealed class ZuiHost : IDisposable
     private readonly Dictionary<string, List<Action<string>>> _handlers = new(StringComparer.Ordinal);
     private readonly Dictionary<string, Control> _exports = new(StringComparer.Ordinal);
     private bool _disposed;
+    private int _buildCount;
 
     public ZuiHost(Control parent) => _parent = parent ?? throw new ArgumentNullException(nameof(parent));
     public ZuiTheme Theme { get; private set; } = ZuiTheme.Holo;
 
+    /// <summary>
+    /// Constructs the native control tree from compiler-emitted nodes. This is a
+    /// construction operation only: call it once per screen. It is NOT a render,
+    /// refresh, or update pass. To change text, values, visibility, selection, or
+    /// collection contents after construction, mutate the existing controls via
+    /// <see cref="Find(string)"/> / the incremental mutation API. See
+    /// core/RUNTIME_CONTRACT.md.
+    /// </summary>
     public Control Build(ZuiNode tree)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
+        if (++_buildCount > 1)
+        {
+            const string message =
+                "ZuiHost.Build() called more than once on the same host. Build() is " +
+                "construction-only and destroys existing controls, selection, and focus. " +
+                "Use Find()/SetText()/SetValue()/collection updates to mutate the existing " +
+                "tree instead. See core/RUNTIME_CONTRACT.md.";
+            System.Diagnostics.Trace.TraceWarning(message);
+            System.Diagnostics.Debug.WriteLine("[zUI] " + message);
+        }
         _parent.SuspendLayout();
         try
         {

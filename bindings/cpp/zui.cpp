@@ -5,6 +5,7 @@
 #include <windows.h>
 #include <commctrl.h>
 #include <algorithm>
+#include <cassert>
 
 namespace zui {
 namespace {
@@ -39,7 +40,21 @@ Host::~Host() {
     if (parent_) RemoveWindowSubclass(static_cast<HWND>(parent_), reinterpret_cast<SUBCLASSPROC>(&Host::subclass_proc), 1);
 }
 
+// build() constructs the native control tree from compiler-emitted nodes. It is a
+// construction operation only: call it once per screen. It is NOT a render,
+// refresh, or update pass, and it destroys any controls, selection, and focus
+// from a previous call. To change text, values, visibility, selection, or
+// collection contents after construction, mutate the existing controls via
+// find() / the incremental mutation API. See core/RUNTIME_CONTRACT.md.
 void Host::build(const Node& root) {
+    if (++build_count_ > 1) {
+        OutputDebugStringW(L"[zUI] Host::build() called more than once on the same host. "
+                           L"build() is construction-only and destroys existing controls, "
+                           L"selection, and focus. Mutate existing controls via find()/"
+                           L"set_text()/set_value()/collection updates instead. "
+                           L"See core/RUNTIME_CONTRACT.md.\n");
+        assert(build_count_ == 1 && "zUI: Host::build() is construction-only; see core/RUNTIME_CONTRACT.md");
+    }
     HWND parent = static_cast<HWND>(parent_);
     for (HWND child = GetWindow(parent, GW_CHILD); child;) {
         HWND next = GetWindow(child, GW_HWNDNEXT);
