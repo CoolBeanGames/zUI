@@ -180,8 +180,8 @@ carrying `on=<channel>` — is still wired.
 Both hosts implement the same model: identical property names, the same
 `Mutate` ops, the same natural-property table, the same one-way/two-way split,
 the same single `Flush()` at construction, and the same isolation guarantee
-(§5). `bindings/csharp` `Program.cs` and `bindings/cpp/tests/state_test.cpp`
-assert the same scenarios against each backend.
+(§5). `tests/csharp/Program.cs` and `bindings/cpp/tests/state_test.cpp` assert
+the same scenarios against each backend.
 
 ---
 
