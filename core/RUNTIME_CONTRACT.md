@@ -70,10 +70,37 @@ to the control instances captured at build time (though caching a looked-up
 instance for the screen's lifetime is fine — the instance is stable until the
 next `Build()`).
 
-The incremental mutation API (zUI task ZU-63) operates through this registry:
+The incremental mutation API operates through this registry:
 `ui.SetText("trackTitle", title)` finds the registered control and sets its
 text. The registry is the single source of truth for "which native control is
 `trackTitle`".
+
+### Incremental mutation API (implemented)
+
+Both hosts expose one generic property channel plus ergonomic typed helpers.
+Every call mutates the existing native control and returns without rebuilding.
+
+| Operation | C# (`ZuiHost`) | C++ (`zui::Host`) |
+| --- | --- | --- |
+| generic write | `Set(name, prop, value)` | `set(name, prop, value)` |
+| generic read | `Get(name, prop)` | `get(name, prop)` |
+| text | `SetText` / `GetText` | `set_text` / `get_text` |
+| visible | `SetVisible` | `set_visible` |
+| enabled | `SetEnabled` | `set_enabled` |
+| checked | `SetChecked` / `GetChecked` | `set_checked` / `get_checked` |
+| numeric value | `SetValue` / `GetValue` | `set_value` / `get_value` |
+| selection | `SetSelected` / `SetSelectedValue` / `GetSelected` | `set_selected` / `get_selected` |
+| colour | `SetForeground` / `SetBackground` | `set_color` |
+| size | `SetSize` | `set_size` |
+| focus | `Focus(name)` | `set_focus` |
+| lookup | `Find(name)` | `find(name)` |
+
+`prop` is one of `text`, `visible`, `enabled`, `checked`, `value`, `selected`
+(alias `selectedindex`), `selectedvalue`/`selectedtext`, `fg`/`foreground`,
+`bg`/`background`, `width`, `height`, `focus`. An unknown control name is an
+error (C# throws `KeyNotFoundException`; C++ logs and returns `false`/empty). A
+property a given control does not support returns `false` / `null` rather than
+rebuilding.
 
 ---
 

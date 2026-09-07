@@ -17,6 +17,16 @@ std::wstring wide(const std::string& value) {
     return result;
 }
 
+std::string narrow(const std::wstring& value) {
+    if (value.empty()) return {};
+    int size = WideCharToMultiByte(CP_UTF8, 0, value.data(), static_cast<int>(value.size()), nullptr, 0, nullptr, nullptr);
+    std::string result(size, '\0');
+    WideCharToMultiByte(CP_UTF8, 0, value.data(), static_cast<int>(value.size()), result.data(), size, nullptr, nullptr);
+    return result;
+}
+
+bool truthy(const std::string& v) { return v == "true" || v == "1" || v == "on" || v == "yes"; }
+
 std::string attr(const Node& n, const char* key, const char* fallback = "") {
     auto it = n.attributes.find(key);
     return it == n.attributes.end() ? fallback : it->second;
@@ -38,6 +48,8 @@ Host::Host(void* native_parent) : parent_(native_parent) {
 
 Host::~Host() {
     if (parent_) RemoveWindowSubclass(static_cast<HWND>(parent_), reinterpret_cast<SUBCLASSPROC>(&Host::subclass_proc), 1);
+    for (auto& [hwnd, color] : control_colors_)
+        if (color.brush) DeleteObject(static_cast<HGDIOBJ>(color.brush));
 }
 
 // build() constructs the native control tree from compiler-emitted nodes. It is a
@@ -62,6 +74,10 @@ void Host::build(const Node& root) {
         child = next;
     }
     control_channels_.clear();
+    control_kinds_.clear();
+    for (auto& [hwnd, color] : control_colors_)
+        if (color.brush) DeleteObject(static_cast<HGDIOBJ>(color.brush));
+    control_colors_.clear();
     exports_.clear();
     RECT client{}; GetClientRect(parent, &client);
     int x = 12, y = 12;
@@ -125,9 +141,13 @@ void* Host::create_node(void* raw_parent, const Node& node, int& x, int& y, int 
 
     auto event = node.attributes.find("on");
     if (event != node.attributes.end()) control_channels_[control] = event->second;
-    auto bind_name = attr(node, "bind", attr(node, "id").c_str());
-    auto export_name = attr(node, "export", bind_name.c_str());
-    if (!export_name.empty()) exports_[export_name] = control;
+    control_kinds_[control] = node.kind;
+    // Register every lookup name. Priority is export > bind > id (a more specific
+    // name wins), but all three resolve to this control.
+    for (const char* key : {"id", "bind", "export"}) {
+        auto name = attr(node, key);
+        if (!name.empty()) exports_[name] = control;
+    }
 
     int child_x = x + (container ? 8 : 0), child_y = y + height + 4;
     if (container) {
@@ -144,6 +164,115 @@ void Host::send(const std::string& channel, const std::string& payload) { dispat
 void Host::set_theme(const std::string& name) { dispatch("theme-changed", name); InvalidateRect(static_cast<HWND>(parent_), nullptr, TRUE); }
 void* Host::find(const std::string& name) const { auto it = exports_.find(name); return it == exports_.end() ? nullptr : it->second; }
 
+void* Host::require(const std::string& name) const {
+    auto it = exports_.find(name);
+    if (it == exports_.end() || !it->second) {
+        OutputDebugStringW((L"[zUI] no control registered as '" + wide(name) + L"'\n").c_str());
+        return nullptr;
+    }
+    return it->second;
+}
+
+bool Host::set(const std::string& name, const std::string& property, const std::string& value) {
+    HWND h = static_cast<HWND>(require(name));
+    if (!h) return false;
+    std::string kind;
+    if (auto k = control_kinds_.find(h); k != control_kinds_.end()) kind = k->second;
+    int n = 0; try { n = std::stoi(value); } catch (...) { n = 0; }
+
+    if (property == "text") { SetWindowTextW(h, wide(value).c_str()); return true; }
+    if (property == "visible") { ShowWindow(h, truthy(value) ? SW_SHOW : SW_HIDE); return true; }
+    if (property == "enabled") { EnableWindow(h, truthy(value) ? TRUE : FALSE); return true; }
+    if (property == "focus") { SetFocus(h); return true; }
+    if (property == "width" || property == "height") {
+        RECT r{}; GetWindowRect(h, &r);
+        int w = r.right - r.left, ht = r.bottom - r.top;
+        if (property == "width") w = n; else ht = n;
+        SetWindowPos(h, nullptr, 0, 0, w, ht, SWP_NOMOVE | SWP_NOZORDER | SWP_NOACTIVATE);
+        return true;
+    }
+    if (property == "checked") { SendMessageW(h, BM_SETCHECK, truthy(value) ? BST_CHECKED : BST_UNCHECKED, 0); return true; }
+    if (property == "value") {
+        if (kind == "slider") { SendMessageW(h, TBM_SETPOS, TRUE, n); return true; }
+        if (kind == "progress" || kind == "spinner" || kind == "loading") { SendMessageW(h, PBM_SETPOS, n, 0); return true; }
+        if (kind == "input" || kind == "textarea") { SetWindowTextW(h, wide(value).c_str()); return true; }
+        return false;
+    }
+    if (property == "selected" || property == "selectedindex") {
+        if (kind == "select" || kind == "dropdown") { SendMessageW(h, CB_SETCURSEL, n, 0); return true; }
+        if (kind == "table") {
+            ListView_SetItemState(h, -1, 0, LVIS_SELECTED | LVIS_FOCUSED);
+            if (n >= 0) { ListView_SetItemState(h, n, LVIS_SELECTED | LVIS_FOCUSED, LVIS_SELECTED | LVIS_FOCUSED);
+                          ListView_EnsureVisible(h, n, FALSE); }
+            return true;
+        }
+        return false;
+    }
+    if (property == "fg" || property == "foreground") {
+        control_colors_[h].fg = static_cast<unsigned long>(std::stoul(value, nullptr, 0));
+        InvalidateRect(h, nullptr, TRUE); return true;
+    }
+    if (property == "bg" || property == "background") {
+        auto& cc = control_colors_[h];
+        cc.bg = static_cast<unsigned long>(std::stoul(value, nullptr, 0));
+        if (cc.brush) DeleteObject(static_cast<HGDIOBJ>(cc.brush));
+        cc.brush = CreateSolidBrush(cc.bg);
+        InvalidateRect(h, nullptr, TRUE); return true;
+    }
+    return false;
+}
+
+std::string Host::get(const std::string& name, const std::string& property) const {
+    HWND h = static_cast<HWND>(const_cast<Host*>(this)->require(name));
+    if (!h) return {};
+    std::string kind;
+    if (auto k = control_kinds_.find(h); k != control_kinds_.end()) kind = k->second;
+    if (property == "text" || (property == "value" && (kind == "input" || kind == "textarea"))) {
+        int len = GetWindowTextLengthW(h);
+        std::wstring buf(len + 1, L'\0');
+        GetWindowTextW(h, buf.data(), len + 1);
+        buf.resize(len);
+        return narrow(buf);
+    }
+    if (property == "visible") return IsWindowVisible(h) ? "true" : "false";
+    if (property == "enabled") return IsWindowEnabled(h) ? "true" : "false";
+    if (property == "checked") return SendMessageW(h, BM_GETCHECK, 0, 0) == BST_CHECKED ? "true" : "false";
+    if (property == "value") {
+        if (kind == "slider") return std::to_string(static_cast<int>(SendMessageW(h, TBM_GETPOS, 0, 0)));
+        if (kind == "progress" || kind == "spinner" || kind == "loading")
+            return std::to_string(static_cast<int>(SendMessageW(h, PBM_GETPOS, 0, 0)));
+        return {};
+    }
+    if (property == "selected" || property == "selectedindex") {
+        if (kind == "select" || kind == "dropdown")
+            return std::to_string(static_cast<int>(SendMessageW(h, CB_GETCURSEL, 0, 0)));
+        if (kind == "table")
+            return std::to_string(ListView_GetNextItem(h, -1, LVNI_SELECTED));
+        return {};
+    }
+    return {};
+}
+
+bool Host::set_text(const std::string& name, const std::string& text) { return set(name, "text", text); }
+bool Host::set_visible(const std::string& name, bool v) { return set(name, "visible", v ? "true" : "false"); }
+bool Host::set_enabled(const std::string& name, bool v) { return set(name, "enabled", v ? "true" : "false"); }
+bool Host::set_checked(const std::string& name, bool v) { return set(name, "checked", v ? "true" : "false"); }
+bool Host::set_value(const std::string& name, int v) { return set(name, "value", std::to_string(v)); }
+bool Host::set_selected(const std::string& name, int i) { return set(name, "selected", std::to_string(i)); }
+bool Host::set_color(const std::string& name, unsigned long fg, unsigned long bg) {
+    bool ok = set(name, "fg", std::to_string(fg));
+    return set(name, "bg", std::to_string(bg)) || ok;
+}
+bool Host::set_size(const std::string& name, int w, int h) {
+    bool ok = set(name, "width", std::to_string(w));
+    return set(name, "height", std::to_string(h)) && ok;
+}
+bool Host::set_focus(const std::string& name) { return set(name, "focus", "true"); }
+std::string Host::get_text(const std::string& name) const { return get(name, "text"); }
+bool Host::get_checked(const std::string& name) const { return get(name, "checked") == "true"; }
+int Host::get_value(const std::string& name) const { auto v = get(name, "value"); try { return std::stoi(v); } catch (...) { return 0; } }
+int Host::get_selected(const std::string& name) const { auto v = get(name, "selected"); try { return std::stoi(v); } catch (...) { return -1; } }
+
 void Host::dispatch(const std::string& channel, const std::string& payload) {
     auto it = handlers_.find(channel); if (it == handlers_.end()) return;
     for (auto& handler : it->second) handler(payload);
@@ -152,6 +281,18 @@ void Host::dispatch(const std::string& channel, const std::string& payload) {
 long long Host::subclass_proc(void* hwnd, unsigned msg, unsigned long long wparam, long long lparam,
                               unsigned long long id, unsigned long long data) {
     auto* self = reinterpret_cast<Host*>(data);
+    if (msg == WM_CTLCOLORSTATIC || msg == WM_CTLCOLOREDIT || msg == WM_CTLCOLORBTN ||
+        msg == WM_CTLCOLORLISTBOX) {
+        auto it = self->control_colors_.find(reinterpret_cast<HWND>(lparam));
+        if (it != self->control_colors_.end()) {
+            HDC dc = reinterpret_cast<HDC>(wparam);
+            if (it->second.fg != 0xffffffff) SetTextColor(dc, it->second.fg);
+            if (it->second.bg != 0xffffffff) {
+                SetBkColor(dc, it->second.bg);
+                if (it->second.brush) return reinterpret_cast<long long>(it->second.brush);
+            }
+        }
+    }
     if (msg == WM_COMMAND || msg == WM_HSCROLL || msg == WM_NOTIFY) {
         HWND source = msg == WM_COMMAND ? reinterpret_cast<HWND>(lparam)
                     : msg == WM_HSCROLL ? reinterpret_cast<HWND>(lparam)

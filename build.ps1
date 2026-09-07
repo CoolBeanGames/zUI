@@ -33,6 +33,10 @@ if ($LASTEXITCODE -ne 0) { throw 'C# sample build failed' }
 dotnet build (Join-Path $root 'samples/zsheets/ZSheets.csproj') -c $csConf -o (Join-Path $out 'zsheets') --nologo
 if ($LASTEXITCODE -ne 0) { throw 'zSheets build failed' }
 if ($Config -eq 'test') {
+  dotnet build (Join-Path $root 'tests/csharp/ZuiHostTests.csproj') -c $csConf -o (Join-Path $out 'csharp-tests') --nologo
+  if ($LASTEXITCODE -ne 0) { throw 'C# host test build failed' }
+  & (Join-Path $out 'csharp-tests/ZuiHostTests.exe')
+  if ($LASTEXITCODE -ne 0) { throw 'C# incremental mutation host tests failed' }
   & (Join-Path $out 'sample-csharp/ZuiSample.exe') --self-test
   if ($LASTEXITCODE -ne 0) { throw 'native C# control self-test failed' }
   & (Join-Path $out 'zsheets/zSheets.exe') --self-test

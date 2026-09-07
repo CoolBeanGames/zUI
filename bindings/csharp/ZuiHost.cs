@@ -95,6 +95,112 @@ public sealed class ZuiHost : IDisposable
 
     public Control? Find(string export) => _exports.GetValueOrDefault(export);
 
+    // ----- Incremental native control mutation (see core/RUNTIME_CONTRACT.md) -----
+    // These mutate the EXISTING native control registered under an id/bind/export
+    // name. They never reconstruct a control and never call Build().
+
+    private Control Require(string name) => _exports.GetValueOrDefault(name)
+        ?? throw new KeyNotFoundException($"zUI: no control registered as '{name}'. " +
+            "Names come from id/export/bind on the node; lookup order is export > bind > id.");
+
+    /// <summary>Generic property write against an existing native control.</summary>
+    public bool Set(string name, string property, object? value)
+    {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+        var c = Require(name);
+        switch (property.ToLowerInvariant())
+        {
+            case "text": c.Text = Str(value); return true;
+            case "visible": c.Visible = Bool(value); return true;
+            case "enabled": c.Enabled = Bool(value); return true;
+            case "focus": if (Bool(value)) c.Focus(); return true;
+            case "width": c.Width = IntOf(value); return true;
+            case "height": c.Height = IntOf(value); return true;
+            case "fg": case "foreground": c.ForeColor = ColorOf(value); return true;
+            case "bg": case "background": c.BackColor = ColorOf(value); return true;
+            case "checked":
+                if (c is CheckBox cb) { cb.Checked = Bool(value); return true; }
+                if (c is RadioButton rb) { rb.Checked = Bool(value); return true; }
+                return false;
+            case "value":
+                switch (c)
+                {
+                    case TrackBar tb: tb.Value = Math.Clamp(IntOf(value), tb.Minimum, tb.Maximum); return true;
+                    case ProgressBar pb: pb.Value = Math.Clamp(IntOf(value), pb.Minimum, pb.Maximum); return true;
+                    case NumericUpDown nud: nud.Value = IntOf(value); return true;
+                    case TextBox txt: txt.Text = Str(value); return true;
+                    default: return false;
+                }
+            case "selected": case "selectedindex":
+                switch (c)
+                {
+                    case ComboBox combo: combo.SelectedIndex = IntOf(value); return true;
+                    case ListBox lb: lb.SelectedIndex = IntOf(value); return true;
+                    case DataGridView grid:
+                        grid.ClearSelection();
+                        var i = IntOf(value);
+                        if (i >= 0 && i < grid.Rows.Count) { grid.Rows[i].Selected = true; grid.CurrentCell = grid.Rows[i].Cells[0]; }
+                        return true;
+                    default: return false;
+                }
+            case "selectedvalue": case "selectedtext":
+                if (c is ComboBox cbv)
+                {
+                    var idx = cbv.Items.IndexOf(Str(value));
+                    if (idx >= 0) { cbv.SelectedIndex = idx; return true; }
+                }
+                return false;
+            default: return false;
+        }
+    }
+
+    /// <summary>Generic property read from an existing native control.</summary>
+    public object? Get(string name, string property)
+    {
+        var c = Require(name);
+        return property.ToLowerInvariant() switch
+        {
+            "text" => c.Text,
+            "visible" => c.Visible,
+            "enabled" => c.Enabled,
+            "width" => c.Width,
+            "height" => c.Height,
+            "checked" => c is CheckBox cb ? cb.Checked : c is RadioButton rb ? rb.Checked : null,
+            "value" => c switch { TrackBar tb => tb.Value, ProgressBar pb => pb.Value, NumericUpDown n => (int)n.Value, TextBox t => t.Text, _ => null },
+            "selected" or "selectedindex" => c switch { ComboBox cx => cx.SelectedIndex, ListBox l => l.SelectedIndex, DataGridView g => g.CurrentRow?.Index ?? -1, _ => null },
+            "selectedvalue" or "selectedtext" => c is ComboBox cv ? cv.SelectedItem?.ToString() : null,
+            _ => null,
+        };
+    }
+
+    public void SetText(string name, string text) => Set(name, "text", text);
+    public void SetVisible(string name, bool visible) => Set(name, "visible", visible);
+    public void SetEnabled(string name, bool enabled) => Set(name, "enabled", enabled);
+    public void SetChecked(string name, bool value) => Set(name, "checked", value);
+    public void SetValue(string name, int value) => Set(name, "value", value);
+    public void SetSelected(string name, int index) => Set(name, "selected", index);
+    public void SetSelectedValue(string name, string value) => Set(name, "selectedvalue", value);
+    public void SetForeground(string name, Color color) => Set(name, "fg", color);
+    public void SetBackground(string name, Color color) => Set(name, "bg", color);
+    public void SetSize(string name, int width, int height) { Set(name, "width", width); Set(name, "height", height); }
+    public void Focus(string name) => Set(name, "focus", true);
+
+    public string GetText(string name) => (string)(Get(name, "text") ?? "");
+    public bool GetChecked(string name) => (bool)(Get(name, "checked") ?? false);
+    public int GetValue(string name) => (int)(Get(name, "value") ?? 0);
+    public int GetSelected(string name) => (int)(Get(name, "selected") ?? -1);
+
+    private static string Str(object? v) => v?.ToString() ?? "";
+    private static bool Bool(object? v) => v switch { bool b => b, string s => s is "true" or "1" or "on", null => false, _ => Convert.ToBoolean(v) };
+    private static int IntOf(object? v) => v switch { int i => i, null => 0, string s => int.TryParse(s, out var p) ? p : 0, _ => Convert.ToInt32(v) };
+    private static Color ColorOf(object? v) => v switch
+    {
+        Color c => c,
+        string s when s.StartsWith('#') => ColorTranslator.FromHtml(s),
+        string s => Color.FromName(s),
+        _ => Color.Empty,
+    };
+
     private void Dispatch(string channel, string payload)
     {
         if (!_handlers.TryGetValue(channel, out var list)) return;
@@ -126,9 +232,15 @@ public sealed class ZuiHost : IDisposable
         };
         control.Margin = new Padding(Theme.Gap / 2);
         if (node.Attrs.TryGetValue("id", out var id)) control.Name = id;
-        var export = node.Attrs.GetValueOrDefault("export",
-            node.Attrs.GetValueOrDefault("bind", node.Attrs.GetValueOrDefault("id", "")));
-        if (export.Length > 0) _exports[export] = control;
+        // Register every lookup name. Resolution priority is export > bind > id:
+        // a more specific name wins, but all three resolve to the control.
+        foreach (var key in new[]
+        {
+            node.Attrs.GetValueOrDefault("id", ""),
+            node.Attrs.GetValueOrDefault("bind", ""),
+            node.Attrs.GetValueOrDefault("export", ""),
+        })
+            if (key.Length > 0) _exports[key] = control;
         if (node.Attrs.ContainsKey("disabled")) control.Enabled = false;
         if (node.Attrs.TryGetValue("on", out var channel)) WireEvent(control, channel);
         parent.Controls.Add(control);

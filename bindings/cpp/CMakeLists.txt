@@ -22,4 +22,8 @@ if(ZUI_BUILD_TESTS)
     add_executable(zui_host_test tests/host_test.cpp)
     target_link_libraries(zui_host_test PRIVATE zui)
     add_test(NAME host COMMAND zui_host_test)
+
+    add_executable(zui_mutation_test tests/mutation_test.cpp)
+    target_link_libraries(zui_mutation_test PRIVATE zui)
+    add_test(NAME mutation COMMAND zui_mutation_test)
 endif()

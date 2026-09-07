@@ -1,5 +1,98 @@
 <?xml version="1.0" encoding="utf-8"?>
 <tasks project="zUI" nextIndex="74">
+  <task id="ZU-63">
+    <name>Implement Incremental Native Control Mutation APIs</name>
+    <prompt>Implement a stable incremental update API for existing zUI controls in both the C# and C++ runtimes.
+
+Applications must be able to build their UI once and subsequently mutate existing native controls without calling Build() again.
+
+Create or formalize a control registry keyed by zUI id/bind/export name.
+
+Provide backend-equivalent operations for common properties including at minimum:
+
+text
+
+visible
+
+enabled
+
+checked
+
+numeric value
+
+selected index/value
+
+foreground/background where supported
+
+width/height where appropriate
+
+focus
+
+read/write control lookup
+
+Prefer a generic property API internally if that makes future controls easier to support, but expose ergonomic strongly typed helpers where useful.
+
+Examples of desired conceptual usage:
+
+ui.SetText("trackTitle", title)
+ui.SetValue("progress", value)
+ui.SetChecked("shuffle", true)
+ui.SetVisible("loading", false)
+
+These calls must modify the existing native control rather than recreate it.
+
+Ensure both C# and C++ implementations have matching semantics.
+
+Add tests proving:
+
+a screen can be built once;
+
+multiple property changes can occur afterward;
+
+HWND/WinForms control instances are preserved;
+
+no rebuild is performed during ordinary property mutation.
+
+Do not introduce a reactive browser-style global render loop.</prompt>
+    <requirements>A screen can be built once, then multiple property changes occur afterward.
+HWND/WinForms control instances are preserved across mutations.
+No rebuild is performed during ordinary property mutation.
+Control registry keyed by zUI id/bind/export name.
+C# and C++ implementations have matching semantics.
+No reactive browser-style global render loop introduced.</requirements>
+    <inProgress>false</inProgress>
+    <done>true</done>
+    <priority>false</priority>
+    <bug>false</bug>
+    <error>false</error>
+    <errorMessage></errorMessage>
+    <lockKey></lockKey>
+    <locked>false</locked>
+    <archived>false</archived>
+    <blockedBy></blockedBy>
+    <dateStarted></dateStarted>
+    <dueDate></dueDate>
+    <dateFinished>2026-09-07 16:19</dateFinished>
+    <commit>false</commit>
+    <build>false</build>
+    <release>false</release>
+    <merge>false</merge>
+    <branch>final-build-push</branch>
+    <tags></tags>
+    <notes>Added incremental mutation API to both hosts. C# ZuiHost: Set/Get generic property channel + typed SetText/SetVisible/SetEnabled/SetChecked/SetValue/SetSelected/SetSelectedValue/SetForeground/SetBackground/SetSize/Focus + Get* readers; registry now registers id, bind AND export keys (priority export&gt;bind&gt;id). C++ zui::Host: set/get + set_text/set_visible/set_enabled/set_checked/set_value/set_selected/set_color/set_size/set_focus + getters; control_kinds_ map; per-HWND colour via WM_CTLCOLOR* in the subclass proc; brush lifetime handled. All calls mutate the existing control/HWND; no Build()/build(). Tests: tests/csharp/ZuiHostTests (17 checks, instance identity preserved) wired into build.ps1 -Config test; bindings/cpp/tests/mutation_test.cpp added as ctest 'mutation' (HWND identity + WS_VISIBLE + child-count-stable sentinel). Full gate green: compiler 12/12, native-only OK, C++ ctest 3/3, C# 0 warnings.</notes>
+    <filesChanged>bindings/csharp/ZuiHost.cs, bindings/cpp/zui.h, bindings/cpp/zui.cpp, bindings/cpp/CMakeLists.txt, bindings/cpp/tests/mutation_test.cpp (new), tests/csharp/ZuiHostTests.csproj (new), tests/csharp/Program.cs (new), build.ps1, core/RUNTIME_CONTRACT.md</filesChanged>
+    <image></image>
+    <subtasks>
+      <subtask done="true">C#: add control registry + generic Get/Set property API on ZuiHost</subtask>
+      <subtask done="true">C#: typed helpers SetText/SetValue/SetChecked/SetVisible/SetEnabled/SetSelected/SetColor/SetSize/Focus</subtask>
+      <subtask done="true">C++: mirror registry + generic + typed mutation API in zui.h/zui.cpp</subtask>
+      <subtask done="true">Ensure lookup resolution order export&gt;bind&gt;id shared by both</subtask>
+      <subtask done="true">C# tests: build once, mutate many, control instances preserved, no rebuild</subtask>
+      <subtask done="true">C++ tests: same semantics via ctest (HWND preserved, build_count stays 1)</subtask>
+      <subtask done="true">Document the mutation API in core/RUNTIME_CONTRACT.md + GRAMMAR/PROTOCOL</subtask>
+      <subtask done="true">Run full test gate</subtask>
+    </subtasks>
+  </task>
   <task id="ZU-62">
     <name>Freeze and Document the zUI Runtime Contract</name>
     <prompt>Freeze and Document the zUI Runtime Contract
