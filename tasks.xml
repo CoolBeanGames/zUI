@@ -1,9 +1,43 @@
 <?xml version="1.0" encoding="utf-8"?>
-<tasks project="zUI" nextIndex="45">
+<tasks project="zUI" nextIndex="50">
   <task id="ZU-43">
     <name>make zUI deploy-ready for a hand-off agent</name>
     <prompt>Close the gap between 'the pieces work' and 'another agent can be handed the repo and integrate it without getting stuck'. In scope: (1) FIX the compiler source= table binding - generated render() glue crashes in a real WebView2 (elist.querySelector('tbody') returns null -&gt; tb.innerHTML throws); (2) docs/QUICKSTART.md - a one-page followable-without-other-docs guide: prereqs (Python 3 for zslc, WebView2 runtime, .NET 8 / MSVC), one copy-paste hello-world (author one .zml -&gt; zslc --backend html -&gt; new ZuiHost(view); LoadAsync -&gt; wire one message each way), and say plainly 'use --backend html + LoadAsync, the csharp/cpp backends are advanced'; (3) cut git tag v0.1.0 + a short compat note; (4) minor: ZuiHost flush buffered Send() on NavigationCompleted too; close stale CI diag issue #1; review the continue-on-error on the C++ sample CI step. Verify the source= fix with ONE minimal headless or WebView2 check - do NOT build a whole demo app.</prompt>
     <requirements>source= table binding renders in a real host (verified); QUICKSTART.md is followable end-to-end alone; v0.1.0 tag pushed.</requirements>
+    <inProgress>true</inProgress>
+    <done>false</done>
+    <bug>false</bug>
+    <error>false</error>
+    <errorMessage></errorMessage>
+    <lockKey>zr9K4m2Q7x</lockKey>
+    <locked>false</locked>
+    <archived>false</archived>
+    <blockedBy></blockedBy>
+    <dateStarted></dateStarted>
+    <dueDate></dueDate>
+    <commit>true</commit>
+    <build>false</build>
+    <release>false</release>
+    <merge>false</merge>
+    <branch>refactor</branch>
+    <tags>coding,binding,docs</tags>
+    <notes></notes>
+    <filesChanged></filesChanged>
+    <image></image>
+    <subtasks>
+      <subtask done="true">fix compiler source= table glue (tbody null in WebView2): tb = e.tBodies[0] || e.appendChild(document.createElement('tbody'))</subtask>
+      <subtask done="true">docs/QUICKSTART.md - prereqs + copy-paste hello-world + 'use --backend html' + link from README/design.txt</subtask>
+      <subtask done="true">add missing prereqs line to design.txt Part 1</subtask>
+      <subtask done="false">git tag v0.1.0 + compat note</subtask>
+      <subtask done="true">ZuiHost: flush pending Send on NavigationCompleted too</subtask>
+      <subtask done="true">close stale CI issue #1; finalize C++ sample CI step (drop continue-on-error or keep intentionally)</subtask>
+      <subtask done="false">Run the focused source-table regression check and full validation, then record metadata, commit, push, and tag the verified branch</subtask>
+    </subtasks>
+  </task>
+  <task id="ZU-47">
+    <name>create a test note taking app with zUI to test it</name>
+    <prompt>make a app to test this new system fully, maybe a spreadsheet editor that saves to csv? call it zSheets</prompt>
+    <requirements></requirements>
     <inProgress>false</inProgress>
     <done>false</done>
     <bug>false</bug>
@@ -15,20 +49,89 @@
     <blockedBy></blockedBy>
     <dateStarted></dateStarted>
     <dueDate></dueDate>
-    <commit>true</commit>
+    <commit>false</commit>
     <build>false</build>
     <release>false</release>
-    <tags>coding,binding,docs</tags>
+    <merge>false</merge>
+    <branch>refactor</branch>
+    <tags></tags>
     <notes></notes>
     <filesChanged></filesChanged>
     <image></image>
-    <subtasks>
-      <subtask done="false">fix compiler source= table glue (tbody null in WebView2): tb = e.tBodies[0] || e.appendChild(document.createElement('tbody'))</subtask>
-      <subtask done="false">docs/QUICKSTART.md - prereqs + copy-paste hello-world + 'use --backend html' + link from README/design.txt</subtask>
-      <subtask done="false">add missing prereqs line to design.txt Part 1</subtask>
-      <subtask done="false">git tag v0.1.0 + compat note</subtask>
-      <subtask done="false">ZuiHost: flush pending Send on NavigationCompleted too</subtask>
-      <subtask done="false">close stale CI issue #1; finalize C++ sample CI step (drop continue-on-error or keep intentionally)</subtask>
-    </subtasks>
+  </task>
+  <task id="ZU-48">
+    <name>second test app</name>
+    <prompt>write a second program (maybe a full on web browser) using wpf. push commit build, then as a second build convert it to use zUI. I want executables for BOTH versions to test)</prompt>
+    <requirements></requirements>
+    <inProgress>false</inProgress>
+    <done>false</done>
+    <bug>false</bug>
+    <error>false</error>
+    <errorMessage></errorMessage>
+    <lockKey></lockKey>
+    <locked>false</locked>
+    <archived>false</archived>
+    <blockedBy></blockedBy>
+    <dateStarted></dateStarted>
+    <dueDate></dueDate>
+    <commit>false</commit>
+    <build>false</build>
+    <release>false</release>
+    <merge>false</merge>
+    <branch>refactor</branch>
+    <tags></tags>
+    <notes></notes>
+    <filesChanged></filesChanged>
+    <image></image>
+  </task>
+  <task id="ZU-49">
+    <name>make sure everything is up to snuff</name>
+    <prompt>make 100% sure this is fully functional and optimized, i want this working RIGHT and no more huge mistakes with implementation. I want ALL ui going forward based on googles HoloUI through this themeing system we have built using our custom widgets, please fix all issues and once they are done let me know and away further instructions</prompt>
+    <requirements></requirements>
+    <inProgress>false</inProgress>
+    <done>false</done>
+    <bug>false</bug>
+    <error>false</error>
+    <errorMessage></errorMessage>
+    <lockKey></lockKey>
+    <locked>false</locked>
+    <archived>false</archived>
+    <blockedBy></blockedBy>
+    <dateStarted></dateStarted>
+    <dueDate></dueDate>
+    <commit>false</commit>
+    <build>false</build>
+    <release>false</release>
+    <merge>false</merge>
+    <branch>refactor</branch>
+    <tags></tags>
+    <notes></notes>
+    <filesChanged></filesChanged>
+    <image></image>
+  </task>
+  <task id="ZU-46">
+    <name>do NOT merge this branch until i tell you otherwise!</name>
+    <prompt>stop processing here so i can test</prompt>
+    <requirements></requirements>
+    <inProgress>false</inProgress>
+    <done>false</done>
+    <bug>false</bug>
+    <error>false</error>
+    <errorMessage></errorMessage>
+    <lockKey></lockKey>
+    <locked>false</locked>
+    <archived>false</archived>
+    <blockedBy></blockedBy>
+    <dateStarted></dateStarted>
+    <dueDate></dueDate>
+    <commit>false</commit>
+    <build>false</build>
+    <release>false</release>
+    <merge>false</merge>
+    <branch>refactor</branch>
+    <tags></tags>
+    <notes></notes>
+    <filesChanged></filesChanged>
+    <image></image>
   </task>
 </tasks>

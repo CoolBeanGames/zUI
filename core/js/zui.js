@@ -1363,26 +1363,37 @@
     sizer.appendChild(pool);
     scrollEl.appendChild(sizer);
 
-    function layout() {
+    var frame = 0, renderedFirst = -1, renderedLast = -1;
+    function layout(force) {
       sizer.style.height = count * rowH + "px";
       var top = scrollEl.scrollTop;
       var first = Math.max(0, Math.floor(top / rowH) - overscan);
       var last = Math.min(count, Math.ceil((top + scrollEl.clientHeight) / rowH) + overscan);
+      if (!force && first === renderedFirst && last === renderedLast) return;
+      renderedFirst = first; renderedLast = last;
       pool.style.transform = "translateY(" + first * rowH + "px)";
-      pool.textContent = "";
+      var fragment = document.createDocumentFragment();
       for (var i = first; i < last; i++) {
         var el = opts.render(i);
         el.style.height = rowH + "px";
-        pool.appendChild(el);
+        fragment.appendChild(el);
       }
+      pool.replaceChildren(fragment);
     }
-    var onScroll = function () { window.requestAnimationFrame(layout); };
+    var onScroll = function () {
+      if (frame) return;
+      frame = window.requestAnimationFrame(function () { frame = 0; layout(false); });
+    };
     scrollEl.addEventListener("scroll", onScroll, { passive: true });
-    layout();
+    layout(true);
     return {
-      refresh: function (n) { if (n != null) count = n; layout(); },
+      refresh: function (n) { if (n != null) count = n; layout(true); },
       scrollToIndex: function (i) { scrollEl.scrollTop = i * rowH; },
-      destroy: function () { scrollEl.removeEventListener("scroll", onScroll); sizer.remove(); }
+      destroy: function () {
+        scrollEl.removeEventListener("scroll", onScroll);
+        if (frame) window.cancelAnimationFrame(frame);
+        sizer.remove();
+      }
     };
   };
 

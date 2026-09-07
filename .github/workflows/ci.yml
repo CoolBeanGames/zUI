@@ -8,7 +8,6 @@ on:
 
 permissions:
   contents: read
-  issues: write
 
 jobs:
   windows:
@@ -64,7 +63,6 @@ jobs:
           nuget install Microsoft.Windows.ImplementationLibrary -Version 1.0.240122.1 -OutputDirectory pkgs -ExcludeVersion
       - name: build C++ WebView2 sample
         id: cppsample
-        continue-on-error: true
         shell: pwsh
         run: |
           $wv2 = "$PWD/pkgs/Microsoft.Web.WebView2"
@@ -87,6 +85,3 @@ jobs:
           "## C++ WebView2 build failed`n`n``````" + "`n" +
             $log.Substring([Math]::Max(0, $log.Length - 15000)) + "`n``````" |
             Out-File -Append $env:GITHUB_STEP_SUMMARY
-      - name: fail if C++ sample failed
-        if: steps.cppsample.outcome == 'failure'
-        run: exit 1

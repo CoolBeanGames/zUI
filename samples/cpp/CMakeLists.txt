@@ -9,6 +9,7 @@ add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../../bindings/cpp zui_core)
 
 add_executable(zui_sample WIN32
     main.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../examples/generated/showcase.g.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/../../bindings/cpp/zui_webview2.cpp
 )
 target_link_libraries(zui_sample PRIVATE zui)

@@ -56,7 +56,11 @@ namespace ZUI
             await core.AddScriptToExecuteOnDocumentCreatedAsync(
                 "window.__zuiHost={postMessage:function(m){window.chrome.webview.postMessage(m);}};");
 
-            core.DOMContentLoaded += (_, _) => { _domReady = true; FlushPending(); };
+            core.DOMContentLoaded += (_, _) => MarkDocumentReady();
+            // Some documents or WebView2 versions can complete navigation
+            // without the DOM callback reaching the host. Completion is a safe
+            // second readiness signal; FlushPending is idempotent when empty.
+            core.NavigationCompleted += (_, e) => { if (e.IsSuccess) MarkDocumentReady(); };
             core.NavigationStarting += (_, _) => _domReady = false;
 
             _ready = true;
@@ -110,6 +114,12 @@ namespace ZUI
         {
             while (_pending.Count > 0)
                 _view.CoreWebView2.PostWebMessageAsString(_pending.Dequeue());
+        }
+
+        private void MarkDocumentReady()
+        {
+            _domReady = true;
+            FlushPending();
         }
 
         private void Dispatch(string? webMessageJson)

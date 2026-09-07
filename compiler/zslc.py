@@ -778,7 +778,7 @@ class HtmlGen:
             elif kind.startswith("table:"):
                 fields = json.loads(kind[6:])
                 lines.append(f"    var e{i}=document.getElementById({j}); if(e{i}){{")
-                lines.append(f"      var tb=e{i}.querySelector('tbody'); tb.innerHTML='';")
+                lines.append(f"      var tb=e{i}.tBodies[0] || e{i}.appendChild(document.createElement('tbody')); tb.innerHTML='';")
                 lines.append(f"      (state[{f}]||[]).forEach(function(rowdata,ix){{")
                 lines.append("        var tr=document.createElement('tr'); tr.setAttribute('data-zui-row', ix);")
                 lines.append(f"        {json.dumps(fields)}.forEach(function(k){{")
@@ -882,24 +882,23 @@ def gen_cpp(prog: Program, func: str, asset_base: str = "zui") -> str:
     doc = hg.gen()
     handlers = sorted({e for e in hg.glue_events.values()})
     raw = 'R"ZSL(' + doc + ')ZSL"'
-    hooks = "\n".join(
-        f"void on_{h.replace('.', '_')}(const std::string& payload);  // implement in host" for h in handlers
-    )
     wires = "\n".join(
-        f'    host.on("{h}", [](const std::string& p){{ on_{h.replace(".", "_")}(p); }});' for h in handlers
+        f'    if (auto it = handlers.find("{h}"); it != handlers.end()) host.on("{h}", it->second);' for h in handlers
     )
     return f"""// generated from ZSL by zslc.py - do not edit.
 #include "zui.h"
 #include <string>
+#include <unordered_map>
 
 namespace {{
-const char* kZslDocument = {raw};
+constexpr const char* kZslDocument = {raw};
 }}
 
-{hooks}
-
-// Call after constructing the host. Wires generated hooks, then renders.
-void {func}(zui::Host& host) {{
+// Call after constructing the host. Native handlers are optional: screens with
+// no host-side behavior still compile and link without generated global stubs.
+void {func}(
+    zui::Host& host,
+    const std::unordered_map<std::string, zui::MessageHandler>& handlers) {{
 {wires}
     host.load_document(kZslDocument);
 }}

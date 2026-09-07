@@ -63,12 +63,31 @@ if ($Config -eq 'test') {
     "$env:ProgramFiles (x86)\Microsoft\Edge\Application\msedge.exe"
   ) | Where-Object { Test-Path $_ } | Select-Object -First 1
   if ($chrome) {
-    foreach ($t in @(
-        @{ file = 'tests/io-selftest.html';  marker = 'IO SELFTEST OK';  name = 'IO' },
-        @{ file = 'tests/nav-selftest.html'; marker = 'NAV SELFTEST OK'; name = 'nav/reactivity' })) {
+    $runtimeTests = @(
+      @{ path = (Join-Path $root 'tests/io-selftest.html');  marker = 'IO SELFTEST OK';  name = 'IO' },
+      @{ path = (Join-Path $root 'tests/nav-selftest.html'); marker = 'NAV SELFTEST OK'; name = 'nav/reactivity' }
+    )
+    if ($pyExe) {
+      $tableHtml = Join-Path $out 'table-binding-selftest.html'
+      & $pyExe (Join-Path $root 'compiler/zslc.py') `
+        (Join-Path $root 'tests/table-binding-selftest.zml') --backend html -o $tableHtml
+      $probe = @'
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  var rows = document.querySelectorAll('#rows tbody tr');
+  document.body.insertAdjacentHTML('beforeend', rows.length === 2
+    ? '<p>TABLE BINDING SELFTEST OK</p>'
+    : '<p>TABLE BINDING SELFTEST FAILED: ' + rows.length + '</p>');
+});
+</script>
+'@
+      (Get-Content -Raw $tableHtml).Replace('</body>', "$probe</body>") | Set-Content -Encoding utf8 $tableHtml
+      $runtimeTests += @{ path = $tableHtml; marker = 'TABLE BINDING SELFTEST OK'; name = 'compiler table binding' }
+    }
+    foreach ($t in $runtimeTests) {
       $tmp = Join-Path $out (($t.name -replace '\W', '_') + '.dom.html')
       & $chrome --headless --disable-gpu --virtual-time-budget=5000 --dump-dom `
-        ("file:///" + (Join-Path $root $t.file).Replace('\', '/')) 2>$null |
+        ("file:///" + $t.path.Replace('\', '/')) 2>$null |
         Out-File -Encoding utf8 $tmp
       if (Select-String -Path $tmp -Pattern $t.marker -Quiet) {
         Write-Host "  $($t.name) self-test: OK"

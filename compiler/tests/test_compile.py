@@ -39,6 +39,15 @@ def test_html_backend():
     _check("plus1" not in doc or "+1)" in doc, "plus1 helper not lowered")
 
 
+def test_table_source_creates_missing_tbody():
+    prog = zslc.compile_source(
+        '<table id="rows" source="rows"><column field="name">Name</column></table>'
+        '<state><var name="rows" value="[]"/></state>')
+    doc = zslc.HtmlGen(prog).gen()
+    _check("tBodies[0]" in doc and "appendChild(document.createElement('tbody'))" in doc,
+           "source table must tolerate WebView2 normalizing away an empty tbody")
+
+
 def test_showcase_all_backends():
     src = open(os.path.join(EXAMPLES, "showcase.zsl"), encoding="utf-8").read()
     prog = zslc.compile_source(src)
@@ -48,6 +57,8 @@ def test_showcase_all_backends():
     _check("public partial class CompiledUi" in cs and "host.On(" in cs, "csharp backend broken")
     cpp = zslc.gen_cpp(prog, "build_ui")
     _check("zui::Host" in cpp and "R\"ZSL(" in cpp, "cpp backend broken")
+    _check("handlers.find" in cpp and "implement in host" not in cpp,
+           "cpp backend must link without undefined callback stubs")
 
 
 def test_parse_error_reported():
