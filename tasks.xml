@@ -4,12 +4,12 @@
     <name>second test app</name>
     <prompt>write a second program (maybe a full on web browser) using wpf. push commit build, then as a second build convert it to use zUI. I want executables for BOTH versions to test)</prompt>
     <requirements></requirements>
-    <inProgress>false</inProgress>
+    <inProgress>true</inProgress>
     <done>false</done>
     <bug>false</bug>
     <error>false</error>
     <errorMessage></errorMessage>
-    <lockKey></lockKey>
+    <lockKey>zr9K4m2Q7x</lockKey>
     <locked>false</locked>
     <archived>false</archived>
     <blockedBy></blockedBy>
@@ -24,6 +24,14 @@
     <notes></notes>
     <filesChanged></filesChanged>
     <image></image>
+    <subtasks>
+      <subtask done="true">Implement and build a native-control WPF WebView2 browser baseline</subtask>
+      <subtask done="false">Commit and push the verified native WPF baseline as the first comparison build</subtask>
+      <subtask done="false">Implement the second WPF browser with Holo zUI chrome and host-to-content navigation wiring</subtask>
+      <subtask done="false">Integrate both browser variants into build.ps1, CI, and sample documentation</subtask>
+      <subtask done="false">Build and smoke-test both executables, then push the zUI conversion commit</subtask>
+      <subtask done="false">Record task metadata, mark completion, and release the ownership lock</subtask>
+    </subtasks>
   </task>
   <task id="ZU-49">
     <name>make sure everything is up to snuff</name>
