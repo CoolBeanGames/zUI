@@ -24,6 +24,12 @@ foreach ($source in Get-ChildItem (Join-Path $root 'examples') -Include *.zsl,*.
   }
 }
 
+# The zForge sample keeps its compiled UI in-tree; regenerate it so it can't drift.
+& $pyExe (Join-Path $root 'compiler/zslc.py') (Join-Path $root 'samples/zforge/CharacterForge.zsl') `
+  --backend csharp --class CharacterForgeUi --namespace ZForge.Generated `
+  -o (Join-Path $root 'samples/zforge/generated/CharacterForgeUi.g.cs')
+if ($LASTEXITCODE -ne 0) { throw 'zslc failed: CharacterForge.zsl' }
+
 if (-not (Get-Command dotnet -ErrorAction SilentlyContinue)) { throw '.NET 8 SDK is required' }
 $csConf = if ($Config -eq 'release') { 'Release' } else { 'Debug' }
 dotnet build (Join-Path $root 'bindings/csharp/ZUI.csproj') -c $csConf -o (Join-Path $out 'csharp') --nologo
@@ -32,6 +38,8 @@ dotnet build (Join-Path $root 'samples/csharp/ZuiSample.csproj') -c $csConf -o (
 if ($LASTEXITCODE -ne 0) { throw 'C# sample build failed' }
 dotnet build (Join-Path $root 'samples/zsheets/ZSheets.csproj') -c $csConf -o (Join-Path $out 'zsheets') --nologo
 if ($LASTEXITCODE -ne 0) { throw 'zSheets build failed' }
+dotnet build (Join-Path $root 'samples/zforge/ZForge.csproj') -c $csConf -o (Join-Path $out 'zforge') --nologo
+if ($LASTEXITCODE -ne 0) { throw 'zForge build failed' }
 if ($Config -eq 'test') {
   dotnet build (Join-Path $root 'tests/csharp/ZuiHostTests.csproj') -c $csConf -o (Join-Path $out 'csharp-tests') --nologo
   if ($LASTEXITCODE -ne 0) { throw 'C# host test build failed' }
@@ -41,6 +49,8 @@ if ($Config -eq 'test') {
   if ($LASTEXITCODE -ne 0) { throw 'native C# control self-test failed' }
   & (Join-Path $out 'zsheets/zSheets.exe') --self-test
   if ($LASTEXITCODE -ne 0) { throw 'zSheets self-test failed' }
+  & (Join-Path $out 'zforge/ZForge.exe') --self-test
+  if ($LASTEXITCODE -ne 0) { throw 'zForge self-test failed' }
 }
 
 function Find-CppToolchain {

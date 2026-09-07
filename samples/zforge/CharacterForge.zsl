@@ -1,0 +1,178 @@
+// zForge — a tabletop character-sheet builder.
+//
+// Authored as ZSL and compiled ahead of time to native Windows controls
+// (`generated/CharacterForgeUi.g.cs`). The source file is a build-time input:
+// it is never parsed or shipped at runtime. See ../../compiler/GRAMMAR.md and
+// ../../core/RUNTIME_CONTRACT.md.
+
+window "zForge — Character Forge" {
+
+  menubar {
+    menu "File" {
+      item "New Character" shortcut="Ctrl+N" -> file.new
+      item "Save Sheet" shortcut="Ctrl+S" -> file.save
+      sep
+      item "Exit" -> file.exit
+    }
+    menu "Roll" {
+      item "Roll Attributes" -> roll.attrs
+      item "Reset Attributes" -> roll.clear
+    }
+    menu "View" {
+      item "Holo (dark)" -> view.holo
+      item "Clean (light)" -> view.clean
+    }
+    menu "Help" {
+      item "About zForge" -> help.about
+    }
+  }
+
+  nav bind:tab {
+    item "Identity" value="identity" active
+    item "Attributes" value="attributes"
+    item "Equipment" value="equipment"
+  }
+
+  workspace {
+    sidebar {
+      section-label "Summary"
+      text "Name: —" id="sumName"
+      text "Class: Wanderer" id="sumClass"
+      text "Points left: 40" id="sumPoints"
+      progress bind:points
+
+      section-label "Skill tree"
+      tree id="skills" {
+        treeitem "Combat" {
+          treeitem "Blade Work"
+          treeitem "Archery"
+        }
+        treeitem "Lore" {
+          treeitem "Arcana"
+          treeitem "History"
+        }
+        treeitem "Survival" {
+          treeitem "Tracking"
+          treeitem "Foraging"
+        }
+      }
+    }
+
+    fill {
+
+      panel "Identity" {
+        row {
+          text "Character name"
+          input bind:name placeholder="e.g. Mirena Vos"
+        }
+        row {
+          text "Title"
+          input bind:title placeholder="the Unproven"
+        }
+        row {
+          text "Ancestry"
+          select bind:ancestry {
+            option "Human"
+            option "Elf"
+            option "Dwarf"
+            option "Halfling"
+            option "Orc"
+          }
+        }
+        row {
+          text "Class"
+          select bind:cls {
+            option "Wanderer"
+            option "Knight"
+            option "Mage"
+            option "Ranger"
+            option "Rogue"
+          }
+        }
+        row {
+          text "Biography"
+          textarea bind:bio placeholder="A few lines of backstory..."
+        }
+        row {
+          check "Left-handed" bind:leftHanded
+          check "Veteran (start one level up)" bind:veteran
+        }
+      }
+
+      panel "Attributes" {
+        row {
+          text "Strength"
+          slider bind:str min=3 max=18
+        }
+        row {
+          text "Dexterity"
+          slider bind:dex min=3 max=18
+        }
+        row {
+          text "Intellect"
+          slider bind:wits min=3 max=18
+        }
+        row {
+          text "Charisma"
+          slider bind:cha min=3 max=18
+        }
+        row {
+          button "Roll 4d6 drop lowest" -> roll.attrs
+          button "Reset to 10" -> roll.clear
+          spinner
+        }
+      }
+
+      panel "Equipment" {
+        table id="pack" source=pack selectable {
+          column "Item" field="item"
+          column "Slot" field="slot"
+          column "Weight" field="weight"
+        }
+        row {
+          text "Add item"
+          input bind:newItem placeholder="Bedroll, Torch, Rations..."
+          button "Add to pack" -> pack.add
+          button "Drop selected" -> pack.drop
+        }
+      }
+
+      row {
+        button "Randomize all" -> forge.random
+        button "Clear sheet" -> file.new
+        button "Save character" kind=primary -> file.save
+      }
+    }
+  }
+
+  statusbar {
+    text "zForge 1.0" id="statusLeft"
+    text "No unsaved changes" id="statusRight"
+  }
+}
+
+state {
+  tab = "identity"
+  name = ""
+  title = ""
+  ancestry = 0
+  cls = 0
+  bio = ""
+  leftHanded = false
+  veteran = false
+  str = 10
+  dex = 10
+  wits = 10
+  cha = 10
+  points = 40
+  newItem = ""
+}
+
+// Reset is expressible purely as declarative state writes; the compiler lowers
+// each line to a State.Set call, which propagates to every bound slider.
+on roll.clear {
+  str = 10
+  dex = 10
+  wits = 10
+  cha = 10
+}
