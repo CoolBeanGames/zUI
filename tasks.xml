@@ -50,7 +50,7 @@ top-level handlers;
 
 unrelated state does not cause unrelated control updates.</requirements>
     <inProgress>false</inProgress>
-    <done>false</done>
+    <done>true</done>
     <priority>false</priority>
     <bug>false</bug>
     <error>false</error>
@@ -68,9 +68,19 @@ unrelated state does not cause unrelated control updates.</requirements>
     <merge>false</merge>
     <branch>final-build-push</branch>
     <tags></tags>
-    <notes></notes>
-    <filesChanged></filesChanged>
+    <notes>Compiler tests (14/14), C# runtime tests (29/29 incl. new ZU-64 block), and tests/check-native.py all green. C++ state_test.cpp is written and wired into CMakeLists (ZUI_BUILD_TESTS); it mirrors the C# scenarios but was not compiled in this environment (no MSVC/CMake toolchain present) - run ctest -R state on a Windows build host to close that gap.</notes>
+    <filesChanged>compiler/zslc.py; compiler/tests/test_compile.py; bindings/csharp/ZuiHost.cs; tests/csharp/Program.cs; bindings/cpp/zui.h; bindings/cpp/zui.cpp; bindings/cpp/CMakeLists.txt; bindings/cpp/tests/state_test.cpp; core/RUNTIME_CONTRACT.md; compiler/GRAMMAR.md; examples/generated/CompiledUi.g.cs; examples/generated/showcase.g.cpp; samples/csharp/generated/ShowcaseUi.g.cs</filesChanged>
     <image></image>
+    <subtasks>
+      <subtask done="true">Compiler: emit state block + top-level handlers into generated C# and C++ (not drop them)</subtask>
+      <subtask done="true">C# runtime: ZuiState model + binding registry (state prop -&gt; control property), one-way apply</subtask>
+      <subtask done="true">C# runtime: two-way binding for editable controls; multiple controls per property; wire top-level handlers</subtask>
+      <subtask done="true">C++ runtime: mirror ZuiState + binding registry + handler wiring</subtask>
+      <subtask done="true">Compiler tests: state/handlers present in generated output for both backends</subtask>
+      <subtask done="true">Runtime tests: initial state, one-way, two-way, multi-bind, top-level handler, isolation</subtask>
+      <subtask done="true">Docs: state/bind/handler semantics in RUNTIME_CONTRACT.md + GRAMMAR.md</subtask>
+      <subtask done="true">Full test gate</subtask>
+    </subtasks>
   </task>
   <task id="ZU-65">
     <name>Normalize Native Event Semantics Across C# and C++</name>

@@ -5,17 +5,41 @@ namespace ZUI.Generated
     {
         public System.Windows.Forms.Control Build(ZUI.ZuiHost host)
         {
-            host.On("file.exit", p => On_file_exit(p));
-            host.On("file.new", p => On_file_new(p));
-            host.On("file.open", p => On_file_open(p));
-            host.On("help.about", p => On_help_about(p));
-            host.On("playlist.new", p => On_playlist_new(p));
-            host.On("track.edit", p => On_track_edit(p));
-            host.On("view.clean", p => On_view_clean(p));
-            host.On("view.holo", p => On_view_holo(p));
-            return host.Build(new ZUI.ZuiNode("root", "", Children: new ZUI.ZuiNode[] {
+            var __root = host.Build(new ZUI.ZuiNode("root", "", Children: new ZUI.ZuiNode[] {
                 new ZUI.ZuiNode("window", "zUI Showcase", new System.Collections.Generic.Dictionary<string,string> {  }, new ZUI.ZuiNode[] { new ZUI.ZuiNode("menubar", "", new System.Collections.Generic.Dictionary<string,string> {  }, new ZUI.ZuiNode[] { new ZUI.ZuiNode("menu", "File", new System.Collections.Generic.Dictionary<string,string> {  }, new ZUI.ZuiNode[] { new ZUI.ZuiNode("item", "New", new System.Collections.Generic.Dictionary<string,string> { ["shortcut"] = "Ctrl+N", ["on"] = "file.new" }, new ZUI.ZuiNode[] {  }), new ZUI.ZuiNode("item", "Open...", new System.Collections.Generic.Dictionary<string,string> { ["shortcut"] = "Ctrl+O", ["on"] = "file.open" }, new ZUI.ZuiNode[] {  }), new ZUI.ZuiNode("sep", "", new System.Collections.Generic.Dictionary<string,string> {  }, new ZUI.ZuiNode[] {  }), new ZUI.ZuiNode("item", "Exit", new System.Collections.Generic.Dictionary<string,string> { ["on"] = "file.exit" }, new ZUI.ZuiNode[] {  }) }), new ZUI.ZuiNode("menu", "View", new System.Collections.Generic.Dictionary<string,string> {  }, new ZUI.ZuiNode[] { new ZUI.ZuiNode("item", "Holo (dark)", new System.Collections.Generic.Dictionary<string,string> { ["on"] = "view.holo" }, new ZUI.ZuiNode[] {  }), new ZUI.ZuiNode("item", "Clean (light)", new System.Collections.Generic.Dictionary<string,string> { ["on"] = "view.clean" }, new ZUI.ZuiNode[] {  }) }), new ZUI.ZuiNode("menu", "Help", new System.Collections.Generic.Dictionary<string,string> {  }, new ZUI.ZuiNode[] { new ZUI.ZuiNode("item", "About zUI", new System.Collections.Generic.Dictionary<string,string> { ["on"] = "help.about" }, new ZUI.ZuiNode[] {  }) }) }), new ZUI.ZuiNode("nav", "", new System.Collections.Generic.Dictionary<string,string> { ["bind"] = "section" }, new ZUI.ZuiNode[] { new ZUI.ZuiNode("item", "Components", new System.Collections.Generic.Dictionary<string,string> { ["value"] = "components", ["active"] = "true" }, new ZUI.ZuiNode[] {  }), new ZUI.ZuiNode("item", "Forms", new System.Collections.Generic.Dictionary<string,string> { ["value"] = "forms" }, new ZUI.ZuiNode[] {  }), new ZUI.ZuiNode("item", "Data", new System.Collections.Generic.Dictionary<string,string> { ["value"] = "data" }, new ZUI.ZuiNode[] {  }) }), new ZUI.ZuiNode("workspace", "", new System.Collections.Generic.Dictionary<string,string> {  }, new ZUI.ZuiNode[] { new ZUI.ZuiNode("sidebar", "", new System.Collections.Generic.Dictionary<string,string> {  }, new ZUI.ZuiNode[] { new ZUI.ZuiNode("section-label", "Library", new System.Collections.Generic.Dictionary<string,string> {  }, new ZUI.ZuiNode[] {  }), new ZUI.ZuiNode("item", "Artists", new System.Collections.Generic.Dictionary<string,string> { ["active"] = "true" }, new ZUI.ZuiNode[] {  }), new ZUI.ZuiNode("item", "Albums", new System.Collections.Generic.Dictionary<string,string> {  }, new ZUI.ZuiNode[] {  }), new ZUI.ZuiNode("item", "Songs", new System.Collections.Generic.Dictionary<string,string> {  }, new ZUI.ZuiNode[] {  }), new ZUI.ZuiNode("section-label", "Playlists", new System.Collections.Generic.Dictionary<string,string> {  }, new ZUI.ZuiNode[] {  }), new ZUI.ZuiNode("item", "Recently Added", new System.Collections.Generic.Dictionary<string,string> {  }, new ZUI.ZuiNode[] {  }) }), new ZUI.ZuiNode("fill", "", new System.Collections.Generic.Dictionary<string,string> {  }, new ZUI.ZuiNode[] { new ZUI.ZuiNode("panel", "Tracks", new System.Collections.Generic.Dictionary<string,string> {  }, new ZUI.ZuiNode[] { new ZUI.ZuiNode("table", "", new System.Collections.Generic.Dictionary<string,string> { ["id"] = "tracks", ["source"] = "tracks", ["selectable"] = "true" }, new ZUI.ZuiNode[] { new ZUI.ZuiNode("column", "#", new System.Collections.Generic.Dictionary<string,string> { ["field"] = "index" }, new ZUI.ZuiNode[] {  }), new ZUI.ZuiNode("column", "Name", new System.Collections.Generic.Dictionary<string,string> { ["field"] = "name" }, new ZUI.ZuiNode[] {  }), new ZUI.ZuiNode("column", "Artist", new System.Collections.Generic.Dictionary<string,string> { ["field"] = "artist" }, new ZUI.ZuiNode[] {  }), new ZUI.ZuiNode("column", "Plays", new System.Collections.Generic.Dictionary<string,string> { ["field"] = "plays" }, new ZUI.ZuiNode[] {  }) }) }), new ZUI.ZuiNode("row", "", new System.Collections.Generic.Dictionary<string,string> {  }, new ZUI.ZuiNode[] { new ZUI.ZuiNode("button", "Edit metadata", new System.Collections.Generic.Dictionary<string,string> { ["on"] = "track.edit" }, new ZUI.ZuiNode[] {  }), new ZUI.ZuiNode("button", "New playlist", new System.Collections.Generic.Dictionary<string,string> { ["kind"] = "primary", ["on"] = "playlist.new" }, new ZUI.ZuiNode[] {  }), new ZUI.ZuiNode("spinner", "", new System.Collections.Generic.Dictionary<string,string> {  }, new ZUI.ZuiNode[] {  }), new ZUI.ZuiNode("progress", "", new System.Collections.Generic.Dictionary<string,string> { ["bind"] = "scan" }, new ZUI.ZuiNode[] {  }) }) }) }), new ZUI.ZuiNode("statusbar", "", new System.Collections.Generic.Dictionary<string,string> {  }, new ZUI.ZuiNode[] { new ZUI.ZuiNode("text", "HAPTICS' IPOD", new System.Collections.Generic.Dictionary<string,string> {  }, new ZUI.ZuiNode[] {  }), new ZUI.ZuiNode("text", "234.6 GB free", new System.Collections.Generic.Dictionary<string,string> {  }, new ZUI.ZuiNode[] {  }) }) })
             }));
+            host.State.Init("section", "components");
+            host.State.Init("scan", "40");
+            host.State.Init("tracks", "[]");
+            host.Bind("section", "section");
+            host.Bind("scan", "scan");
+            host.On("file.exit", p => {
+                On_file_exit(p);
+            });
+            host.On("file.new", p => {
+                On_file_new(p);
+            });
+            host.On("file.open", p => {
+                On_file_open(p);
+            });
+            host.On("help.about", p => {
+                On_help_about(p);
+            });
+            host.On("playlist.new", p => {
+                host.Send("playlist.new", "");
+                On_playlist_new(p);
+            });
+            host.On("track.edit", p => {
+                On_track_edit(p);
+            });
+            host.On("view.clean", p => {
+                On_view_clean(p);
+            });
+            host.On("view.holo", p => {
+                On_view_holo(p);
+            });
+            host.State.Flush();
+            return __root;
         }
 
         partial void On_file_exit(string payload);

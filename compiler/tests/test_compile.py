@@ -63,6 +63,29 @@ def test_showcase_all_backends():
            "cpp backend must link without undefined callback stubs")
 
 
+def test_state_and_handlers_emitted_native():
+    src = open(os.path.join(EXAMPLES, "counter.zsl"), encoding="utf-8").read()
+    prog = zslc.compile_source(src)
+    cs = zslc.gen_csharp(prog, "CounterUi", "ZUI.Generated")
+    _check('host.State.Init("count", "0")' in cs, "state init not emitted (C#)")
+    _check('host.Bind("count", "count")' in cs, "bind not emitted (C#)")
+    _check('host.State.Mutate("count", "plus1")' in cs, "handler mutate not emitted (C#)")
+    _check('host.Send("count", host.State.GetString("count"))' in cs, "handler emit not wired (C#)")
+    cpp = zslc.gen_cpp(prog, "build_ui")
+    _check('host.state().init("count", "0")' in cpp, "state init not emitted (C++)")
+    _check('host.bind("count", "count")' in cpp, "bind not emitted (C++)")
+    _check('host.state().mutate("count", "plus1")' in cpp, "handler mutate not emitted (C++)")
+    _check('host.state().flush()' in cpp, "state flush not emitted (C++)")
+
+
+def test_top_level_handler_without_node_event():
+    prog = zslc.compile_source('col { }\nstate { n = 1 }\non ping { emit("out", n) }')
+    cs = zslc.gen_csharp(prog, "Ui", "Generated")
+    _check('host.On("ping"' in cs, "top-level-only handler must be wired (C#)")
+    cpp = zslc.gen_cpp(prog, "build_ui")
+    _check('host.on("ping"' in cpp, "top-level-only handler must be wired (C++)")
+
+
 def test_parse_error_reported():
     try:
         zslc.compile_source("window { button ->")

@@ -40,6 +40,7 @@ int number(const Node& n, const char* key, int fallback) {
 }
 
 Host::Host(void* native_parent) : parent_(native_parent) {
+    state_.host_ = this;
     INITCOMMONCONTROLSEX init{sizeof(init), ICC_STANDARD_CLASSES | ICC_BAR_CLASSES | ICC_LISTVIEW_CLASSES};
     InitCommonControlsEx(&init);
     SetWindowSubclass(static_cast<HWND>(parent_), reinterpret_cast<SUBCLASSPROC>(&Host::subclass_proc), 1,
@@ -75,6 +76,7 @@ void Host::build(const Node& root) {
     }
     control_channels_.clear();
     control_kinds_.clear();
+    control_binds_.clear();
     for (auto& [hwnd, color] : control_colors_)
         if (color.brush) DeleteObject(static_cast<HGDIOBJ>(color.brush));
     control_colors_.clear();
@@ -208,6 +210,13 @@ bool Host::set(const std::string& name, const std::string& property, const std::
         }
         return false;
     }
+    if ((property == "selectedvalue" || property == "selectedtext") &&
+        (kind == "select" || kind == "dropdown")) {
+        int idx = static_cast<int>(SendMessageW(h, CB_FINDSTRINGEXACT, static_cast<WPARAM>(-1),
+                                                reinterpret_cast<LPARAM>(wide(value).c_str())));
+        if (idx >= 0) { SendMessageW(h, CB_SETCURSEL, idx, 0); return true; }
+        return false;
+    }
     if (property == "fg" || property == "foreground") {
         control_colors_[h].fg = static_cast<unsigned long>(std::stoul(value, nullptr, 0));
         InvalidateRect(h, nullptr, TRUE); return true;
@@ -273,6 +282,76 @@ bool Host::get_checked(const std::string& name) const { return get(name, "checke
 int Host::get_value(const std::string& name) const { auto v = get(name, "value"); try { return std::stoi(v); } catch (...) { return 0; } }
 int Host::get_selected(const std::string& name) const { auto v = get(name, "selected"); try { return std::stoi(v); } catch (...) { return -1; } }
 
+std::string Host::kind_of(void* control) const {
+    auto it = control_kinds_.find(control);
+    return it == control_kinds_.end() ? std::string{} : it->second;
+}
+
+void Host::bind(const std::string& state_name, const std::string& control_name) {
+    state_.add_binding(state_name, control_name);
+    if (void* c = find(control_name)) control_binds_[c] = state_name;
+}
+
+void Host::apply_bound_value(const std::string& control_name, const std::string& value) {
+    void* c = find(control_name);
+    if (!c) return;
+    std::string kind = kind_of(c);
+    if (kind == "check") set(control_name, "checked", value);
+    else if (kind == "slider" || kind == "progress" || kind == "spinner" || kind == "loading")
+        set(control_name, "value", value);
+    else if (kind == "select" || kind == "dropdown") {
+        bool numeric = !value.empty() && (value[0] == '-' || (value[0] >= '0' && value[0] <= '9'));
+        set(control_name, numeric ? "selected" : "selectedvalue", value);
+    }
+    else set(control_name, "text", value);
+}
+
+// ----- State -----
+void State::init(const std::string& name, const std::string& value) { values_[name] = value; }
+std::string State::get_string(const std::string& name) const {
+    auto it = values_.find(name); return it == values_.end() ? std::string{} : it->second;
+}
+int State::get_int(const std::string& name) const {
+    try { return std::stoi(get_string(name)); } catch (...) { return 0; }
+}
+bool State::get_bool(const std::string& name) const {
+    auto v = get_string(name); return v == "true" || v == "1" || v == "on";
+}
+void State::set(const std::string& name, const std::string& value) {
+    auto it = values_.find(name);
+    if (it != values_.end() && it->second == value) return;
+    values_[name] = value;
+    propagate(name);
+}
+void State::mutate(const std::string& name, const std::string& op) {
+    if (op == "plus1") set(name, std::to_string(get_int(name) + 1));
+    else if (op == "minus1") set(name, std::to_string(get_int(name) - 1));
+    else if (op == "toggle" || op == "not") set(name, get_bool(name) ? "false" : "true");
+    else set(name, get_string(op));
+}
+void State::assign(const std::string& name, const std::string& from_name) { set(name, get_string(from_name)); }
+void State::watch(const std::string& name, MessageHandler handler) { watchers_[name].push_back(std::move(handler)); }
+void State::flush() {
+    std::vector<std::string> names;
+    names.reserve(values_.size());
+    for (auto& [k, v] : values_) names.push_back(k);
+    for (auto& n : names) propagate(n);
+}
+void State::add_binding(const std::string& state_name, const std::string& control_name) {
+    auto& list = bindings_[state_name];
+    for (auto& c : list) if (c == control_name) return;
+    list.push_back(control_name);
+}
+void State::propagate(const std::string& name) {
+    if (!propagating_.insert(name).second) return; // reentrancy guard (two-way)
+    auto value = get_string(name);
+    if (auto b = bindings_.find(name); b != bindings_.end() && host_)
+        for (auto& control : b->second) host_->apply_bound_value(control, value);
+    if (auto w = watchers_.find(name); w != watchers_.end())
+        for (auto& handler : w->second) handler(value);
+    propagating_.erase(name);
+}
+
 void Host::dispatch(const std::string& channel, const std::string& payload) {
     auto it = handlers_.find(channel); if (it == handlers_.end()) return;
     for (auto& handler : it->second) handler(payload);
@@ -299,6 +378,25 @@ long long Host::subclass_proc(void* hwnd, unsigned msg, unsigned long long wpara
                     : reinterpret_cast<NMHDR*>(lparam)->hwndFrom;
         auto it = self->control_channels_.find(source);
         if (it != self->control_channels_.end()) self->dispatch(it->second, "");
+        // Two-way binding write-back: mirror the control's current value into state.
+        auto bound = self->control_binds_.find(source);
+        if (bound != self->control_binds_.end()) {
+            std::string kind = self->kind_of(source);
+            std::string value;
+            if (kind == "input" || kind == "textarea") {
+                int len = GetWindowTextLengthW(source);
+                std::wstring buf(len + 1, L'\0');
+                GetWindowTextW(source, buf.data(), len + 1); buf.resize(len);
+                value = narrow(buf);
+            } else if (kind == "check") {
+                value = SendMessageW(source, BM_GETCHECK, 0, 0) == BST_CHECKED ? "true" : "false";
+            } else if (kind == "slider") {
+                value = std::to_string(static_cast<int>(SendMessageW(source, TBM_GETPOS, 0, 0)));
+            } else if (kind == "select" || kind == "dropdown") {
+                value = std::to_string(static_cast<int>(SendMessageW(source, CB_GETCURSEL, 0, 0)));
+            }
+            self->state_.set(bound->second, value);
+        }
     }
     return DefSubclassProc(static_cast<HWND>(hwnd), msg, static_cast<WPARAM>(wparam), static_cast<LPARAM>(lparam));
 }

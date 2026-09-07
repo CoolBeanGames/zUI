@@ -26,4 +26,8 @@ if(ZUI_BUILD_TESTS)
     add_executable(zui_mutation_test tests/mutation_test.cpp)
     target_link_libraries(zui_mutation_test PRIVATE zui)
     add_test(NAME mutation COMMAND zui_mutation_test)
+
+    add_executable(zui_state_test tests/state_test.cpp)
+    target_link_libraries(zui_state_test PRIVATE zui)
+    add_test(NAME state COMMAND zui_state_test)
 endif()

@@ -35,8 +35,54 @@ public sealed class ZuiHost : IDisposable
     private bool _disposed;
     private int _buildCount;
 
-    public ZuiHost(Control parent) => _parent = parent ?? throw new ArgumentNullException(nameof(parent));
+    public ZuiHost(Control parent)
+    {
+        _parent = parent ?? throw new ArgumentNullException(nameof(parent));
+        State = new ZuiState(this);
+    }
+
     public ZuiTheme Theme { get; private set; } = ZuiTheme.Holo;
+
+    /// <summary>The in-process native state model (see core/RUNTIME_CONTRACT.md).</summary>
+    public ZuiState State { get; }
+
+    /// <summary>
+    /// Binds a state property to the natural property of the control registered
+    /// under <paramref name="controlName"/>. One-way for display controls; two-way
+    /// for editable controls (text, check, slider, select). A state change updates
+    /// only the bound controls; it never rebuilds.
+    /// </summary>
+    public void Bind(string stateName, string controlName)
+    {
+        State.AddBinding(stateName, controlName);
+        if (_exports.TryGetValue(controlName, out var control))
+            WireTwoWay(control, stateName);
+    }
+
+    private void WireTwoWay(Control control, string stateName)
+    {
+        switch (control)
+        {
+            case TextBox tb: tb.TextChanged += (_, _) => State.Set(stateName, tb.Text); break;
+            case CheckBox cb: cb.CheckedChanged += (_, _) => State.Set(stateName, cb.Checked ? "true" : "false"); break;
+            case TrackBar sl: sl.ValueChanged += (_, _) => State.Set(stateName, sl.Value.ToString()); break;
+            case ComboBox combo: combo.SelectedIndexChanged += (_, _) => State.Set(stateName, combo.SelectedIndex.ToString()); break;
+        }
+    }
+
+    /// <summary>Pushes a bound state value onto its control's natural property.</summary>
+    internal void ApplyBoundValue(string controlName, string value)
+    {
+        if (!_exports.TryGetValue(controlName, out var control)) return;
+        switch (control)
+        {
+            case CheckBox: Set(controlName, "checked", value); break;
+            case TrackBar or ProgressBar: Set(controlName, "value", value); break;
+            case ComboBox: Set(controlName, int.TryParse(value, out _) ? "selected" : "selectedvalue", value); break;
+            case TextBox: Set(controlName, "text", value); break;
+            default: Set(controlName, "text", value); break;
+        }
+    }
 
     /// <summary>
     /// Constructs the native control tree from compiler-emitted nodes. This is a
@@ -329,6 +375,96 @@ public sealed class ZuiHost : IDisposable
     public void Dispose() { if (_disposed) return; _disposed = true; _handlers.Clear(); _exports.Clear(); }
 
     private sealed class Subscription(Action dispose) : IDisposable
+    {
+        private Action? _dispose = dispose;
+        public void Dispose() { _dispose?.Invoke(); _dispose = null; }
+    }
+}
+
+/// <summary>
+/// zUI's in-process declarative state model. Values are stored as strings (the
+/// same wire form the compiler emits and the event channel carries). A change to
+/// one property notifies only the controls and watchers that depend on it — there
+/// is no global render pass. See core/RUNTIME_CONTRACT.md.
+/// </summary>
+public sealed class ZuiState
+{
+    private readonly ZuiHost _host;
+    private readonly Dictionary<string, string> _values = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, List<string>> _bindings = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, List<Action<string>>> _watchers = new(StringComparer.Ordinal);
+    private readonly HashSet<string> _propagating = new(StringComparer.Ordinal);
+
+    internal ZuiState(ZuiHost host) => _host = host;
+
+    public IReadOnlyCollection<string> Names => _values.Keys;
+
+    /// <summary>Registers an initial value. Does not notify.</summary>
+    public void Init(string name, string value) => _values[name] = value ?? "";
+
+    public string GetString(string name) => _values.GetValueOrDefault(name, "");
+    public int GetInt(string name) => int.TryParse(GetString(name), out var n) ? n : 0;
+    public bool GetBool(string name) => GetString(name) is "true" or "1" or "on";
+
+    /// <summary>Sets a value and notifies dependents when it actually changed.</summary>
+    public void Set(string name, string value)
+    {
+        value ??= "";
+        if (_values.TryGetValue(name, out var current) && current == value) return;
+        _values[name] = value;
+        Propagate(name);
+    }
+
+    /// <summary>Applies a named mutation (<c>plus1</c>, <c>minus1</c>, <c>toggle</c>).</summary>
+    public void Mutate(string name, string op)
+    {
+        switch (op)
+        {
+            case "plus1": Set(name, (GetInt(name) + 1).ToString()); break;
+            case "minus1": Set(name, (GetInt(name) - 1).ToString()); break;
+            case "toggle" or "not": Set(name, GetBool(name) ? "false" : "true"); break;
+            default: Set(name, GetString(op)); break; // treat as "copy from other var"
+        }
+    }
+
+    /// <summary>Copies another property's value into this one.</summary>
+    public void Assign(string name, string fromName) => Set(name, GetString(fromName));
+
+    /// <summary>Subscribes to changes of one property.</summary>
+    public IDisposable Watch(string name, Action<string> handler)
+    {
+        if (!_watchers.TryGetValue(name, out var list)) _watchers[name] = list = new();
+        list.Add(handler);
+        return new Unsub(() => list.Remove(handler));
+    }
+
+    /// <summary>Pushes every current value to its bound controls and watchers.</summary>
+    public void Flush()
+    {
+        foreach (var name in _values.Keys.ToArray()) Propagate(name);
+    }
+
+    internal void AddBinding(string stateName, string controlName)
+    {
+        if (!_bindings.TryGetValue(stateName, out var list)) _bindings[stateName] = list = new();
+        if (!list.Contains(controlName)) list.Add(controlName);
+    }
+
+    private void Propagate(string name)
+    {
+        if (!_propagating.Add(name)) return; // reentrancy guard for two-way bindings
+        try
+        {
+            var value = _values.GetValueOrDefault(name, "");
+            if (_bindings.TryGetValue(name, out var controls))
+                foreach (var control in controls) _host.ApplyBoundValue(control, value);
+            if (_watchers.TryGetValue(name, out var handlers))
+                foreach (var handler in handlers.ToArray()) handler(value);
+        }
+        finally { _propagating.Remove(name); }
+    }
+
+    private sealed class Unsub(Action dispose) : IDisposable
     {
         private Action? _dispose = dispose;
         public void Dispose() { _dispose?.Invoke(); _dispose = null; }

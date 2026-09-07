@@ -67,6 +67,28 @@ Compiling a screen produces a **construction** description. The generated
 `Build()` / `build_ui()` entry point builds the native control tree once. `state`,
 `bind`, top-level `on` handlers, and `source` are declarative relationships that
 the native runtime wires to in-place control mutation — they are never a signal
-to re-run `Build()`. See [../core/RUNTIME_CONTRACT.md](../core/RUNTIME_CONTRACT.md)
-for the frozen contract that generated code and both hosts must honour, including
-C#/C++ semantic parity and the prohibition on any browser/DOM/JS runtime.
+to re-run `Build()`.
+
+### state / bind / handlers
+
+The generated entry point, after building the tree, calls (in order):
+
+1. `State.Init(name, value)` for every `state` entry — string values, seeded but
+   not yet propagated.
+2. `Bind(stateProperty, controlName)` for every node carrying `bind:` — the
+   control name is its `export`, else `id`, else the bind name itself.
+3. `On(channel, …)` for every channel named by a node `->` / `on=` *or* by a
+   top-level `on` block. The generated body lowers each statement
+   (`x = x.plus1` → `Mutate`, `x = y` → `Assign`, `x = 5` → `Set`,
+   `emit(c, x)` → `Send(c, GetString(x))`, `emit(c)` → `Send(c, "")`) and then
+   calls the application hook (`partial void On_<channel>` in C#, the `handlers`
+   map entry in C++).
+4. `State.Flush()` once, applying every seeded value to its bound controls.
+
+A `bind` on an editable control (`input`, `textarea`, `check`, `slider`,
+`select`) is two-way: a user edit writes back to the property. One property may
+be bound to many controls. `Mutate` ops are `plus1`, `minus1`, `toggle`/`not`.
+
+See [../core/RUNTIME_CONTRACT.md](../core/RUNTIME_CONTRACT.md) §3 for the frozen
+contract that generated code and both hosts must honour, including C#/C++
+semantic parity and the prohibition on any browser/DOM/JS runtime.

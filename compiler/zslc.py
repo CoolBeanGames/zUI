@@ -218,12 +218,12 @@ def parse_zml(source: str) -> Program:
             event = element.attrib.get("event", "")
             statements = []
             for child in element:
+                raw = child.attrib.get("value")
+                expr = _value(raw, True) if raw is not None else None
                 if child.tag in ("emit", "call"):
-                    statements.append(Stmt(child.tag, child.attrib.get("channel", child.attrib.get("name", "")),
-                                           _value(child.attrib.get("value"), True)))
+                    statements.append(Stmt(child.tag, child.attrib.get("channel", child.attrib.get("name", "")), expr))
                 elif child.tag in ("set", "assign"):
-                    statements.append(Stmt("assign", child.attrib.get("field", child.attrib.get("name", "")),
-                                           _value(child.attrib.get("value"), True)))
+                    statements.append(Stmt("assign", child.attrib.get("field", child.attrib.get("name", "")), expr))
             program.handlers.setdefault(event, []).extend(statements)
         else: program.roots.append(_xml_node(element))
     return program
@@ -255,6 +255,64 @@ def _events(program: Program) -> list[str]:
     return sorted(result)
 
 
+def _bindings(program: Program) -> list[tuple[str, str]]:
+    """(state property, control lookup name) for every node that carries `bind`."""
+    result: list[tuple[str, str]] = []
+    def visit(node: Node):
+        if node.bind:
+            control = node.attrs.get("export") or node.attrs.get("id") or node.bind
+            result.append((node.bind, str(control)))
+        for child in node.children: visit(child)
+    for root in program.roots: visit(root)
+    return result
+
+
+_MUTATORS = {"plus1", "minus1", "toggle", "not"}
+
+
+def _state_literal(value: Any) -> str:
+    if isinstance(value, bool): return "true" if value else "false"
+    if isinstance(value, (int, float, str)): return str(value)
+    if isinstance(value, list): return "[]"
+    if isinstance(value, dict): return "{}"
+    return ""
+
+
+def _ref_of(expr: Any) -> str | None:
+    if isinstance(expr, dict) and "$ref" in expr: return expr["$ref"]
+    return None
+
+
+# Per-backend method spellings: (send, get_string, mutate, assign, set).
+_CS_CALLS = ("host.Send", "host.State.GetString", "host.State.Mutate", "host.State.Assign", "host.State.Set")
+_CPP_CALLS = ("host.send", "host.state().get_string", "host.state().mutate", "host.state().assign", "host.state().set")
+
+
+def _compile_statements(statements: list[Stmt], calls: tuple[str, str, str, str, str]) -> list[str]:
+    send, get, mutate, assign, setv = calls
+    lines: list[str] = []
+    for stmt in statements:
+        if stmt.op in ("emit", "call"):
+            ref = _ref_of(stmt.expr)
+            if ref is not None:
+                lines.append(f'{send}({_quote(stmt.target)}, {get}({_quote(ref)}));')
+            elif stmt.expr is None:
+                lines.append(f'{send}({_quote(stmt.target)}, "");')
+            else:
+                lines.append(f'{send}({_quote(stmt.target)}, {_quote(_state_literal(stmt.expr))});')
+        elif stmt.op == "assign":
+            ref = _ref_of(stmt.expr)
+            if ref is not None:
+                parts = ref.split(".")
+                if len(parts) == 2 and parts[1] in _MUTATORS:
+                    lines.append(f'{mutate}({_quote(stmt.target)}, {_quote(parts[1])});')
+                else:
+                    lines.append(f'{assign}({_quote(stmt.target)}, {_quote(ref)});')
+            else:
+                lines.append(f'{setv}({_quote(stmt.target)}, {_quote(_state_literal(stmt.expr))});')
+    return lines
+
+
 def _cs_node(node: Node) -> str:
     attrs = ", ".join(f"[{_quote(k)}] = {_quote(v)}" for k, v in _attrs(node).items())
     children = ", ".join(_cs_node(child) for child in node.children)
@@ -265,9 +323,21 @@ def _cs_node(node: Node) -> str:
 
 def gen_csharp(program: Program, class_name: str, namespace: str, asset_base: str = "") -> str:
     roots = ",\n                ".join(_cs_node(node) for node in program.roots)
-    events = _events(program)
-    wires = "\n".join(f'            host.On({_quote(event)}, p => On_{event.replace(".", "_")}(p));' for event in events)
-    hooks = "\n".join(f'        partial void On_{event.replace(".", "_")}(string payload);' for event in events)
+    events = sorted(set(_events(program)) | set(program.handlers))
+    hook = lambda e: "On_" + re.sub(r"\W", "_", e)
+    state_init = "\n".join(
+        f'            host.State.Init({_quote(name)}, {_quote(_state_literal(value))});'
+        for name, value in program.state.items())
+    binds = "\n".join(
+        f'            host.Bind({_quote(prop)}, {_quote(control)});'
+        for prop, control in _bindings(program))
+    wires = []
+    for event in events:
+        body = _compile_statements(program.handlers.get(event, []), _CS_CALLS)
+        body.append(f'{hook(event)}(p);')
+        joined = "\n                ".join(body)
+        wires.append(f'            host.On({_quote(event)}, p => {{\n                {joined}\n            }});')
+    hooks = "\n".join(f'        partial void {hook(event)}(string payload);' for event in events)
     return f'''// <auto-generated> compiled from ZSL/ZML to native WinForms controls. </auto-generated>
 namespace {namespace}
 {{
@@ -275,10 +345,14 @@ namespace {namespace}
     {{
         public System.Windows.Forms.Control Build(ZUI.ZuiHost host)
         {{
-{wires}
-            return host.Build(new ZUI.ZuiNode("root", "", Children: new ZUI.ZuiNode[] {{
+            var __root = host.Build(new ZUI.ZuiNode("root", "", Children: new ZUI.ZuiNode[] {{
                 {roots}
             }}));
+{state_init}
+{binds}
+{chr(10).join(wires)}
+            host.State.Flush();
+            return __root;
         }}
 
 {hooks}
@@ -295,7 +369,25 @@ def _cpp_node(node: Node) -> str:
 
 def gen_cpp(program: Program, func: str, asset_base: str = "") -> str:
     roots = ",\n        ".join(_cpp_node(node) for node in program.roots)
-    wires = "\n".join(f'    if (auto it = handlers.find("{event}"); it != handlers.end()) host.on("{event}", it->second);' for event in _events(program))
+    events = sorted(set(_events(program)) | set(program.handlers))
+    state_init = "\n".join(
+        f'    host.state().init({_quote(name)}, {_quote(_state_literal(value))});'
+        for name, value in program.state.items())
+    binds = "\n".join(
+        f'    host.bind({_quote(prop)}, {_quote(control)});'
+        for prop, control in _bindings(program))
+    wires = []
+    for event in events:
+        stmts = _compile_statements(program.handlers.get(event, []), _CPP_CALLS)
+        if stmts:
+            body = "\n        ".join(stmts)
+            wires.append(
+                f'    host.on({_quote(event)}, [&host, &handlers](const std::string& p) {{\n'
+                f'        {body}\n'
+                f'        if (auto it = handlers.find({_quote(event)}); it != handlers.end()) it->second(p);\n'
+                f'    }});')
+        else:
+            wires.append(f'    if (auto it = handlers.find({_quote(event)}); it != handlers.end()) host.on({_quote(event)}, it->second);')
     return f'''// generated from ZSL/ZML to native Win32 controls - do not edit.
 #include "zui.h"
 #include <string>
@@ -303,10 +395,13 @@ def gen_cpp(program: Program, func: str, asset_base: str = "") -> str:
 
 void {func}(zui::Host& host,
     const std::unordered_map<std::string, zui::MessageHandler>& handlers) {{
-{wires}
     host.build(zui::Node{{"root", "", {{}}, {{
         {roots}
     }}}});
+{state_init}
+{binds}
+{chr(10).join(wires)}
+    host.state().flush();
 }}
 '''
 
