@@ -1,11 +1,44 @@
 <?xml version="1.0" encoding="utf-8"?>
 <tasks project="zUI" nextIndex="62">
+  <task id="ZU-56">
+    <name>update design</name>
+    <prompt>now that you have FULLY corrected the webview stuff, update global design.txt so that every agent knows how to implement the new stuff and delete the old undeeded stuff since we are no longer using web view</prompt>
+    <requirements></requirements>
+    <inProgress>false</inProgress>
+    <done>true</done>
+    <priority>false</priority>
+    <bug>false</bug>
+    <error>false</error>
+    <errorMessage></errorMessage>
+    <lockKey></lockKey>
+    <locked>false</locked>
+    <archived>true</archived>
+    <blockedBy></blockedBy>
+    <dateStarted></dateStarted>
+    <dueDate></dueDate>
+    <commit>true</commit>
+    <build>true</build>
+    <release>true</release>
+    <merge>false</merge>
+    <branch>main</branch>
+    <tags></tags>
+    <notes>Replaced design.txt with the native-only architecture and implementation contract covering compiler flow, WinForms/Win32 component mappings, layout, theme translation, events, lookup, testing, and release rules. Removed the dormant document generator by replacing zslc with a native-only C#/C++ compiler, updated the grammar, and strengthened regression policy. Full test gate passed (12 compiler tests, native policy, clean C#, two CTests); debug/release builds and six smoke checks passed. Pushed a25bd71 and published https://github.com/CoolBeanGames/zUI/releases/tag/zUI_build3.</notes>
+    <filesChanged>design.txt, compiler/zslc.py, compiler/GRAMMAR.md, compiler/tests/test_compile.py, tests/check-native.py, .gitignore, examples/generated/showcase.g.cpp, docs/releases/zUI_build3.md</filesChanged>
+    <image></image>
+    <subtasks>
+      <subtask done="true">Replace obsolete architecture and integration guidance in design.txt with the native compiler/runtime model</subtask>
+      <subtask done="true">Remove the dormant legacy document generator and enforce that only native backends exist</subtask>
+      <subtask done="true">Run the full native test gate and rebuild debug and release artifacts</subtask>
+      <subtask done="true">Commit and push the design cleanup and publish the next numbered GitHub release</subtask>
+    </subtasks>
+  </task>
   <task id="ZU-61">
     <name>native parser confuses same-line sibling with flag</name>
     <prompt>During removal of the legacy generator, the replacement parser consumed a same-line sibling node followed by a string label as a flag. Reproduce with panel { input export=q button " Go\ export=go }. Expected two child nodes; actual parse error at Go. Corrected via next-token lookahead and covered by compiler tests.</prompt>
     <requirements>Same-line sibling nodes parse correctly and the full compiler suite passes</requirements>
     <inProgress>false</inProgress>
     <done>true</done>
+    <priority>false</priority>
     <bug>true</bug>
     <error>false</error>
     <errorMessage></errorMessage>
@@ -39,6 +72,7 @@ DO NOT CLEAR THIS TASK UNTIL THOSE REQUIREMENTS ARE MET</prompt>
 -ZML/CSS used only for themeing, not in the final file</requirements>
     <inProgress>false</inProgress>
     <done>true</done>
+    <priority>false</priority>
     <bug>true</bug>
     <error>false</error>
     <errorMessage></errorMessage>
@@ -72,6 +106,7 @@ DO NOT CLEAR THIS TASK UNTIL THOSE REQUIREMENTS ARE MET</prompt>
     <requirements>C# Find and C++ find resolve id, export, and bind names; native sample smoke tests return zero</requirements>
     <inProgress>false</inProgress>
     <done>true</done>
+    <priority>false</priority>
     <bug>true</bug>
     <error>false</error>
     <errorMessage></errorMessage>
@@ -100,6 +135,7 @@ DO NOT CLEAR THIS TASK UNTIL THOSE REQUIREMENTS ARE MET</prompt>
     <requirements>Native C++ runtime compiles under MSVC with Windows headers and all CTest cases pass</requirements>
     <inProgress>false</inProgress>
     <done>true</done>
+    <priority>false</priority>
     <bug>true</bug>
     <error>false</error>
     <errorMessage></errorMessage>
@@ -128,6 +164,7 @@ DO NOT CLEAR THIS TASK UNTIL THOSE REQUIREMENTS ARE MET</prompt>
     <requirements>C# output uses valid ZuiNode constructor arguments and the generated native sample compiles</requirements>
     <inProgress>false</inProgress>
     <done>true</done>
+    <priority>false</priority>
     <bug>true</bug>
     <error>false</error>
     <errorMessage></errorMessage>
@@ -156,6 +193,7 @@ DO NOT CLEAR THIS TASK UNTIL THOSE REQUIREMENTS ARE MET</prompt>
     <requirements>ZuiHost compiles with no C# diagnostics and native label nodes instantiate successfully</requirements>
     <inProgress>false</inProgress>
     <done>true</done>
+    <priority>false</priority>
     <bug>true</bug>
     <error>false</error>
     <errorMessage></errorMessage>
@@ -184,6 +222,7 @@ DO NOT CLEAR THIS TASK UNTIL THOSE REQUIREMENTS ARE MET</prompt>
     <requirements>Every required Python and dotnet process invoked by build.ps1 is followed by an exit-code check and any nonzero result terminates the build before later success messages.</requirements>
     <inProgress>false</inProgress>
     <done>true</done>
+    <priority>false</priority>
     <bug>true</bug>
     <error>false</error>
     <errorMessage></errorMessage>
@@ -213,6 +252,7 @@ DO NOT CLEAR THIS TASK UNTIL THOSE REQUIREMENTS ARE MET</prompt>
     <requirements>Both C++ Host constructors inject the same __zuiHost bridge; WebView2 flushes queued host messages once per document on DOMContentLoaded or successful NavigationCompleted; automated C++ tests verify constructor setup.</requirements>
     <inProgress>false</inProgress>
     <done>true</done>
+    <priority>false</priority>
     <bug>true</bug>
     <error>false</error>
     <errorMessage></errorMessage>
@@ -243,6 +283,7 @@ DO NOT CLEAR THIS TASK UNTIL THOSE REQUIREMENTS ARE MET</prompt>
     <requirements>The spreadsheet table has a unique sheetGrid ID; every generated cell is a descendant of that visible table; the headless self-test fails on any future SVG/DOM ID collision.</requirements>
     <inProgress>false</inProgress>
     <done>true</done>
+    <priority>false</priority>
     <bug>true</bug>
     <error>false</error>
     <errorMessage></errorMessage>
@@ -273,6 +314,7 @@ DO NOT CLEAR THIS TASK UNTIL THOSE REQUIREMENTS ARE MET</prompt>
     <requirements>InitializeAsync is idempotent; DisposeAsync detaches every WebView2 event installed by the host, prevents later use, and does not retain handlers or queued messages.</requirements>
     <inProgress>false</inProgress>
     <done>true</done>
+    <priority>false</priority>
     <bug>true</bug>
     <error>false</error>
     <errorMessage></errorMessage>
@@ -303,6 +345,7 @@ DO NOT CLEAR THIS TASK UNTIL THOSE REQUIREMENTS ARE MET</prompt>
     <requirements>build.ps1 -Config test exits nonzero whenever any executed headless runtime self-test marker is absent; passing tests remain green.</requirements>
     <inProgress>false</inProgress>
     <done>true</done>
+    <priority>false</priority>
     <bug>true</bug>
     <error>false</error>
     <errorMessage></errorMessage>
@@ -332,6 +375,7 @@ DO NOT CLEAR THIS TASK UNTIL THOSE REQUIREMENTS ARE MET</prompt>
     <requirements>CI 'build' workflow green; C++ core + envelope test verified on CI; C++ WebView2 backend + sample also verified on CI.</requirements>
     <inProgress>false</inProgress>
     <done>true</done>
+    <priority>false</priority>
     <bug>true</bug>
     <error>false</error>
     <errorMessage></errorMessage>
@@ -357,6 +401,7 @@ DO NOT CLEAR THIS TASK UNTIL THOSE REQUIREMENTS ARE MET</prompt>
     <requirements>Root cause of the dead docs tree-nav fixed; components react in-page whether or not a host is attached; every component + doc page + zui.js API re-verified; regression test added.</requirements>
     <inProgress>false</inProgress>
     <done>true</done>
+    <priority>false</priority>
     <bug>true</bug>
     <error>false</error>
     <errorMessage></errorMessage>
@@ -382,6 +427,7 @@ DO NOT CLEAR THIS TASK UNTIL THOSE REQUIREMENTS ARE MET</prompt>
     <requirements>Default theme (:root + themes/holo.css) renders the dark Android Holo look (Holo-blue accent, dark surfaces, accent caps headers). Light design.txt palette preserved as themes/clean.css. All component CSS remains 100% token-driven. Showcases render in Holo; theme switch to clean works.</requirements>
     <inProgress>false</inProgress>
     <done>true</done>
+    <priority>false</priority>
     <bug>true</bug>
     <error>false</error>
     <errorMessage></errorMessage>
@@ -407,6 +453,7 @@ DO NOT CLEAR THIS TASK UNTIL THOSE REQUIREMENTS ARE MET</prompt>
     <requirements>Full test and release builds pass; refactor is merged and pushed to main; the next numbered GitHub release is published with patch notes; no open task records remain.</requirements>
     <inProgress>false</inProgress>
     <done>true</done>
+    <priority>false</priority>
     <bug>false</bug>
     <error>false</error>
     <errorMessage></errorMessage>
@@ -440,6 +487,7 @@ DO NOT CLEAR THIS TASK UNTIL THOSE REQUIREMENTS ARE MET</prompt>
     <requirements></requirements>
     <inProgress>false</inProgress>
     <done>true</done>
+    <priority>false</priority>
     <bug>false</bug>
     <error>false</error>
     <errorMessage></errorMessage>
@@ -473,6 +521,7 @@ DO NOT CLEAR THIS TASK UNTIL THOSE REQUIREMENTS ARE MET</prompt>
     <requirements></requirements>
     <inProgress>false</inProgress>
     <done>true</done>
+    <priority>false</priority>
     <bug>false</bug>
     <error>false</error>
     <errorMessage></errorMessage>
@@ -506,6 +555,7 @@ DO NOT CLEAR THIS TASK UNTIL THOSE REQUIREMENTS ARE MET</prompt>
     <requirements></requirements>
     <inProgress>false</inProgress>
     <done>true</done>
+    <priority>false</priority>
     <bug>false</bug>
     <error>false</error>
     <errorMessage></errorMessage>
@@ -539,6 +589,7 @@ DO NOT CLEAR THIS TASK UNTIL THOSE REQUIREMENTS ARE MET</prompt>
     <requirements>source= table binding renders in a real host (verified); QUICKSTART.md is followable end-to-end alone; v0.1.0 tag pushed.</requirements>
     <inProgress>false</inProgress>
     <done>true</done>
+    <priority>false</priority>
     <bug>false</bug>
     <error>false</error>
     <errorMessage></errorMessage>
@@ -573,6 +624,7 @@ DO NOT CLEAR THIS TASK UNTIL THOSE REQUIREMENTS ARE MET</prompt>
     <requirements>zUI should Actually compile to native code while retaining the themeing, not JUST a html website displayer but a native C# or CPP (or python) app. speed issues should be solved and make it easier on the agents to impliment</requirements>
     <inProgress>false</inProgress>
     <done>true</done>
+    <priority>false</priority>
     <bug>false</bug>
     <error>false</error>
     <errorMessage></errorMessage>
@@ -605,6 +657,7 @@ DO NOT CLEAR THIS TASK UNTIL THOSE REQUIREMENTS ARE MET</prompt>
     <requirements>build.ps1 builds the full project locally - C#, C++ core (+ ctest), and the C++ WebView2 sample - using the toolchain that's actually installed (VS 18 + bundled CMake/Ninja); C++ sample runs without crashing.</requirements>
     <inProgress>false</inProgress>
     <done>true</done>
+    <priority>false</priority>
     <bug>false</bug>
     <error>false</error>
     <errorMessage></errorMessage>
@@ -630,6 +683,7 @@ DO NOT CLEAR THIS TASK UNTIL THOSE REQUIREMENTS ARE MET</prompt>
     <requirements>The C++ binding + WebView2 backend + sample build cleanly with a documented, exact recipe; a CI job proves it on every push; local review fixed the bugs findable without a compiler.</requirements>
     <inProgress>false</inProgress>
     <done>true</done>
+    <priority>false</priority>
     <bug>false</bug>
     <error>false</error>
     <errorMessage></errorMessage>
@@ -655,6 +709,7 @@ DO NOT CLEAR THIS TASK UNTIL THOSE REQUIREMENTS ARE MET</prompt>
     <requirements>The C# sample launches in a real WebView2, renders the full Holo UI, and the host&lt;-&gt;UI message bridge works (device/now-playing received live).</requirements>
     <inProgress>false</inProgress>
     <done>true</done>
+    <priority>false</priority>
     <bug>false</bug>
     <error>false</error>
     <errorMessage></errorMessage>
@@ -680,6 +735,7 @@ DO NOT CLEAR THIS TASK UNTIL THOSE REQUIREMENTS ARE MET</prompt>
     <requirements>The zslc csharp/cpp backends render a real UI: their generated Attach() loads the compiled document through a host method that actually navigates, and a runtime __document channel swaps screens in place. Generated code compiles against the real bindings.</requirements>
     <inProgress>false</inProgress>
     <done>true</done>
+    <priority>false</priority>
     <bug>false</bug>
     <error>false</error>
     <errorMessage></errorMessage>
@@ -707,6 +763,7 @@ Any changes in the future should be reflected in this document</prompt>
     <requirements></requirements>
     <inProgress>false</inProgress>
     <done>true</done>
+    <priority>false</priority>
     <bug>false</bug>
     <error>false</error>
     <errorMessage></errorMessage>
@@ -734,6 +791,7 @@ I will manually populate it to the other agents and projects for now just re-cre
     <requirements></requirements>
     <inProgress>false</inProgress>
     <done>true</done>
+    <priority>false</priority>
     <bug>false</bug>
     <error>false</error>
     <errorMessage></errorMessage>
@@ -759,6 +817,7 @@ I will manually populate it to the other agents and projects for now just re-cre
     <requirements>A runnable C# host sample and a C++ host sample that each open showcase/index.html through their binding and round-trip messages; C# builds via build.ps1; C++ documented + build-wired (needs the WebView2 SDK).</requirements>
     <inProgress>false</inProgress>
     <done>true</done>
+    <priority>false</priority>
     <bug>false</bug>
     <error>false</error>
     <errorMessage></errorMessage>
@@ -784,6 +843,7 @@ I will manually populate it to the other agents and projects for now just re-cre
     <requirements>A complete navigable showcase: every shipped component appears, a theme switcher, and a realistic music-browser mock built only from zUI parts, all matching design.txt.</requirements>
     <inProgress>false</inProgress>
     <done>true</done>
+    <priority>false</priority>
     <bug>false</bug>
     <error>false</error>
     <errorMessage></errorMessage>
@@ -809,6 +869,7 @@ I will manually populate it to the other agents and projects for now just re-cre
     <requirements>Shared interaction behaviours (context menus, dbl-click, drag&amp;drop, global shortcuts incl. Ctrl+Z/Ctrl+Y, Tab order, multi/shift/ctrl selection, tooltips, rename-in-place) live once in zui.js and are reused by every component.</requirements>
     <inProgress>false</inProgress>
     <done>true</done>
+    <priority>false</priority>
     <bug>false</bug>
     <error>false</error>
     <errorMessage></errorMessage>
@@ -834,6 +895,7 @@ I will manually populate it to the other agents and projects for now just re-cre
     <requirements>A new theme is one CSS file re-declaring tokens - zero component changes; enforced by a check. holo (default) + clean shipped and in sync; runtime zui.setTheme + 'theme' channel.</requirements>
     <inProgress>false</inProgress>
     <done>true</done>
+    <priority>false</priority>
     <bug>false</bug>
     <error>false</error>
     <errorMessage></errorMessage>
@@ -859,6 +921,7 @@ I will manually populate it to the other agents and projects for now just re-cre
     <requirements>One consistent monochrome line-icon sprite (16x16, 1.5 stroke, currentColor); all showcase icons come from it; sizing/weight documented; no emoji as UI icons.</requirements>
     <inProgress>false</inProgress>
     <done>true</done>
+    <priority>false</priority>
     <bug>false</bug>
     <error>false</error>
     <errorMessage></errorMessage>
@@ -884,6 +947,7 @@ I will manually populate it to the other agents and projects for now just re-cre
     <requirements>Compact contextual/playback bar matching design.txt PLAYBACK BAR (transport, art, track text, times, scrub, shuffle/repeat, queue pos), visually secondary, generic enough for non-media hosts.</requirements>
     <inProgress>false</inProgress>
     <done>true</done>
+    <priority>false</priority>
     <bug>false</bug>
     <error>false</error>
     <errorMessage></errorMessage>
@@ -909,6 +973,7 @@ I will manually populate it to the other agents and projects for now just re-cre
     <requirements>Reusable status/device bar: disconnected (neutral) vs connected (accent name+dot) states, device name/capacity/free, consistently right-aligned Eject/Sync actions, driven by the 'device' channel. Matches design.txt.</requirements>
     <inProgress>false</inProgress>
     <done>true</done>
+    <priority>false</priority>
     <bug>false</bug>
     <error>false</error>
     <errorMessage></errorMessage>
@@ -934,6 +999,7 @@ I will manually populate it to the other agents and projects for now just re-cre
     <requirements>Compact native-style modal dialog (title/body/footer, not a big rounded card) with correct focus management + Esc/Enter, and a non-modal anchored popover; both drivable from the host.</requirements>
     <inProgress>false</inProgress>
     <done>true</done>
+    <priority>false</priority>
     <bug>false</bug>
     <error>false</error>
     <errorMessage></errorMessage>
@@ -959,6 +1025,7 @@ I will manually populate it to the other agents and projects for now just re-cre
     <requirements>A tree/outline component with expand/collapse, full keyboard nav, single/multi/shift select and rename-in-place; the showcase sidebar uses it and matches design.txt SIDEBAR (square selection, pale-accent, uppercase section headings).</requirements>
     <inProgress>false</inProgress>
     <done>true</done>
+    <priority>false</priority>
     <bug>false</bug>
     <error>false</error>
     <errorMessage></errorMessage>
@@ -984,6 +1051,7 @@ I will manually populate it to the other agents and projects for now just re-cre
     <requirements>Single and dual-thumb sliders, restrained token-driven desktop styling, keyboard-operable (native range), value on the message bus + IO layer.</requirements>
     <inProgress>false</inProgress>
     <done>true</done>
+    <priority>false</priority>
     <bug>false</bug>
     <error>false</error>
     <errorMessage></errorMessage>
@@ -1009,6 +1077,7 @@ I will manually populate it to the other agents and projects for now just re-cre
     <requirements>Checkbox (incl. indeterminate), radio groups, and a restrained toggle switch - all compact, accent-driven, native-keyboard, consistent across hosts; readable/writable via the IO layer.</requirements>
     <inProgress>false</inProgress>
     <done>true</done>
+    <priority>false</priority>
     <bug>false</bug>
     <error>false</error>
     <errorMessage></errorMessage>
@@ -1034,6 +1103,7 @@ I will manually populate it to the other agents and projects for now just re-cre
     <requirements>Compact tables/lists per design.txt: sortable + resizable columns, single/multi/shift/ctrl selection, functional row states only, and a virtualisation helper so a 10k-row list scrolls smoothly (only visible rows in the DOM).</requirements>
     <inProgress>false</inProgress>
     <done>true</done>
+    <priority>false</priority>
     <bug>false</bug>
     <error>false</error>
     <errorMessage></errorMessage>
@@ -1059,6 +1129,7 @@ I will manually populate it to the other agents and projects for now just re-cre
     <requirements>Compact desktop inputs (text/search/number/textarea, readonly) matching design.txt; token-driven validation states with messages; rename-in-place. Value read/write via the IO layer.</requirements>
     <inProgress>false</inProgress>
     <done>true</done>
+    <priority>false</priority>
     <bug>false</bug>
     <error>false</error>
     <errorMessage></errorMessage>
@@ -1084,6 +1155,7 @@ I will manually populate it to the other agents and projects for now just re-cre
     <requirements>Badges (count/dot/warn/error/muted) + inline status glyphs + a compact corner toast stack (capped at 4, kind glyphs, optional action, dismiss, auto-timeout) driven by zui.toast or the 'toast' host channel; never dominates the UI.</requirements>
     <inProgress>false</inProgress>
     <done>true</done>
+    <priority>false</priority>
     <bug>false</bug>
     <error>false</error>
     <errorMessage></errorMessage>
@@ -1109,6 +1181,7 @@ I will manually populate it to the other agents and projects for now just re-cre
     <requirements>Spinner (3 sizes), determinate + indeterminate thin progress bars, labelled-progress, and skeleton placeholders; all restrained, prefers-reduced-motion honoured; progress is host-drivable via the IO layer.</requirements>
     <inProgress>false</inProgress>
     <done>true</done>
+    <priority>false</priority>
     <bug>false</bug>
     <error>false</error>
     <errorMessage></errorMessage>
@@ -1134,6 +1207,7 @@ I will manually populate it to the other agents and projects for now just re-cre
     <requirements>Menu bar and context menus are one keyboard-operable renderer with submenus, mnemonics (&amp;x + Alt), checkable/disabled items and shortcut hints; every activation emits a channel message.</requirements>
     <inProgress>false</inProgress>
     <done>true</done>
+    <priority>false</priority>
     <bug>false</bug>
     <error>false</error>
     <errorMessage></errorMessage>
@@ -1159,6 +1233,7 @@ I will manually populate it to the other agents and projects for now just re-cre
     <requirements>Every stateful component get+set-able through the ZU-35 core; ZSL/ZML export= (and bind:) emit data-zui-id; showcase round-trips values with a demo host; protocol documented.</requirements>
     <inProgress>false</inProgress>
     <done>true</done>
+    <priority>false</priority>
     <bug>false</bug>
     <error>false</error>
     <errorMessage></errorMessage>
@@ -1184,6 +1259,7 @@ I will manually populate it to the other agents and projects for now just re-cre
     <requirements>One two-way value protocol: any [data-zui-id] component is readable via zui.values()/zui.field() and writable via zui.set(); user changes emit {id,kind,value} on 'value'; host can push 'set'/'set-many'/'query'; [data-zui-submit] emits 'submit' with form values; programmatic set is loop-safe. Verified by a 19-assertion headless self-test.</requirements>
     <inProgress>false</inProgress>
     <done>true</done>
+    <priority>false</priority>
     <bug>false</bug>
     <error>false</error>
     <errorMessage></errorMessage>
@@ -1209,6 +1285,7 @@ I will manually populate it to the other agents and projects for now just re-cre
     <requirements>zslc compiles both a '&lt;'-leading ZML file and a brace ZSL file to identical output; ZML supports nesting, attributes, flags, text, self-closing, comments and state/on; example .zml compiles on all backends; tests pass.</requirements>
     <inProgress>false</inProgress>
     <done>true</done>
+    <priority>false</priority>
     <bug>false</bug>
     <error>false</error>
     <errorMessage></errorMessage>
@@ -1234,6 +1311,7 @@ I will manually populate it to the other agents and projects for now just re-cre
     <requirements>Cursor state is controlled through one central manager with a stack so nested operations restore reliably; busy-cursor helper ties to async work.</requirements>
     <inProgress>false</inProgress>
     <done>true</done>
+    <priority>false</priority>
     <bug>false</bug>
     <error>false</error>
     <errorMessage></errorMessage>
@@ -1259,6 +1337,7 @@ I will manually populate it to the other agents and projects for now just re-cre
     <requirements>File drops emit a 'drop' message carrying file paths; internal drag-to-reorder works in a list and emits the new order.</requirements>
     <inProgress>false</inProgress>
     <done>true</done>
+    <priority>false</priority>
     <bug>false</bug>
     <error>false</error>
     <errorMessage></errorMessage>
@@ -1284,6 +1363,7 @@ I will manually populate it to the other agents and projects for now just re-cre
     <requirements>Nav strip and tab strips act as native desktop tabs: click + arrow/Home/End keyboard selection with roving tabindex, ARIA tablist/tab/tabpanel roles, closeable tabs, horizontal overflow; selection emits the 'tab' channel (close emits 'tab-close').</requirements>
     <inProgress>false</inProgress>
     <done>true</done>
+    <priority>false</priority>
     <bug>false</bug>
     <error>false</error>
     <errorMessage></errorMessage>
@@ -1309,6 +1389,7 @@ I will manually populate it to the other agents and projects for now just re-cre
     <requirements>Token-driven layout utilities (flex row/col/fill, full 4-24 gap+padding scale, alignment, scroll containers, divided stack, labelled form grid, sidebar, splitter, responsive grid) that compose host layouts without any custom CSS.</requirements>
     <inProgress>false</inProgress>
     <done>true</done>
+    <priority>false</priority>
     <bug>false</bug>
     <error>false</error>
     <errorMessage></errorMessage>
@@ -1334,6 +1415,7 @@ I will manually populate it to the other agents and projects for now just re-cre
     <requirements>Full button set (default/primary/icon/toggle/split/busy/group), all visually restrained per design.txt, keyboard &amp; AT operable via native &lt;button&gt; + aria-pressed.</requirements>
     <inProgress>false</inProgress>
     <done>true</done>
+    <priority>false</priority>
     <bug>false</bug>
     <error>false</error>
     <errorMessage></errorMessage>
@@ -1359,6 +1441,7 @@ I will manually populate it to the other agents and projects for now just re-cre
     <requirements>Thin neutral desktop scrollbars applied to every scroll container in a zUI window; identical across the WebView2-based C# and C++ hosts; stable-gutter and overlay opt-ins available.</requirements>
     <inProgress>false</inProgress>
     <done>true</done>
+    <priority>false</priority>
     <bug>false</bug>
     <error>false</error>
     <errorMessage></errorMessage>
@@ -1384,6 +1467,7 @@ I will manually populate it to the other agents and projects for now just re-cre
     <requirements>Keyboard-operable select, and one shared popover-menu renderer (zui.menu) used by dropdowns, the menu bar and context menus.</requirements>
     <inProgress>false</inProgress>
     <done>true</done>
+    <priority>false</priority>
     <bug>false</bug>
     <error>false</error>
     <errorMessage></errorMessage>
@@ -1409,6 +1493,7 @@ I will manually populate it to the other agents and projects for now just re-cre
     <requirements>Showcase window follows design.txt WINDOW STRUCTURE (title bar, menu, nav strip, workspace, status/device bar, contextual bar) with subtle separators; title-bar controls and app-region drag wired for a native host.</requirements>
     <inProgress>false</inProgress>
     <done>true</done>
+    <priority>false</priority>
     <bug>false</bug>
     <error>false</error>
     <errorMessage></errorMessage>
@@ -1434,6 +1519,7 @@ I will manually populate it to the other agents and projects for now just re-cre
     <requirements>Multi-panel browser layout renders per design.txt with draggable vertical splitters between panes.</requirements>
     <inProgress>false</inProgress>
     <done>true</done>
+    <priority>false</priority>
     <bug>false</bug>
     <error>false</error>
     <errorMessage></errorMessage>
@@ -1459,6 +1545,7 @@ I will manually populate it to the other agents and projects for now just re-cre
     <requirements>Typography tokens documented and applied through a single layer; no component CSS hard-codes font size/family/weight/line-height.</requirements>
     <inProgress>false</inProgress>
     <done>true</done>
+    <priority>false</priority>
     <bug>false</bug>
     <error>false</error>
     <errorMessage></errorMessage>
@@ -1484,6 +1571,7 @@ I will manually populate it to the other agents and projects for now just re-cre
     <requirements>The holo design is implemented and visibly renders: a themed component showcase plus a realistic music-browser screen built only from zUI parts; project builds to builds/debug and builds/release.</requirements>
     <inProgress>false</inProgress>
     <done>true</done>
+    <priority>false</priority>
     <bug>false</bug>
     <error>false</error>
     <errorMessage></errorMessage>
@@ -1509,6 +1597,7 @@ I will manually populate it to the other agents and projects for now just re-cre
     <requirements>A .zsl language with a documented grammar and an ahead-of-time compiler (no runtime interpretation) that emits a working zUI document and native C#/C++ host code; example programs compile and compiler tests pass.</requirements>
     <inProgress>false</inProgress>
     <done>true</done>
+    <priority>false</priority>
     <bug>false</bug>
     <error>false</error>
     <errorMessage></errorMessage>
@@ -1534,6 +1623,7 @@ I will manually populate it to the other agents and projects for now just re-cre
     <requirements>tasks created</requirements>
     <inProgress>false</inProgress>
     <done>true</done>
+    <priority>false</priority>
     <bug>false</bug>
     <error>false</error>
     <errorMessage></errorMessage>
@@ -1575,6 +1665,7 @@ I will manually populate it to the other agents and projects for now just re-cre
     <requirements>bones of system are up and running</requirements>
     <inProgress>false</inProgress>
     <done>true</done>
+    <priority>false</priority>
     <bug>false</bug>
     <error>false</error>
     <errorMessage></errorMessage>
