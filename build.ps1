@@ -42,13 +42,16 @@ foreach ($c in 'py','python','python3') { if (Get-Command $c -ErrorAction Silent
 if ($pyExe) {
   if ($Config -eq 'test') {
     & $pyExe (Join-Path $root 'compiler/tests/test_compile.py')
+    if ($LASTEXITCODE -ne 0) { throw 'compiler tests failed' }
     & $pyExe (Join-Path $root 'tests/check-tokens.py')
+    if ($LASTEXITCODE -ne 0) { throw 'token/Holo policy check failed' }
   }
   $gen = Join-Path $out 'examples'
   New-Item -ItemType Directory -Force -Path $gen | Out-Null
   Get-ChildItem (Join-Path $root 'examples') -Include *.zsl,*.zml -Recurse | ForEach-Object {
     $out2 = Join-Path $gen ($_.BaseName + $_.Extension.Replace('.', '-') + '.html')
     & $pyExe (Join-Path $root 'compiler/zslc.py') $_.FullName --backend html -o $out2
+    if ($LASTEXITCODE -ne 0) { throw "zslc failed for $($_.FullName)" }
   }
   Write-Host "  compiled ZSL examples"
 } else {
@@ -71,6 +74,7 @@ if ($Config -eq 'test') {
       $tableHtml = Join-Path $out 'table-binding-selftest.html'
       & $pyExe (Join-Path $root 'compiler/zslc.py') `
         (Join-Path $root 'tests/table-binding-selftest.zml') --backend html -o $tableHtml
+      if ($LASTEXITCODE -ne 0) { throw 'table-binding self-test compilation failed' }
       $probe = @'
 <script>
 document.addEventListener('DOMContentLoaded', function () {
@@ -92,7 +96,7 @@ document.addEventListener('DOMContentLoaded', function () {
       if (Select-String -Path $tmp -Pattern $t.marker -Quiet) {
         Write-Host "  $($t.name) self-test: OK"
       } else {
-        Write-Warning "  $($t.name) self-test FAILED (see $tmp)"
+        throw "$($t.name) self-test FAILED (see $tmp)"
       }
     }
   } else {
@@ -104,13 +108,18 @@ document.addEventListener('DOMContentLoaded', function () {
 if (Get-Command dotnet -ErrorAction SilentlyContinue) {
   $csConf = if ($Config -eq 'release') { 'Release' } else { 'Debug' }
   dotnet build (Join-Path $root 'bindings/csharp/ZUI.csproj') -c $csConf -o (Join-Path $out 'csharp')
+  if ($LASTEXITCODE -ne 0) { throw 'C# binding build failed' }
   dotnet build (Join-Path $root 'samples/csharp/ZuiSample.csproj') -c $csConf -o (Join-Path $out 'sample-csharp')
+  if ($LASTEXITCODE -ne 0) { throw 'C# sample build failed' }
   $zSheetsOut = Join-Path $out 'zsheets'
   dotnet build (Join-Path $root 'samples/zsheets/ZSheets.csproj') -c $csConf -o $zSheetsOut
+  if ($LASTEXITCODE -ne 0) { throw 'zSheets build failed' }
   $nativeBrowserOut = Join-Path $out 'wpf-browser-native'
   $zuiBrowserOut = Join-Path $out 'wpf-browser-zui'
   dotnet build (Join-Path $root 'samples/wpf-browser-native/WpfBrowserNative.csproj') -c $csConf -o $nativeBrowserOut
+  if ($LASTEXITCODE -ne 0) { throw 'native WPF browser build failed' }
   dotnet build (Join-Path $root 'samples/wpf-browser-zui/WpfBrowserZui.csproj') -c $csConf -o $zuiBrowserOut
+  if ($LASTEXITCODE -ne 0) { throw 'zUI WPF browser build failed' }
   if ($Config -eq 'test') {
     & (Join-Path $zSheetsOut 'zSheets.exe') --self-test
     if ($LASTEXITCODE -ne 0) { throw 'zSheets CSV self-test failed' }

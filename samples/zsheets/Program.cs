@@ -16,6 +16,7 @@ internal static class Program
         var view = new WebView2 { Dock = DockStyle.Fill };
         form.Controls.Add(view);
         var host = new ZuiHost(view);
+        _ = ZuiHost.GetSharedEnvironmentAsync(); // warm WebView2 while the window is assembled
         string? currentPath = null;
 
         void SetPath(string? path)

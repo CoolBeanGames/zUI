@@ -2,7 +2,10 @@
 <html lang="en" data-zui-theme="holo">
 <head>
   <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-  <link rel="stylesheet" href="zui/css/zui.css"><link rel="stylesheet" href="zui/css/themes/holo.css">
+  <!-- The compact browser chrome loads only its shared widgets instead of the
+       full zUI catalogue (20 component imports). -->
+  <link rel="stylesheet" href="zui/css/tokens.css"><link rel="stylesheet" href="zui/css/fonts.css"><link rel="stylesheet" href="zui/css/base.css">
+  <link rel="stylesheet" href="zui/css/components/button.css"><link rel="stylesheet" href="zui/css/components/input.css"><link rel="stylesheet" href="zui/css/themes/holo.css">
   <style>
     html,body{height:100%;margin:0;overflow:hidden;background:var(--zui-bg-app)}
     .zb-chrome{height:100%;display:flex;flex-direction:column;background:var(--zui-bg-surface-alt);border-bottom:var(--zui-border-w) solid var(--zui-border-strong)}
@@ -24,7 +27,7 @@
   </nav>
   <div class="zb-status" id="status">Ready</div>
 </header>
-<script src="zui/icons/sprite.js"></script><script src="zui/js/zui.js"></script>
+<script src="zui/js/zui.js"></script>
 <script>
 (function(){
   var address=document.getElementById('address'),status=document.getElementById('status');

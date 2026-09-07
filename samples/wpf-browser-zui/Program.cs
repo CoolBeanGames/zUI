@@ -45,6 +45,7 @@ internal static class Program
         layout.Children.Add(chromeSurface); layout.Children.Add(contentSurface);
         window.Content = layout;
         var chrome = new ZuiHost(chromeView);
+        var environment = ZuiHost.GetSharedEnvironmentAsync();
 
         void PublishState(string status = "Ready")
         {
@@ -66,8 +67,10 @@ internal static class Program
 
         window.Loaded += async (_, _) =>
         {
-            await chrome.InitializeAsync();
-            await contentView.EnsureCoreWebView2Async();
+            var sharedEnvironment = await environment;
+            await Task.WhenAll(
+                chrome.InitializeAsync(),
+                contentView.EnsureCoreWebView2Async(sharedEnvironment));
             chrome.On("browser.navigate", p => Navigate(p.ValueKind == JsonValueKind.String ? p.GetString() ?? "" : p.GetProperty("url").GetString() ?? ""));
             chrome.On("browser.action", p =>
             {

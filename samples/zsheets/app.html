@@ -4,7 +4,11 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>zSheets</title>
-  <link rel="stylesheet" href="zui/css/zui.css">
+  <!-- App-specific fast path: load only the shared widgets this screen uses,
+       avoiding the full component catalogue on startup. -->
+  <link rel="stylesheet" href="zui/css/tokens.css"><link rel="stylesheet" href="zui/css/fonts.css"><link rel="stylesheet" href="zui/css/base.css">
+  <link rel="stylesheet" href="zui/css/components/layout.css"><link rel="stylesheet" href="zui/css/components/window.css"><link rel="stylesheet" href="zui/css/components/button.css">
+  <link rel="stylesheet" href="zui/css/components/scrollbar.css"><link rel="stylesheet" href="zui/css/components/notification.css">
   <link rel="stylesheet" href="zui/css/themes/holo.css">
   <style>
     html,body,.zs-app{height:100%;margin:0}.zs-app{display:flex;flex-direction:column;background:var(--zui-bg-app);color:var(--zui-text)}
@@ -31,28 +35,27 @@
     <button class="zui-btn" data-action="delete-col">Delete column</button>
     <span class="zs-name" id="fileName">Untitled.csv</span>
   </div>
-  <div class="zs-grid-wrap zui-scroll--stable"><table class="zs-grid" id="grid"></table></div>
+  <div class="zs-grid-wrap zui-scroll--stable"><table class="zs-grid" id="sheetGrid"></table></div>
   <footer class="zs-status"><span id="cellName">A1</span><span id="dimensions"></span><span id="saveState">Ready</span></footer>
 </main>
-<script src="zui/icons/sprite.js"></script>
 <script src="zui/js/zui.js"></script>
 <script>
 (function(){
   var letters=function(i){var s='';do{s=String.fromCharCode(65+i%26)+s;i=Math.floor(i/26)-1}while(i>=0);return s};
   var sheet={headers:Array.from({length:8},function(_,i){return letters(i)}),rows:Array.from({length:24},function(){return Array(8).fill('')})};
-  var active={r:0,c:0},dirty=false,grid=document.getElementById('grid');
+  var active={r:0,c:0},dirty=false,sheetGrid=document.getElementById('sheetGrid');
   function normalize(){var w=Math.max(1,sheet.headers.length);sheet.headers=sheet.headers.slice(0,w);sheet.rows=sheet.rows.map(function(r){r=r.slice(0,w);while(r.length<w)r.push('');return r});if(!sheet.rows.length)sheet.rows=[Array(w).fill('')]}
   function status(text){document.getElementById('saveState').textContent=text}
   function changed(){dirty=true;status('Modified');document.title='* zSheets'}
   function render(){normalize();var h='<thead><tr><th class="zs-row-head"></th>'+sheet.headers.map(function(x,i){return '<th contenteditable="true" data-header="'+i+'">'+esc(x)+'</th>'}).join('')+'</tr></thead><tbody>';
-    sheet.rows.forEach(function(row,r){h+='<tr><th class="zs-row-head">'+(r+1)+'</th>'+row.map(function(v,c){return '<td contenteditable="true" data-r="'+r+'" data-c="'+c+'" tabindex="0">'+esc(v)+'</td>'}).join('')+'</tr>'});grid.innerHTML=h+'</tbody>';dimensions()}
+    sheet.rows.forEach(function(row,r){h+='<tr><th class="zs-row-head">'+(r+1)+'</th>'+row.map(function(v,c){return '<td contenteditable="true" data-r="'+r+'" data-c="'+c+'" tabindex="0">'+esc(v)+'</td>'}).join('')+'</tr>'});sheetGrid.innerHTML=h+'</tbody>';dimensions()}
   function esc(v){var d=document.createElement('div');d.textContent=v==null?'':String(v);return d.innerHTML}
   function dimensions(){document.getElementById('dimensions').textContent=sheet.rows.length+' rows × '+sheet.headers.length+' columns'}
   function payload(){return{headers:sheet.headers,rows:sheet.rows}}
-  function focusCell(r,c){r=Math.max(0,Math.min(sheet.rows.length-1,r));c=Math.max(0,Math.min(sheet.headers.length-1,c));var el=grid.querySelector('[data-r="'+r+'"][data-c="'+c+'"]');if(el){active={r:r,c:c};el.focus();document.getElementById('cellName').textContent=letters(c)+(r+1)}}
-  grid.addEventListener('focusin',function(e){if(e.target.dataset.r!=null){active={r:+e.target.dataset.r,c:+e.target.dataset.c};document.getElementById('cellName').textContent=letters(active.c)+(active.r+1)}});
-  grid.addEventListener('input',function(e){if(e.target.dataset.header!=null)sheet.headers[+e.target.dataset.header]=e.target.textContent;else if(e.target.dataset.r!=null)sheet.rows[+e.target.dataset.r][+e.target.dataset.c]=e.target.textContent;changed()});
-  grid.addEventListener('keydown',function(e){if(e.target.dataset.r==null)return;var r=+e.target.dataset.r,c=+e.target.dataset.c,n=null;if(e.key==='ArrowDown')n=[r+1,c];else if(e.key==='ArrowUp')n=[r-1,c];else if(e.key==='Tab')n=[r,c+(e.shiftKey?-1:1)];else if(e.key==='Enter')n=[r+1,c];if(n){e.preventDefault();focusCell(n[0],n[1])}});
+  function focusCell(r,c){r=Math.max(0,Math.min(sheet.rows.length-1,r));c=Math.max(0,Math.min(sheet.headers.length-1,c));var el=sheetGrid.querySelector('[data-r="'+r+'"][data-c="'+c+'"]');if(el){active={r:r,c:c};el.focus();document.getElementById('cellName').textContent=letters(c)+(r+1)}}
+  sheetGrid.addEventListener('focusin',function(e){if(e.target.dataset.r!=null){active={r:+e.target.dataset.r,c:+e.target.dataset.c};document.getElementById('cellName').textContent=letters(active.c)+(active.r+1)}});
+  sheetGrid.addEventListener('input',function(e){if(e.target.dataset.header!=null)sheet.headers[+e.target.dataset.header]=e.target.textContent;else if(e.target.dataset.r!=null)sheet.rows[+e.target.dataset.r][+e.target.dataset.c]=e.target.textContent;changed()});
+  sheetGrid.addEventListener('keydown',function(e){if(e.target.dataset.r==null)return;var r=+e.target.dataset.r,c=+e.target.dataset.c,n=null;if(e.key==='ArrowDown')n=[r+1,c];else if(e.key==='ArrowUp')n=[r-1,c];else if(e.key==='Tab')n=[r,c+(e.shiftKey?-1:1)];else if(e.key==='Enter')n=[r+1,c];if(n){e.preventDefault();focusCell(n[0],n[1])}});
   document.querySelector('.zs-toolbar').addEventListener('click',function(e){var a=e.target.dataset.action;if(!a)return;if(a==='new'){sheet={headers:Array.from({length:8},function(_,i){return letters(i)}),rows:Array.from({length:24},function(){return Array(8).fill('')})};dirty=false;render();zui.send('file.new');status('New sheet')}
     else if(a==='open')zui.send('file.open');else if(a==='save'){zui.send('file.save',payload());status('Saving…')}else if(a==='save-as'){zui.send('file.save-as',payload());status('Saving…')}
     else if(a==='add-row'){sheet.rows.splice(active.r+1,0,Array(sheet.headers.length).fill(''));changed();render();focusCell(active.r+1,active.c)}
@@ -62,13 +65,21 @@
   zui.receive('sheet-load',function(p){if(!p)return;sheet={headers:p.headers||['A'],rows:p.rows||[]};active={r:0,c:0};dirty=false;render();status('Loaded');focusCell(0,0)});
   zui.receive('file-status',function(p){dirty=false;document.getElementById('fileName').textContent=p.name;status('Saved');document.title='zSheets — '+p.name});
   zui.receive('file-error',function(m){status('Error');zui.toast(String(m),{kind:'danger'})});
-  window.addEventListener('beforeunload',function(e){if(dirty){e.preventDefault();e.returnValue=''}});render();focusCell(0,0);
-  if(new URLSearchParams(location.search).has('selftest')){
-    document.querySelector('[data-action="add-row"]').click();
-    document.querySelector('[data-action="add-col"]').click();
-    var ok=sheet.rows.length===25&&sheet.headers.length===9&&grid.querySelectorAll('tbody td').length===225;
-    document.body.insertAdjacentHTML('beforeend','<p>'+(ok?'ZSHEETS SELFTEST OK':'ZSHEETS SELFTEST FAILED')+'</p>');
-  }
+  window.addEventListener('beforeunload',function(e){if(dirty){e.preventDefault();e.returnValue=''}});
+  document.addEventListener('DOMContentLoaded',function(){
+    // zui.js wires the static chrome first; build the large editable grid after
+    // that initial selector pass so startup cost does not scale with cell count.
+    render();focusCell(0,0);
+    if(new URLSearchParams(location.search).has('selftest')){
+      document.querySelector('[data-action="add-row"]').click();
+      document.querySelector('[data-action="add-col"]').click();
+      var cells=sheetGrid.querySelectorAll('tbody td');
+      var ok=sheetGrid.tagName==='TABLE'&&sheetGrid.isConnected&&sheetGrid.getClientRects().length>0&&
+        getComputedStyle(sheetGrid).display!=='none'&&sheet.rows.length===25&&sheet.headers.length===9&&
+        cells.length===225&&Array.prototype.every.call(cells,function(cell){return cell.closest('table')===sheetGrid});
+      document.body.insertAdjacentHTML('beforeend','<p>'+(ok?'ZSHEETS SELFTEST OK':'ZSHEETS SELFTEST FAILED')+'</p>');
+    }
+  });
 })();
 </script>
 </body>

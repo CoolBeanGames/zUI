@@ -102,10 +102,13 @@ scroll positions, both directions. Full table in `core/PROTOCOL.md`.
 
 ## 5. Keep it consistent
 
-- `build.ps1 -Config test` runs the compiler tests, the runtime IO self-test and
-  `tests/check-tokens.py` (which fails if any component CSS hard-codes a colour).
+- `build.ps1 -Config test` runs the compiler tests, runtime/app self-tests and
+  `tests/check-tokens.py` (which fails if component/app CSS hard-codes a colour,
+  uses an undefined token, or a first-party zUI surface does not default to Holo).
 - When you add a reusable widget: give it an IO adapter in `core/js/zui.js`, a
   row in `core/PROTOCOL.md`, and a token-only stylesheet (no literal colours).
+- The native WPF browser under `samples/wpf-browser-native/` is a deliberate
+  before/after comparison only. It is not an exception for future application UI.
 - A new theme is ONE file re-declaring the tokens — never touch component CSS.
 
 --------------------------------------------------------------------------------

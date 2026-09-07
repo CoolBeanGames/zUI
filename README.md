@@ -125,7 +125,8 @@ and the C++ WebView2 backend + sample against pinned WebView2/WIL packages.
 
 ## Status
 
-Task ZU-1: base systems / "bones". Component CSS, the token system, the JS runtime,
-both bindings and the showcase shell are in place. Later tasks flesh out
-individual widgets (ZU-2), the UI scripting language (ZU-3) and the full holo
-implementation (ZU-4).
+`v0.1.0` is the integration baseline. The Holo token system, component runtime,
+ZSL/ZML compiler, C# and C++ native-host bindings, generated native samples,
+zSheets CSV editor, and WPF browser comparison all build from `build.ps1`.
+`-Config test` enforces compiler, message-bus, table-binding, theme policy,
+native binding, executable self-test, and headless application checks.

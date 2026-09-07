@@ -1,6 +1,7 @@
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using Microsoft.Web.WebView2.Core;
 using Microsoft.Web.WebView2.Wpf;
 
 namespace ZBrowser.Native;
@@ -42,11 +43,12 @@ internal static class Program
         toolbar.Children.Add(back); toolbar.Children.Add(forward); toolbar.Children.Add(refresh);
         toolbar.Children.Add(address); toolbar.Children.Add(go);
         var view = new WebView2();
+        var environment = CoreWebView2Environment.CreateAsync();
         root.Children.Add(toolbar); root.Children.Add(view); window.Content = root;
 
-        async void Navigate()
+        void Navigate()
         {
-            try { await view.EnsureCoreWebView2Async(); view.CoreWebView2.Navigate(NormalizeAddress(address.Text).AbsoluteUri); }
+            try { view.CoreWebView2?.Navigate(NormalizeAddress(address.Text).AbsoluteUri); }
             catch (Exception ex) { window.Title = "zBrowser — " + ex.Message; }
         }
         go.Click += (_, _) => Navigate();
@@ -56,7 +58,7 @@ internal static class Program
         refresh.Click += (_, _) => view.Reload();
         window.Loaded += async (_, _) =>
         {
-            await view.EnsureCoreWebView2Async();
+            await view.EnsureCoreWebView2Async(await environment);
             view.CoreWebView2.NavigationCompleted += (_, _) =>
             {
                 address.Text = view.Source?.AbsoluteUri ?? address.Text;

@@ -37,6 +37,14 @@ Both support Back, Forward, Refresh, Home, address navigation, title updates,
 and basic URL normalization. Test builds run native URI checks for both and a
 headless interaction check for the zUI toolbar.
 
+The stock-WPF build is intentionally the sole visual-policy exception: it is a
+comparison baseline, not a template for new product UI. New first-party UI uses
+the Holo zUI widgets. Both browser builds warm WebView2 while their windows are
+being assembled; the zUI build additionally shares one environment across its
+chrome and content views and loads only the component styles its compact chrome
+needs. zSheets applies the same warm-up/selective-style path and builds its large
+cell DOM only after zUI wires the static chrome.
+
 Two minimal host apps that open the **same** `showcase/index.html` through their
 binding and round-trip the same messages (`device`, `now-playing`, `selection`,
 `theme-changed`, `transport`). Because both embed the identical `core/` assets,

@@ -15,14 +15,18 @@ std::unique_ptr<WebViewBackend> make_default_backend(void* native_parent);
 
 Host::Host(void* native_parent)
     : backend_(make_default_backend(native_parent)) {
-    backend_->set_on_message([this](const std::string& raw) { dispatch(raw); });
-    backend_->inject_startup_script(
-        "window.__zuiHost={postMessage:function(m){window.chrome.webview.postMessage(m);}};");
+    configure_backend();
 }
 
 Host::Host(std::unique_ptr<WebViewBackend> backend)
     : backend_(std::move(backend)) {
+    configure_backend();
+}
+
+void Host::configure_backend() {
     backend_->set_on_message([this](const std::string& raw) { dispatch(raw); });
+    backend_->inject_startup_script(
+        "window.__zuiHost={postMessage:function(m){window.chrome.webview.postMessage(m);}};");
 }
 
 Host::~Host() = default;
