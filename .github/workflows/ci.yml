@@ -52,6 +52,15 @@ jobs:
           dotnet build samples/zsheets/ZSheets.csproj -c Release
           & samples/zsheets/bin/Release/net8.0-windows/zSheets.exe --self-test
           if ($LASTEXITCODE -ne 0) { throw 'zSheets CSV self-test failed' }
+      - name: build + test WPF browser comparison
+        shell: pwsh
+        run: |
+          dotnet build samples/wpf-browser-native/WpfBrowserNative.csproj -c Release
+          dotnet build samples/wpf-browser-zui/WpfBrowserZui.csproj -c Release
+          & samples/wpf-browser-native/bin/Release/net8.0-windows/zBrowser.Native.exe --self-test
+          if ($LASTEXITCODE -ne 0) { throw 'native WPF browser self-test failed' }
+          & samples/wpf-browser-zui/bin/Release/net8.0-windows/zBrowser.zUI.exe --self-test
+          if ($LASTEXITCODE -ne 0) { throw 'zUI WPF browser self-test failed' }
 
       # ---- C++ pure core (no WebView2) - required ---------------------
       - name: build + test C++ core

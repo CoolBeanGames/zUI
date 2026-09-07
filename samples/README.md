@@ -16,6 +16,27 @@ dotnet run --project samples/zsheets/ZSheets.csproj
 `builds/debug/zsheets/zSheets.exe`. Test builds also run its CSV round-trip and
 headless grid-operation self-tests.
 
+## WPF browser comparison
+
+Two executables implement the same small WebView2 browser so the UI approaches
+can be compared directly:
+
+- `wpf-browser-native/` uses stock WPF buttons and a WPF text box.
+- `wpf-browser-zui/` remains a WPF application, but its browser chrome is the
+  shared Holo zUI surface. Navigation commands and browser state cross the zUI
+  message bus; a separate WebView2 displays the requested page.
+
+`build.ps1 -Config debug` produces:
+
+```text
+builds/debug/wpf-browser-native/zBrowser.Native.exe
+builds/debug/wpf-browser-zui/zBrowser.zUI.exe
+```
+
+Both support Back, Forward, Refresh, Home, address navigation, title updates,
+and basic URL normalization. Test builds run native URI checks for both and a
+headless interaction check for the zUI toolbar.
+
 Two minimal host apps that open the **same** `showcase/index.html` through their
 binding and round-trip the same messages (`device`, `now-playing`, `selection`,
 `theme-changed`, `transport`). Because both embed the identical `core/` assets,

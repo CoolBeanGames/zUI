@@ -107,6 +107,10 @@ if (Get-Command dotnet -ErrorAction SilentlyContinue) {
   dotnet build (Join-Path $root 'samples/csharp/ZuiSample.csproj') -c $csConf -o (Join-Path $out 'sample-csharp')
   $zSheetsOut = Join-Path $out 'zsheets'
   dotnet build (Join-Path $root 'samples/zsheets/ZSheets.csproj') -c $csConf -o $zSheetsOut
+  $nativeBrowserOut = Join-Path $out 'wpf-browser-native'
+  $zuiBrowserOut = Join-Path $out 'wpf-browser-zui'
+  dotnet build (Join-Path $root 'samples/wpf-browser-native/WpfBrowserNative.csproj') -c $csConf -o $nativeBrowserOut
+  dotnet build (Join-Path $root 'samples/wpf-browser-zui/WpfBrowserZui.csproj') -c $csConf -o $zuiBrowserOut
   if ($Config -eq 'test') {
     & (Join-Path $zSheetsOut 'zSheets.exe') --self-test
     if ($LASTEXITCODE -ne 0) { throw 'zSheets CSV self-test failed' }
@@ -116,6 +120,19 @@ if (Get-Command dotnet -ErrorAction SilentlyContinue) {
         ("file:///" + (Join-Path $zSheetsOut 'app.html').Replace('\', '/') + '?selftest=1') 2>$null
       if ($dom -notmatch 'ZSHEETS SELFTEST OK') { throw 'zSheets UI self-test failed' }
       Write-Host '  zSheets UI self-test: OK'
+    }
+    foreach ($browser in @(
+        @{ path = (Join-Path $nativeBrowserOut 'zBrowser.Native.exe'); name = 'native WPF browser' },
+        @{ path = (Join-Path $zuiBrowserOut 'zBrowser.zUI.exe'); name = 'zUI WPF browser' })) {
+      & $browser.path --self-test
+      if ($LASTEXITCODE -ne 0) { throw "$($browser.name) self-test failed" }
+      Write-Host "  $($browser.name) self-test: OK"
+    }
+    if ($chrome) {
+      $dom = & $chrome --headless --disable-gpu --virtual-time-budget=5000 --dump-dom `
+        ("file:///" + (Join-Path $zuiBrowserOut 'toolbar.html').Replace('\', '/') + '?selftest=1') 2>$null
+      if ($dom -notmatch 'ZBROWSER ZUI SELFTEST OK') { throw 'zUI browser toolbar self-test failed' }
+      Write-Host '  zUI browser toolbar self-test: OK'
     }
   }
   Write-Host "  built C# binding + samples ($csConf)"

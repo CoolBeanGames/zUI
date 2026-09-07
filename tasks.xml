@@ -26,9 +26,9 @@
     <image></image>
     <subtasks>
       <subtask done="true">Implement and build a native-control WPF WebView2 browser baseline</subtask>
-      <subtask done="false">Commit and push the verified native WPF baseline as the first comparison build</subtask>
-      <subtask done="false">Implement the second WPF browser with Holo zUI chrome and host-to-content navigation wiring</subtask>
-      <subtask done="false">Integrate both browser variants into build.ps1, CI, and sample documentation</subtask>
+      <subtask done="true">Commit and push the verified native WPF baseline as the first comparison build</subtask>
+      <subtask done="true">Implement the second WPF browser with Holo zUI chrome and host-to-content navigation wiring</subtask>
+      <subtask done="true">Integrate both browser variants into build.ps1, CI, and sample documentation</subtask>
       <subtask done="false">Build and smoke-test both executables, then push the zUI conversion commit</subtask>
       <subtask done="false">Record task metadata, mark completion, and release the ownership lock</subtask>
     </subtasks>
