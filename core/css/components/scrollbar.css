@@ -1,8 +1,7 @@
 /* Scroll bars: thin, neutral, desktop-weight.
  *
- * Both the C# and C++ bindings host zUI in a Chromium web view (WebView2), so
- * the WebKit pseudo-elements below render identically in every host. The
- * Firefox `scrollbar-*` properties are the fallback for a non-Chromium host.
+ * Theme-source specification retained for compilers and design tooling. Native
+ * targets translate these values to platform colors and metrics at build time.
  */
 
 /* Applies to every scroll container inside a zUI window, plus anything the host
@@ -45,7 +44,7 @@
 .zui-window ::-webkit-scrollbar-corner,
 .zui-scroll::-webkit-scrollbar-corner { background: var(--zui-bg-surface-alt); }
 
-/* No up/down step arrows - not a Windows-native look and not in Chromium anyway. */
+/* No up/down step arrows: native zUI uses a compact Windows utility style. */
 .zui-window ::-webkit-scrollbar-button,
 .zui-scroll::-webkit-scrollbar-button { display: none; }
 
@@ -56,4 +55,3 @@
 .zui-scroll--overlay::-webkit-scrollbar { width: 10px; height: 10px; }
 .zui-scroll--overlay::-webkit-scrollbar-track { background: transparent; border: 0; }
 .zui-scroll--overlay::-webkit-scrollbar-thumb { border-color: transparent; background: var(--zui-scrollbar-overlay); }
-

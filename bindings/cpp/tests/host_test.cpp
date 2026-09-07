@@ -1,49 +1,21 @@
 #include "../zui.h"
-
+#include <windows.h>
 #include <iostream>
-#include <memory>
-#include <string>
-#include <vector>
-
-class MockBackend final : public zui::WebViewBackend {
-public:
-    void navigate(const std::string& url) override { navigated = url; }
-    void post_message(const std::string& json) override { messages.push_back(json); }
-    void set_on_message(std::function<void(const std::string&)> cb) override { on_message = std::move(cb); }
-    void inject_startup_script(const std::string& js) override { scripts.push_back(js); }
-    void map_virtual_host(const std::string&, const std::string&) override {}
-
-    std::string navigated;
-    std::vector<std::string> messages;
-    std::vector<std::string> scripts;
-    std::function<void(const std::string&)> on_message;
-};
-
-// zui.cpp also contains the native-parent constructor. This test injects its
-// backend, but supplies the platform factory symbol so the portable zui target
-// can link without WebView2.
-namespace zui {
-std::unique_ptr<WebViewBackend> make_default_backend(void*) { return {}; }
-}
 
 int main() {
-    auto mock = std::make_unique<MockBackend>();
-    auto* inspect = mock.get();
-    zui::Host host(std::move(mock));
-    if (inspect->scripts.size() != 1 ||
-        inspect->scripts[0].find("window.__zuiHost") == std::string::npos ||
-        !inspect->on_message) {
-        std::cerr << "injected backend was not configured like the default backend\n";
-        return 1;
-    }
-
+    HWND parent = CreateWindowExW(0, L"STATIC", L"test", WS_OVERLAPPEDWINDOW,
+                                  0, 0, 640, 480, nullptr, nullptr, GetModuleHandleW(nullptr), nullptr);
+    if (!parent) return 1;
+    zui::Host host(parent);
     bool dispatched = false;
-    host.on("ready", [&](const std::string& payload) { dispatched = payload == "true"; });
-    inspect->on_message("{\"channel\":\"ready\",\"payload\":true}");
-    if (!dispatched) {
-        std::cerr << "injected backend message callback was not connected\n";
-        return 1;
-    }
-    std::cout << "host_test: all checks passed\n";
+    host.on("save", [&](const std::string& value) { dispatched = value == "native"; });
+    host.build(zui::Node{"root", "", {}, {
+        zui::Node{"button", "Save", {{"export", "saveButton"}, {"on", "save"}}, {}}
+    }});
+    host.send("save", "native");
+    const bool ok = dispatched && host.find("saveButton") != nullptr;
+    DestroyWindow(parent);
+    if (!ok) { std::cerr << "native host build/dispatch failed\n"; return 1; }
+    std::cout << "host_test: native controls passed\n";
     return 0;
 }

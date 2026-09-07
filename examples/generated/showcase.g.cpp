@@ -1,62 +1,20 @@
-// generated from ZSL by zslc.py - do not edit.
+// generated from ZSL/ZML to native Win32 controls - do not edit.
 #include "zui.h"
 #include <string>
 #include <unordered_map>
 
-namespace {
-constexpr const char* kZslDocument = R"ZSL(<!DOCTYPE html>
-<html lang="en" data-zui-theme="holo">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>zUI</title>
-<link rel="stylesheet" href="zui/css/zui.css">
-<link rel="stylesheet" href="zui/css/themes/holo.css">
-<link rel="stylesheet" href="zui/css/themes/clean.css">
-</head>
-<body>
-<div class="zui-window"><div class="zui-titlebar"><span>zUI Showcase</span></div><div class="zui-menubar" data-zui="menubar"><div class="zui-menubar__item" data-menu='[{"label": "New", "shortcut": "Ctrl+N", "channel": "file.new"}, {"label": "Open...", "shortcut": "Ctrl+O", "channel": "file.open"}, "-", {"label": "Exit", "channel": "file.exit"}]'>File</div><div class="zui-menubar__item" data-menu='[{"label": "Holo (dark)", "channel": "view.holo"}, {"label": "Clean (light)", "channel": "view.clean"}]'>View</div><div class="zui-menubar__item" data-menu='[{"label": "About zUI", "channel": "help.about"}]'>Help</div></div><div class="zui-nav" data-zui="tabs"><div class="zui-nav__item zui-active" data-zui-tab="components">Components</div><div class="zui-nav__item" data-zui-tab="forms">Forms</div><div class="zui-nav__item" data-zui-tab="data">Data</div></div><div class="zui-workspace"><nav class="zui-sidebar"><div class="zui-section-label">Library</div><div class="zui-sidebar__item zui-active">Artists</div><div class="zui-sidebar__item">Albums</div><div class="zui-sidebar__item">Songs</div><div class="zui-section-label">Playlists</div><div class="zui-sidebar__item">Recently Added</div></nav><div class="zui-fill"><div class="zui-panel"><div class="zui-panel__header">Tracks</div><div class="zui-panel__body zui-panel__body--flush"><table class="zui-table" id="tracks" data-zui="selectable" data-zui-table><thead><tr><th data-field="index">#</th><th data-field="name">Name</th><th data-field="artist">Artist</th><th data-field="plays">Plays</th></tr></thead><tbody></tbody></table></div></div><div class="zui-row zui-gap-2"><button class="zui-btn" id="z1">Edit metadata</button><button class="zui-btn zui-btn--primary" id="z2">New playlist</button><div class="zui-spinner"></div><div class="zui-progress"><div class="zui-progress__bar" id="p3" data-zui-id="scan" style="width:0%"></div></div></div></div></div><div class="zui-statusbar"><span class="zui-statusbar__dot"></span><span class="zui-statusbar__when-connected">HAPTICS&#x27; IPOD</span><span class="zui-statusbar__when-connected">234.6 GB free</span><span class="zui-statusbar__spacer"></span></div></div>
-<script>window.__zslState = {"section": "components", "scan": 40, "tracks": []};</script>
-<script src="zui/icons/sprite.js"></script>
-<script src="zui/js/zui.js"></script>
-<script>
-(function(){
-  var state = window.__zslState;
-  var _el_z1 = document.getElementById("z1");
-  if (_el_z1) _el_z1.addEventListener('click', function(){
-    zui.send("track.edit");
-    render();
-  });
-  var _el_z2 = document.getElementById("z2");
-  if (_el_z2) _el_z2.addEventListener('click', function(){
-    zui.send("playlist.new");
-    render();
-  });
-  function render(){
-    var etracks=document.getElementById("tracks"); if(etracks){
-      var tb=etracks.querySelector('tbody'); tb.innerHTML='';
-      (state["tracks"]||[]).forEach(function(rowdata,ix){
-        var tr=document.createElement('tr'); tr.setAttribute('data-zui-row', ix);
-        ["index", "name", "artist", "plays"].forEach(function(k){
-          var td=document.createElement('td'); td.textContent = rowdata[k]; tr.appendChild(td); });
-        tb.appendChild(tr); }); }
-    var ep3=document.getElementById("p3"); if(ep3) ep3.style.width = (state["scan"]||0)+'%';
-  }
-  zui.receive('state', function(p){ Object.assign(state, p||{}); render(); });
-  document.addEventListener('DOMContentLoaded', function(){ zui.wire(document); render(); });
-})();
-</script>
-</body>
-</html>
-)ZSL";
-}
-
-// Call after constructing the host. Native handlers are optional: screens with
-// no host-side behavior still compile and link without generated global stubs.
 void build_ui(
     zui::Host& host,
     const std::unordered_map<std::string, zui::MessageHandler>& handlers) {
+    if (auto it = handlers.find("file.exit"); it != handlers.end()) host.on("file.exit", it->second);
+    if (auto it = handlers.find("file.new"); it != handlers.end()) host.on("file.new", it->second);
+    if (auto it = handlers.find("file.open"); it != handlers.end()) host.on("file.open", it->second);
+    if (auto it = handlers.find("help.about"); it != handlers.end()) host.on("help.about", it->second);
     if (auto it = handlers.find("playlist.new"); it != handlers.end()) host.on("playlist.new", it->second);
     if (auto it = handlers.find("track.edit"); it != handlers.end()) host.on("track.edit", it->second);
-    host.load_document(kZslDocument);
+    if (auto it = handlers.find("view.clean"); it != handlers.end()) host.on("view.clean", it->second);
+    if (auto it = handlers.find("view.holo"); it != handlers.end()) host.on("view.holo", it->second);
+    host.build(zui::Node{"root", "", {}, {
+        zui::Node{"window", "zUI Showcase", {}, {zui::Node{"menubar", "", {}, {zui::Node{"menu", "File", {}, {zui::Node{"item", "New", {{"shortcut", "Ctrl+N"}, {"on", "file.new"}}, {}}, zui::Node{"item", "Open...", {{"shortcut", "Ctrl+O"}, {"on", "file.open"}}, {}}, zui::Node{"sep", "", {}, {}}, zui::Node{"item", "Exit", {{"on", "file.exit"}}, {}}}}, zui::Node{"menu", "View", {}, {zui::Node{"item", "Holo (dark)", {{"on", "view.holo"}}, {}}, zui::Node{"item", "Clean (light)", {{"on", "view.clean"}}, {}}}}, zui::Node{"menu", "Help", {}, {zui::Node{"item", "About zUI", {{"on", "help.about"}}, {}}}}}}, zui::Node{"nav", "", {{"bind", "section"}}, {zui::Node{"item", "Components", {{"value", "components"}, {"active", "true"}}, {}}, zui::Node{"item", "Forms", {{"value", "forms"}}, {}}, zui::Node{"item", "Data", {{"value", "data"}}, {}}}}, zui::Node{"workspace", "", {}, {zui::Node{"sidebar", "", {}, {zui::Node{"section-label", "Library", {}, {}}, zui::Node{"item", "Artists", {{"active", "true"}}, {}}, zui::Node{"item", "Albums", {}, {}}, zui::Node{"item", "Songs", {}, {}}, zui::Node{"section-label", "Playlists", {}, {}}, zui::Node{"item", "Recently Added", {}, {}}}}, zui::Node{"fill", "", {}, {zui::Node{"panel", "Tracks", {}, {zui::Node{"table", "", {{"id", "tracks"}, {"source", "tracks"}, {"selectable", "true"}}, {zui::Node{"column", "#", {{"field", "index"}}, {}}, zui::Node{"column", "Name", {{"field", "name"}}, {}}, zui::Node{"column", "Artist", {{"field", "artist"}}, {}}, zui::Node{"column", "Plays", {{"field", "plays"}}, {}}}}}}, zui::Node{"row", "", {}, {zui::Node{"button", "Edit metadata", {{"on", "track.edit"}}, {}}, zui::Node{"button", "New playlist", {{"kind", "primary"}, {"on", "playlist.new"}}, {}}, zui::Node{"spinner", "", {}, {}}, zui::Node{"progress", "", {{"bind", "scan"}}, {}}}}}}}}, zui::Node{"statusbar", "", {}, {zui::Node{"text", "HAPTICS' IPOD", {}, {}}, zui::Node{"text", "234.6 GB free", {}, {}}}}}}
+    }});
 }

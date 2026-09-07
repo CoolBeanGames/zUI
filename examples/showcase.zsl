@@ -1,5 +1,4 @@
-// A fuller ZSL program - the same shape as showcase/index.html, expressed in
-// the scripting language and compiled ahead of time.
+// A fuller ZSL program compiled ahead of time to native Windows controls.
 
 window "zUI Showcase" {
 

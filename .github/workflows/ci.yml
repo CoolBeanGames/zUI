@@ -1,102 +1,20 @@
-name: build
-
+name: native-build
 on:
   push:
     branches: [main]
   pull_request:
   workflow_dispatch:
-
 permissions:
   contents: read
-
 jobs:
   windows:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
-        with: { submodules: false }
-
       - uses: actions/setup-python@v5
         with: { python-version: "3.12" }
       - uses: actions/setup-dotnet@v4
         with: { dotnet-version: "8.0.x" }
-
-      # ---- python: compiler + token tests -------------------------------
-      - name: compiler tests
-        run: python compiler/tests/test_compile.py
-      - name: token check
-        run: python tests/check-tokens.py
-      - name: runtime self-tests (headless)
+      - name: Full native test gate
         shell: pwsh
-        run: |
-          $chrome = (Get-Command chrome, msedge -ErrorAction SilentlyContinue |
-                     Select-Object -First 1).Source
-          if (-not $chrome) { $chrome = "$env:ProgramFiles (x86)\Microsoft\Edge\Application\msedge.exe" }
-          foreach ($t in @(
-              @{ f = 'tests/io-selftest.html';  m = 'IO SELFTEST OK' },
-              @{ f = 'tests/nav-selftest.html'; m = 'NAV SELFTEST OK' })) {
-            $dom = & $chrome --headless --disable-gpu --virtual-time-budget=6000 --dump-dom `
-                   ("file:///" + (Resolve-Path $t.f).Path.Replace('\','/'))
-            if ($dom -notmatch $t.m) { throw "self-test failed: $($t.f)" }
-            Write-Host "ok  $($t.f)"
-          }
-
-      # ---- C# binding + sample ----------------------------------------
-      - name: build C# binding
-        run: dotnet build bindings/csharp/ZUI.csproj -c Release
-      - name: build C# sample
-        run: dotnet build samples/csharp/ZuiSample.csproj -c Release
-      - name: build + test zSheets sample
-        shell: pwsh
-        run: |
-          dotnet build samples/zsheets/ZSheets.csproj -c Release
-          & samples/zsheets/bin/Release/net8.0-windows/zSheets.exe --self-test
-          if ($LASTEXITCODE -ne 0) { throw 'zSheets CSV self-test failed' }
-      - name: build + test WPF browser comparison
-        shell: pwsh
-        run: |
-          dotnet build samples/wpf-browser-native/WpfBrowserNative.csproj -c Release
-          dotnet build samples/wpf-browser-zui/WpfBrowserZui.csproj -c Release
-          & samples/wpf-browser-native/bin/Release/net8.0-windows/zBrowser.Native.exe --self-test
-          if ($LASTEXITCODE -ne 0) { throw 'native WPF browser self-test failed' }
-          & samples/wpf-browser-zui/bin/Release/net8.0-windows/zBrowser.zUI.exe --self-test
-          if ($LASTEXITCODE -ne 0) { throw 'zUI WPF browser self-test failed' }
-
-      # ---- C++ pure core (no WebView2) - required ---------------------
-      - name: build + test C++ core
-        shell: pwsh
-        run: |
-          cmake -S bindings/cpp -B build/cpp -DZUI_BUILD_TESTS=ON
-          cmake --build build/cpp --config Release
-          ctest --test-dir build/cpp -C Release --output-on-failure
-
-      # ---- C++ WebView2 backend + sample --------------------------
-      - name: fetch WebView2 SDK + WIL
-        shell: pwsh
-        run: |
-          nuget install Microsoft.Web.WebView2 -Version 1.0.2478.35 -OutputDirectory pkgs -ExcludeVersion
-          nuget install Microsoft.Windows.ImplementationLibrary -Version 1.0.240122.1 -OutputDirectory pkgs -ExcludeVersion
-      - name: build C++ WebView2 sample
-        id: cppsample
-        shell: pwsh
-        run: |
-          $wv2 = "$PWD/pkgs/Microsoft.Web.WebView2"
-          $wil = "$PWD/pkgs/Microsoft.Windows.ImplementationLibrary"
-          cmake -S samples/cpp -B build/sample-cpp "-DWEBVIEW2_DIR=$wv2" "-DWIL_DIR=$wil" 2>&1 | Tee-Object cpp-build.log
-          cmake --build build/sample-cpp --config Release 2>&1 | Tee-Object -Append cpp-build.log
-          exit $LASTEXITCODE
-      - name: upload C++ build log
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: cpp-build-log
-          path: cpp-build.log
-          if-no-files-found: ignore
-      - name: C++ build log to job summary (on failure)
-        if: steps.cppsample.outcome == 'failure'
-        shell: pwsh
-        run: |
-          $log = Get-Content cpp-build.log -Raw
-          "## C++ WebView2 build failed`n`n``````" + "`n" +
-            $log.Substring([Math]::Max(0, $log.Length - 15000)) + "`n``````" |
-            Out-File -Append $env:GITHUB_STEP_SUMMARY
+        run: ./build.ps1 -Config test

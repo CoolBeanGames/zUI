@@ -1,8 +1,0 @@
-<table id="rows" source="rows">
-  <column field="name">Name</column>
-  <column field="value">Value</column>
-</table>
-
-<state>
-  <var name="rows" value='[{"name":"Alpha","value":1},{"name":"Beta","value":2}]'/>
-</state>

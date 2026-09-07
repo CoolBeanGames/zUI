@@ -1,7 +1,3 @@
-using System.Text.Json;
-using Microsoft.Web.WebView2.WinForms;
-using ZUI;
-
 namespace ZSheets;
 
 internal static class Program
@@ -10,72 +6,55 @@ internal static class Program
     private static int Main(string[] args)
     {
         if (args.Contains("--self-test")) return SelfTest();
-
         ApplicationConfiguration.Initialize();
         var form = new Form { Text = "zSheets — Untitled", Width = 1100, Height = 760 };
-        var view = new WebView2 { Dock = DockStyle.Fill };
-        form.Controls.Add(view);
-        var host = new ZuiHost(view);
-        _ = ZuiHost.GetSharedEnvironmentAsync(); // warm WebView2 while the window is assembled
+        var grid = new DataGridView { Dock = DockStyle.Fill, AllowUserToAddRows = true,
+            AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill, RowHeadersWidth = 55 };
+        var bar = new ToolStrip { GripStyle = ToolStripGripStyle.Hidden, Dock = DockStyle.Top };
+        var open = new ToolStripButton("Open"); var save = new ToolStripButton("Save");
+        var saveAs = new ToolStripButton("Save As"); var addRow = new ToolStripButton("Add row");
+        bar.Items.AddRange([open, save, saveAs, new ToolStripSeparator(), addRow]);
+        form.Controls.Add(grid); form.Controls.Add(bar);
         string? currentPath = null;
 
-        void SetPath(string? path)
+        void LoadSheet(SheetData sheet)
         {
-            currentPath = path;
-            form.Text = $"zSheets — {(path is null ? "Untitled" : Path.GetFileName(path))}";
-            host.Send("file-status", new { name = path is null ? "Untitled.csv" : Path.GetFileName(path), saved = true });
+            grid.Columns.Clear(); grid.Rows.Clear();
+            foreach (var header in sheet.Headers) grid.Columns.Add(header, header);
+            foreach (var row in sheet.Rows) grid.Rows.Add(row.Cast<object>().ToArray());
         }
 
-        void OpenCsv()
+        SheetData ReadSheet()
+        {
+            var headers = grid.Columns.Cast<DataGridViewColumn>().Select(c => c.HeaderText).ToArray();
+            var rows = grid.Rows.Cast<DataGridViewRow>().Where(r => !r.IsNewRow)
+                .Select(r => r.Cells.Cast<DataGridViewCell>().Select(c => Convert.ToString(c.Value) ?? "").ToArray()).ToList();
+            return new SheetData(headers, rows);
+        }
+
+        void Save(bool choose)
+        {
+            if (choose || currentPath is null)
+            {
+                using var dialog = new SaveFileDialog { Filter = "CSV files (*.csv)|*.csv|All files (*.*)|*.*", DefaultExt = "csv", FileName = currentPath is null ? "Untitled.csv" : Path.GetFileName(currentPath) };
+                if (dialog.ShowDialog(form) != DialogResult.OK) return;
+                currentPath = dialog.FileName;
+            }
+            File.WriteAllText(currentPath, CsvCodec.Write(ReadSheet()));
+            form.Text = "zSheets — " + Path.GetFileName(currentPath);
+        }
+
+        open.Click += (_, _) =>
         {
             using var dialog = new OpenFileDialog { Filter = "CSV files (*.csv)|*.csv|All files (*.*)|*.*" };
             if (dialog.ShowDialog(form) != DialogResult.OK) return;
-            try
-            {
-                var data = CsvCodec.Parse(File.ReadAllText(dialog.FileName));
-                host.Send("sheet-load", new { headers = data.Headers, rows = data.Rows });
-                SetPath(dialog.FileName);
-            }
-            catch (Exception ex) { host.Send("file-error", ex.Message); }
-        }
-
-        void SaveCsv(JsonElement payload, bool choosePath)
-        {
-            var target = currentPath;
-            if (choosePath || target is null)
-            {
-                using var dialog = new SaveFileDialog
-                {
-                    Filter = "CSV files (*.csv)|*.csv|All files (*.*)|*.*",
-                    DefaultExt = "csv",
-                    FileName = target is null ? "Untitled.csv" : Path.GetFileName(target)
-                };
-                if (dialog.ShowDialog(form) != DialogResult.OK) return;
-                target = dialog.FileName;
-            }
-
-            try
-            {
-                var headers = payload.GetProperty("headers").EnumerateArray().Select(x => x.GetString() ?? "").ToArray();
-                var rows = payload.GetProperty("rows").EnumerateArray()
-                    .Select(r => r.EnumerateArray().Select(x => x.GetString() ?? "").ToArray()).ToList();
-                File.WriteAllText(target!, CsvCodec.Write(new SheetData(headers, rows)));
-                SetPath(target);
-            }
-            catch (Exception ex) { host.Send("file-error", ex.Message); }
-        }
-
-        form.Load += async (_, _) =>
-        {
-            await host.InitializeAsync();
-            host.On("file.open", _ => OpenCsv());
-            host.On("file.save", p => SaveCsv(p, false));
-            host.On("file.save-as", p => SaveCsv(p, true));
-            host.On("file.new", _ => SetPath(null));
-            await host.LoadAsync("app.html");
-            SetPath(null);
+            try { currentPath = dialog.FileName; LoadSheet(CsvCodec.Parse(File.ReadAllText(currentPath))); form.Text = "zSheets — " + Path.GetFileName(currentPath); }
+            catch (Exception ex) { MessageBox.Show(form, ex.Message, "Open failed", MessageBoxButtons.OK, MessageBoxIcon.Error); }
         };
-
+        save.Click += (_, _) => Save(false);
+        saveAs.Click += (_, _) => Save(true);
+        addRow.Click += (_, _) => grid.Rows.Add();
+        LoadSheet(new SheetData(["A", "B", "C", "D"], []));
         Application.Run(form);
         return 0;
     }
@@ -83,11 +62,8 @@ internal static class Program
     private static int SelfTest()
     {
         const string input = "Name,Note\r\nAlpha,One\r\n\"Beta, B\",\"line 1\r\nline \"\"2\"\"\"\r\n";
-        var parsed = CsvCodec.Parse(input);
-        var roundTrip = CsvCodec.Parse(CsvCodec.Write(parsed));
-        return roundTrip.Headers.SequenceEqual(parsed.Headers)
-            && roundTrip.Rows.Count == 2
-            && roundTrip.Rows[1][0] == "Beta, B"
-            && roundTrip.Rows[1][1] == "line 1\r\nline \"2\"" ? 0 : 1;
+        var parsed = CsvCodec.Parse(input); var roundTrip = CsvCodec.Parse(CsvCodec.Write(parsed));
+        return roundTrip.Headers.SequenceEqual(parsed.Headers) && roundTrip.Rows.Count == 2
+            && roundTrip.Rows[1][0] == "Beta, B" && roundTrip.Rows[1][1] == "line 1\r\nline \"2\"" ? 0 : 1;
     }
 }

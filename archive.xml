@@ -1,5 +1,117 @@
 <?xml version="1.0" encoding="utf-8"?>
-<tasks project="zUI" nextIndex="55">
+<tasks project="zUI" nextIndex="61">
+  <task id="ZU-60">
+    <name>native host lookup omits control ids</name>
+    <prompt>Both native hosts register export/bind names but omit ordinary id attributes. Generated showcase table id=tracks exists as a native control but Find/find returns null, causing debug/release smoke tests to fail. Expected ids to be available through host lookup.</prompt>
+    <requirements>C# Find and C++ find resolve id, export, and bind names; native sample smoke tests return zero</requirements>
+    <inProgress>false</inProgress>
+    <done>true</done>
+    <bug>true</bug>
+    <error>false</error>
+    <errorMessage></errorMessage>
+    <lockKey></lockKey>
+    <locked>false</locked>
+    <archived>true</archived>
+    <blockedBy></blockedBy>
+    <dateStarted></dateStarted>
+    <dueDate></dueDate>
+    <commit>false</commit>
+    <build>false</build>
+    <release>false</release>
+    <merge>false</merge>
+    <branch>main</branch>
+    <tags></tags>
+    <notes>Registered id as the fallback native lookup key in C# and C++. All C#, C++, and zSheets smoke checks pass in debug and release outputs.</notes>
+    <filesChanged>bindings/csharp/ZuiHost.cs, bindings/cpp/zui.cpp, samples/cpp/main.cpp</filesChanged>
+    <image></image>
+    <subtasks>
+      <subtask done="true">Register id attributes in both native host lookup tables and verify sample smoke paths</subtask>
+    </subtasks>
+  </task>
+  <task id="ZU-59">
+    <name>Win32 macros break native C++ host compilation</name>
+    <prompt>Including windows.h defines min/max macros, causing MSVC C2589 at std::max calls in zui.cpp. Reproduce with build.ps1 -Config test. Expected native C++ runtime compiles cleanly.</prompt>
+    <requirements>Native C++ runtime compiles under MSVC with Windows headers and all CTest cases pass</requirements>
+    <inProgress>false</inProgress>
+    <done>true</done>
+    <bug>true</bug>
+    <error>false</error>
+    <errorMessage></errorMessage>
+    <lockKey></lockKey>
+    <locked>false</locked>
+    <archived>true</archived>
+    <blockedBy></blockedBy>
+    <dateStarted></dateStarted>
+    <dueDate></dueDate>
+    <commit>false</commit>
+    <build>false</build>
+    <release>false</release>
+    <merge>false</merge>
+    <branch>main</branch>
+    <tags></tags>
+    <notes>Defined NOMINMAX before windows.h. Native C++ runtime/sample compile and both envelope and HWND host CTests pass.</notes>
+    <filesChanged>bindings/cpp/zui.cpp</filesChanged>
+    <image></image>
+    <subtasks>
+      <subtask done="true">Disable Windows min/max macros and rerun native C++ tests</subtask>
+    </subtasks>
+  </task>
+  <task id="ZU-58">
+    <name>C# generator emits invalid root named argument</name>
+    <prompt>Generated C# calls ZuiNode with named argument children, but the record constructor parameter is Children. Reproduce by building samples/csharp after compiling showcase.zml. Expected generated source compiles; actual CS1739.</prompt>
+    <requirements>C# output uses valid ZuiNode constructor arguments and the generated native sample compiles</requirements>
+    <inProgress>false</inProgress>
+    <done>true</done>
+    <bug>true</bug>
+    <error>false</error>
+    <errorMessage></errorMessage>
+    <lockKey></lockKey>
+    <locked>false</locked>
+    <archived>true</archived>
+    <blockedBy></blockedBy>
+    <dateStarted></dateStarted>
+    <dueDate></dueDate>
+    <commit>false</commit>
+    <build>false</build>
+    <release>false</release>
+    <merge>false</merge>
+    <branch>main</branch>
+    <tags></tags>
+    <notes>Corrected the case-sensitive Children named argument, regenerated both checked-in C# outputs, and verified the sample builds without diagnostics.</notes>
+    <filesChanged>compiler/zslc.py, samples/csharp/generated/ShowcaseUi.g.cs, examples/generated/CompiledUi.g.cs</filesChanged>
+    <image></image>
+    <subtasks>
+      <subtask done="true">Correct root node generation and regenerate checked-in C# outputs</subtask>
+    </subtasks>
+  </task>
+  <task id="ZU-57">
+    <name>native C# host fails to compile label nodes</name>
+    <prompt>The new native ZuiHost switch returns the Label method group instead of invoking it, and constructs a Font from a nullable system font. Reproduce with build.ps1 -Config test. Expected: native runtime compiles with zero errors and zero warnings; actual: CS0428 and CS8604.</prompt>
+    <requirements>ZuiHost compiles with no C# diagnostics and native label nodes instantiate successfully</requirements>
+    <inProgress>false</inProgress>
+    <done>true</done>
+    <bug>true</bug>
+    <error>false</error>
+    <errorMessage></errorMessage>
+    <lockKey></lockKey>
+    <locked>false</locked>
+    <archived>true</archived>
+    <blockedBy></blockedBy>
+    <dateStarted></dateStarted>
+    <dueDate></dueDate>
+    <commit>false</commit>
+    <build>false</build>
+    <release>false</release>
+    <merge>false</merge>
+    <branch>main</branch>
+    <tags></tags>
+    <notes>Invoked the native label factory correctly and used an explicit Segoe UI font so the runtime builds with zero diagnostics.</notes>
+    <filesChanged>bindings/csharp/ZuiHost.cs</filesChanged>
+    <image></image>
+    <subtasks>
+      <subtask done="true">Invoke the label factory and remove nullable font construction</subtask>
+    </subtasks>
+  </task>
   <task id="ZU-54">
     <name>build.ps1 ignores failed dotnet commands</name>
     <prompt>A dotnet build failed with MSB3021/MSB3027 because its output DLL was locked, but build.ps1 continued into C++/release work and printed built C# binding + samples. Expected: any dotnet build or test process nonzero exit terminates the build immediately.</prompt>

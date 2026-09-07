@@ -9,8 +9,4 @@
     <RootNamespace>ZSheets</RootNamespace>
   </PropertyGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\..\bindings\csharp\ZUI.csproj" />
-    <None Include="app.html" CopyToOutputDirectory="PreserveNewest" />
-  </ItemGroup>
 </Project>

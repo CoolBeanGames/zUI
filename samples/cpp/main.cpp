@@ -1,14 +1,8 @@
-// zUI - minimal C++ host sample (Win32 + WebView2).
-//
-// Opens the zUI showcase through zui::Host and round-trips the same messages as
-// the C# sample, so both render an identical UI.
-//
-// Build: see CMakeLists.txt (needs the WebView2 SDK + WIL).
+// zUI native Win32 sample. Every widget is an HWND/common control.
 
 #include "zui.h"
 
 #include <windows.h>
-#include <objbase.h>
 #include <string>
 #include <unordered_map>
 
@@ -27,10 +21,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM w, LPARAM l) {
     return DefWindowProc(hwnd, msg, w, l);
 }
 
-int WINAPI wWinMain(HINSTANCE hInst, HINSTANCE, PWSTR, int nShow) {
-    // WebView2 requires a single-threaded apartment on the UI thread.
-    CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED);
-
+int WINAPI wWinMain(HINSTANCE hInst, HINSTANCE, PWSTR commandLine, int nShow) {
     WNDCLASSW wc{};
     wc.lpfnWndProc = WndProc;
     wc.hInstance = hInst;
@@ -44,8 +35,6 @@ int WINAPI wWinMain(HINSTANCE hInst, HINSTANCE, PWSTR, int nShow) {
 
     zui::Host ui(hwnd);
     g_ui = &ui;
-    ui.set_core_root("zui");
-
     ui.on("selection", [](const std::string& json) {
         OutputDebugStringA(("selection: " + json + "\n").c_str());
     });
@@ -62,9 +51,8 @@ int WINAPI wWinMain(HINSTANCE hInst, HINSTANCE, PWSTR, int nShow) {
         {"playlist.new", [](const std::string&) { OutputDebugStringA("playlist.new\n"); }},
         {"track.edit", [](const std::string&) { OutputDebugStringA("track.edit\n"); }},
     });
-    ui.send("device", R"({"name":"HAPTICS' IPOD","capacity":"238.2 GB","free":"234.6 GB"})");
-    ui.send("now-playing", R"({"title":"Nightdrive","sub":"Aria Kane - Long Exposure","position":108,"duration":281})");
-
+    if (commandLine && wcsstr(commandLine, L"--self-test"))
+        return ui.find("tracks") ? 0 : 1;
     ShowWindow(hwnd, nShow);
 
     MSG m{};

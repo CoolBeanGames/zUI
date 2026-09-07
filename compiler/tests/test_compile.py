@@ -30,33 +30,30 @@ def test_parse_counter():
     _check("inc" in prog.handlers and "dec" in prog.handlers, "handlers missing")
 
 
-def test_html_backend():
+def test_csharp_native_backend():
     src = open(os.path.join(EXAMPLES, "counter.zsl"), encoding="utf-8").read()
-    doc = zslc.HtmlGen(zslc.compile_source(src)).gen()
-    _check("<!DOCTYPE html>" in doc, "no doctype")
-    _check("zui-window" in doc and "zui-btn" in doc, "component classes missing")
-    _check("zui.receive('state'" in doc, "state glue missing")
-    _check("plus1" not in doc or "+1)" in doc, "plus1 helper not lowered")
+    code = zslc.gen_csharp(zslc.compile_source(src), "CounterUi", "ZUI.Generated")
+    _check("System.Windows.Forms.Control Build" in code, "native Build method missing")
+    _check('new ZUI.ZuiNode("button"' in code, "button node missing")
+    _check("<!DOCTYPE" not in code and "<script" not in code, "document markup leaked into native output")
 
 
-def test_table_source_creates_missing_tbody():
+def test_table_source_is_native_metadata():
     prog = zslc.compile_source(
         '<table id="rows" source="rows"><column field="name">Name</column></table>'
         '<state><var name="rows" value="[]"/></state>')
-    doc = zslc.HtmlGen(prog).gen()
-    _check("tBodies[0]" in doc and "appendChild(document.createElement('tbody'))" in doc,
-           "source table must tolerate WebView2 normalizing away an empty tbody")
+    code = zslc.gen_csharp(prog, "TableUi", "ZUI.Generated")
+    _check('["source"] = "rows"' in code and 'new ZUI.ZuiNode("column"' in code,
+           "table source and columns must be native node metadata")
 
 
 def test_showcase_all_backends():
     src = open(os.path.join(EXAMPLES, "showcase.zsl"), encoding="utf-8").read()
     prog = zslc.compile_source(src)
-    html_out = zslc.HtmlGen(prog).gen()
-    _check("zui-menubar" in html_out and "zui-table" in html_out, "showcase html incomplete")
     cs = zslc.gen_csharp(prog, "CompiledUi", "ZUI.Generated")
-    _check("public partial class CompiledUi" in cs and "host.On(" in cs, "csharp backend broken")
+    _check("public partial class CompiledUi" in cs and "host.On(" in cs and "host.Build(" in cs, "csharp backend broken")
     cpp = zslc.gen_cpp(prog, "build_ui")
-    _check("zui::Host" in cpp and "R\"ZSL(" in cpp, "cpp backend broken")
+    _check("zui::Host" in cpp and "zui::Node" in cpp and "R\"ZSL(" not in cpp, "cpp backend broken")
     _check("handlers.find" in cpp and "implement in host" not in cpp,
            "cpp backend must link without undefined callback stubs")
 
@@ -83,31 +80,29 @@ def test_zml_equals_zsl():
     for stem in ("counter", "showcase"):
         zsl = open(os.path.join(EXAMPLES, stem + ".zsl"), encoding="utf-8").read()
         zml = open(os.path.join(EXAMPLES, stem + ".zml"), encoding="utf-8").read()
-        for backend in ("html", "csharp", "cpp"):
+        for backend in ("csharp", "cpp"):
             a = _render(zslc.compile_source(zsl), backend)
             b = _render(zslc.compile_source(zml), backend)
             _check(a == b, f"{stem}.{backend}: zml output != zsl output")
 
 
 def _render(prog, backend):
-    if backend == "html":
-        return zslc.HtmlGen(prog).gen()
     if backend == "csharp":
         return zslc.gen_csharp(prog, "CompiledUi", "ZUI.Generated")
     return zslc.gen_cpp(prog, "build_ui")
 
 
-def test_export_emits_zui_id():
+def test_export_emits_native_lookup_name():
     for src in ('panel { input "x" export=q  button "Go" export=go }',
                 '<panel><input export="q"/><button export="go">Go</button></panel>'):
-        h = zslc.HtmlGen(zslc.compile_source(src)).gen()
-        _check('data-zui-id="q"' in h, f"input export -> data-zui-id ({src[:1]})")
-        _check('data-zui-id="go"' in h, f"button export -> data-zui-id ({src[:1]})")
+        h = zslc.gen_csharp(zslc.compile_source(src), "Ui", "Generated")
+        _check('["export"] = "q"' in h, f"input export -> lookup metadata ({src[:1]})")
+        _check('["export"] = "go"' in h, f"button export -> lookup metadata ({src[:1]})")
 
 
 def test_bind_also_exports():
-    h = zslc.HtmlGen(zslc.compile_source('col { text bind:status }')).gen()
-    _check('data-zui-id="status"' in h, "bind: implies data-zui-id")
+    h = zslc.gen_csharp(zslc.compile_source('col { text bind:status }'), "Ui", "Generated")
+    _check('["bind"] = "status"' in h, "bind is native lookup metadata")
 
 
 def test_zml_comments_and_selfclose():

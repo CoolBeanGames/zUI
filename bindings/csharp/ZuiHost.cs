@@ -1,211 +1,205 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Text.Json;
-using System.Threading.Tasks;
-using Microsoft.Web.WebView2.Core;
-using Microsoft.Web.WebView2.WinForms;
+using System.Drawing;
+using System.Linq;
+using System.Windows.Forms;
 
-namespace ZUI
+namespace ZUI;
+
+public sealed record ZuiNode(string Kind, string Text = "",
+    IReadOnlyDictionary<string, string>? Attributes = null,
+    IReadOnlyList<ZuiNode>? Children = null)
 {
-    /// <summary>
-    /// Hosts a zUI document inside a WebView2 control and exposes the zUI
-    /// message bus to managed code. The same CSS/JS core is used by the C++
-    /// binding, so both languages render an identical UI.
-    /// </summary>
-    public sealed class ZuiHost : IAsyncDisposable
+    public IReadOnlyDictionary<string, string> Attrs { get; } = Attributes ?? new Dictionary<string, string>();
+    public IReadOnlyList<ZuiNode> Nodes { get; } = Children ?? Array.Empty<ZuiNode>();
+}
+
+public sealed record ZuiTheme(Color Window, Color Surface, Color Raised, Color Text,
+    Color Muted, Color Accent, Color Border, int Gap = 8, int SidebarWidth = 210)
+{
+    public static ZuiTheme Holo { get; } = new(Color.FromArgb(0x10, 0x13, 0x16),
+        Color.FromArgb(0x17, 0x1b, 0x20), Color.FromArgb(0x20, 0x25, 0x2b),
+        Color.FromArgb(0xee, 0xf4, 0xf7), Color.FromArgb(0x99, 0xaa, 0xb3),
+        Color.FromArgb(0x33, 0xb5, 0xe5), Color.FromArgb(0x35, 0x3d, 0x45));
+    public static ZuiTheme Clean { get; } = new(Color.FromArgb(0xf1, 0xf3, 0xf5), Color.White,
+        Color.FromArgb(0xf8, 0xf9, 0xfa), Color.FromArgb(0x20, 0x24, 0x28),
+        Color.FromArgb(0x64, 0x6b, 0x73), Color.FromArgb(0x00, 0x78, 0xd4), Color.FromArgb(0xd3, 0xd7, 0xdb));
+}
+
+/// <summary>Builds compiled nodes as operating-system WinForms controls. There is no browser engine.</summary>
+public sealed class ZuiHost : IDisposable
+{
+    private readonly Control _parent;
+    private readonly Dictionary<string, List<Action<string>>> _handlers = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, Control> _exports = new(StringComparer.Ordinal);
+    private bool _disposed;
+
+    public ZuiHost(Control parent) => _parent = parent ?? throw new ArgumentNullException(nameof(parent));
+    public ZuiTheme Theme { get; private set; } = ZuiTheme.Holo;
+
+    public Control Build(ZuiNode tree)
     {
-        private const string VirtualHost = "zui.app";
-        private static readonly Lazy<Task<CoreWebView2Environment>> SharedEnvironment =
-            new(() => CoreWebView2Environment.CreateAsync());
-
-        private readonly WebView2 _view;
-        private readonly Dictionary<string, List<Action<JsonElement>>> _handlers = new();
-        private readonly Queue<string> _pending = new();
-        private Task? _initialization;
-        private CoreWebView2? _core;
-        private bool _ready;
-        private bool _domReady;
-        private bool _disposed;
-        private string _mappedRoot = "";
-
-        public ZuiHost(WebView2 view)
+        ObjectDisposedException.ThrowIf(_disposed, this);
+        _parent.SuspendLayout();
+        try
         {
-            _view = view ?? throw new ArgumentNullException(nameof(view));
+            _parent.Controls.Clear();
+            _exports.Clear();
+            var root = Container(true);
+            root.Name = "zui-root";
+            root.Dock = DockStyle.Fill;
+            root.AutoScroll = true;
+            _parent.Controls.Add(root);
+            foreach (var child in tree.Nodes) AddNode(root, child);
+            ApplyTheme(root);
+            return root;
         }
+        finally { _parent.ResumeLayout(true); }
+    }
 
-        /// <summary>Directory holding the copied `zui/` core assets. Defaults to
-        /// the folder next to this assembly.</summary>
-        public string CoreRoot { get; set; } =
-            Path.Combine(AppContext.BaseDirectory, "zui");
+    public IDisposable On(string channel, Action<string> handler)
+    {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+        if (!_handlers.TryGetValue(channel, out var list)) _handlers[channel] = list = new();
+        list.Add(handler);
+        return new Subscription(() => list.Remove(handler));
+    }
 
-        public event EventHandler? Ready;
+    public void Send(string channel, string payload = "") => Dispatch(channel, payload);
 
-        /// <summary>Warm or reuse the process-wide WebView2 environment. Hosts
-        /// with more than one view can pass this environment to their other
-        /// controls and avoid duplicate browser-process startup work.</summary>
-        public static Task<CoreWebView2Environment> GetSharedEnvironmentAsync() =>
-            SharedEnvironment.Value;
+    public void SetTheme(string name)
+    {
+        Theme = string.Equals(name, "clean", StringComparison.OrdinalIgnoreCase) ? ZuiTheme.Clean : ZuiTheme.Holo;
+        if (_parent.Controls.Count > 0) ApplyTheme(_parent.Controls[0]);
+        Dispatch("theme-changed", name);
+    }
 
-        public Task InitializeAsync()
+    public Control? Find(string export) => _exports.GetValueOrDefault(export);
+
+    private void Dispatch(string channel, string payload)
+    {
+        if (!_handlers.TryGetValue(channel, out var list)) return;
+        foreach (var handler in list.ToArray()) handler(payload);
+    }
+
+    private Control AddNode(Control parent, ZuiNode node)
+    {
+        if (node.Kind == "window" && parent.FindForm() is Form form && node.Text.Length > 0) form.Text = node.Text;
+        Control control = node.Kind switch
         {
-            ThrowIfDisposed();
-            return _initialization ??= InitializeCoreAsync();
-        }
+            "root" or "window" or "col" or "fill" or "workspace" or "panel-body" => Container(true),
+            "row" or "statusbar" or "contextbar" or "nav" or "tabs" or "menubar" => Container(false),
+            "panel" => new GroupBox { Text = node.Text, AutoSize = true, AutoSizeMode = AutoSizeMode.GrowAndShrink, Padding = new Padding(Theme.Gap) },
+            "sidebar" => new FlowLayoutPanel { FlowDirection = FlowDirection.TopDown, WrapContents = false, AutoScroll = true, Width = Theme.SidebarWidth, Dock = DockStyle.Left },
+            "heading" or "section-label" or "text" or "empty" or "item" or "menu" => CreateLabel(node),
+            "button" => new Button { Text = node.Text, AutoSize = true, FlatStyle = FlatStyle.Flat },
+            "input" => new TextBox { PlaceholderText = node.Attrs.GetValueOrDefault("placeholder", ""), Width = 220 },
+            "textarea" => new TextBox { Multiline = true, Width = 320, Height = 100, ScrollBars = ScrollBars.Vertical },
+            "check" => new CheckBox { Text = node.Text, AutoSize = true },
+            "select" or "dropdown" => Select(node),
+            "slider" => Slider(node),
+            "progress" => Progress(node),
+            "table" => Table(node),
+            "tree" => Tree(node),
+            "spinner" or "loading" => new ProgressBar { Style = ProgressBarStyle.Marquee, Width = 90, Height = 8 },
+            "sep" => new Label { AutoSize = false, Height = 1, Width = 120 },
+            _ => Container(true)
+        };
+        control.Margin = new Padding(Theme.Gap / 2);
+        if (node.Attrs.TryGetValue("id", out var id)) control.Name = id;
+        var export = node.Attrs.GetValueOrDefault("export",
+            node.Attrs.GetValueOrDefault("bind", node.Attrs.GetValueOrDefault("id", "")));
+        if (export.Length > 0) _exports[export] = control;
+        if (node.Attrs.ContainsKey("disabled")) control.Enabled = false;
+        if (node.Attrs.TryGetValue("on", out var channel)) WireEvent(control, channel);
+        parent.Controls.Add(control);
+        if (control is not (DataGridView or TreeView or ComboBox or TrackBar or ProgressBar or TextBox or Button or CheckBox or Label))
+            foreach (var child in node.Nodes) AddNode(control, child);
+        return control;
+    }
 
-        private async Task InitializeCoreAsync()
+    private FlowLayoutPanel Container(bool vertical) => new()
+    {
+        AutoSize = true, AutoSizeMode = AutoSizeMode.GrowAndShrink,
+        FlowDirection = vertical ? FlowDirection.TopDown : FlowDirection.LeftToRight,
+        WrapContents = false, Dock = DockStyle.Top, Padding = new Padding(Theme.Gap / 2)
+    };
+
+    private static Label CreateLabel(ZuiNode node) => new()
+    {
+        Text = node.Text, AutoSize = true,
+        Font = new Font("Segoe UI", 9F, node.Kind is "heading" or "section-label" ? FontStyle.Bold : FontStyle.Regular)
+    };
+
+    private static ComboBox Select(ZuiNode node)
+    {
+        var box = new ComboBox { DropDownStyle = ComboBoxStyle.DropDownList, Width = 200 };
+        box.Items.AddRange(node.Nodes.Where(n => n.Kind is "option" or "item").Select(n => (object)n.Text).ToArray());
+        if (box.Items.Count > 0) box.SelectedIndex = 0;
+        return box;
+    }
+
+    private static TrackBar Slider(ZuiNode node)
+    {
+        var min = Int(node, "min", 0); var max = Int(node, "max", 100);
+        return new TrackBar { Minimum = min, Maximum = max, Value = Math.Clamp(Int(node, "value", min), min, max), TickStyle = TickStyle.None, Width = 220 };
+    }
+
+    private static ProgressBar Progress(ZuiNode node) => new() { Minimum = 0, Maximum = 100, Value = Math.Clamp(Int(node, "value", 0), 0, 100), Width = 220, Height = 12 };
+
+    private static DataGridView Table(ZuiNode node)
+    {
+        var grid = new DataGridView { Width = 720, Height = 320, AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill,
+            AllowUserToAddRows = false, RowHeadersVisible = false, SelectionMode = DataGridViewSelectionMode.FullRowSelect };
+        foreach (var col in node.Nodes.Where(n => n.Kind == "column")) grid.Columns.Add(col.Attrs.GetValueOrDefault("field", col.Text), col.Text);
+        return grid;
+    }
+
+    private static TreeView Tree(ZuiNode node)
+    {
+        var tree = new TreeView { Width = 240, Height = 320, BorderStyle = BorderStyle.FixedSingle };
+        foreach (var child in node.Nodes) tree.Nodes.Add(TreeItem(child));
+        return tree;
+    }
+
+    private static TreeNode TreeItem(ZuiNode node)
+    {
+        var item = new TreeNode(node.Text);
+        foreach (var child in node.Nodes) item.Nodes.Add(TreeItem(child));
+        return item;
+    }
+
+    private void WireEvent(Control control, string channel)
+    {
+        if (control is ComboBox combo) combo.SelectedValueChanged += (_, _) => Dispatch(channel, combo.Text);
+        else if (control is TrackBar slider) slider.ValueChanged += (_, _) => Dispatch(channel, slider.Value.ToString());
+        else if (control is CheckBox check) check.CheckedChanged += (_, _) => Dispatch(channel, check.Checked.ToString().ToLowerInvariant());
+        else control.Click += (_, _) => Dispatch(channel, "");
+    }
+
+    private void ApplyTheme(Control root)
+    {
+        root.BackColor = root is TextBox or DataGridView ? Theme.Raised : Theme.Surface;
+        root.ForeColor = Theme.Text;
+        if (root is Button button) { button.FlatAppearance.BorderColor = Theme.Border; button.BackColor = Theme.Raised; }
+        if (root is GroupBox) root.ForeColor = Theme.Accent;
+        if (root is DataGridView grid)
         {
-            var env = await GetSharedEnvironmentAsync();
-            await _view.EnsureCoreWebView2Async(env);
-
-            var core = _core = _view.CoreWebView2;
-            core.Settings.AreDefaultContextMenusEnabled = false;
-            core.Settings.IsStatusBarEnabled = false;
-
-            // Map a virtual host so zUI assets and host documents load over https.
-            _mappedRoot = Path.GetDirectoryName(Path.GetFullPath(CoreRoot))!;
-            core.SetVirtualHostNameToFolderMapping(
-                VirtualHost, _mappedRoot, CoreWebView2HostResourceAccessKind.Allow);
-
-            core.WebMessageReceived += OnWebMessageReceived;
-
-            // Bridge installed before any page script runs.
-            await core.AddScriptToExecuteOnDocumentCreatedAsync(
-                "window.__zuiHost={postMessage:function(m){window.chrome.webview.postMessage(m);}};");
-
-            core.DOMContentLoaded += OnDomContentLoaded;
-            // Some documents or WebView2 versions can complete navigation
-            // without the DOM callback reaching the host. Completion is a safe
-            // second readiness signal; FlushPending is idempotent when empty.
-            core.NavigationCompleted += OnNavigationCompleted;
-            core.NavigationStarting += OnNavigationStarting;
-
-            _ready = true;
-            Ready?.Invoke(this, EventArgs.Empty);
+            grid.BackgroundColor = Theme.Surface; grid.DefaultCellStyle.BackColor = Theme.Surface;
+            grid.DefaultCellStyle.ForeColor = Theme.Text; grid.DefaultCellStyle.SelectionBackColor = Theme.Accent;
+            grid.DefaultCellStyle.SelectionForeColor = Theme.Window; grid.ColumnHeadersDefaultCellStyle.BackColor = Theme.Raised;
+            grid.ColumnHeadersDefaultCellStyle.ForeColor = Theme.Text; grid.EnableHeadersVisualStyles = false;
         }
+        foreach (Control child in root.Controls) ApplyTheme(child);
+    }
 
-        /// <summary>Load a zUI document by path relative to the virtual root
-        /// (so "showcase/index.html" resolves next to "zui/").</summary>
-        public Task LoadAsync(string relativePath)
-        {
-            EnsureReady();
-            _domReady = false;
-            _view.CoreWebView2.Navigate($"https://{VirtualHost}/{relativePath.Replace('\\', '/')}");
-            return Task.CompletedTask;
-        }
+    private static int Int(ZuiNode node, string key, int fallback) => node.Attrs.TryGetValue(key, out var value) && int.TryParse(value, out var parsed) ? parsed : fallback;
 
-        /// <summary>Render a full compiled document string (from the zslc `csharp`
-        /// backend). Written under the virtual root and navigated to, so its
-        /// <c>zui/...</c> asset links resolve.</summary>
-        public void LoadDocument(string html)
-        {
-            EnsureReady();
-            var name = "__zui_compiled.html";
-            File.WriteAllText(Path.Combine(_mappedRoot, name), html);
-            _domReady = false;
-            _view.CoreWebView2.Navigate($"https://{VirtualHost}/{name}");
-        }
+    public void Dispose() { if (_disposed) return; _disposed = true; _handlers.Clear(); _exports.Clear(); }
 
-        /// <summary>Push a message to the UI (host -&gt; UI). Buffered until the
-        /// page's DOM is ready so early sends are not lost.</summary>
-        public void Send(string channel, object? payload = null)
-        {
-            EnsureReady();
-            var json = JsonSerializer.Serialize(new { channel, payload });
-            if (_domReady) _view.CoreWebView2.PostWebMessageAsString(json);
-            else _pending.Enqueue(json);
-        }
-
-        /// <summary>Subscribe to a UI channel (UI -&gt; host).</summary>
-        public IDisposable On(string channel, Action<JsonElement> handler)
-        {
-            ThrowIfDisposed();
-            if (!_handlers.TryGetValue(channel, out var list))
-                _handlers[channel] = list = new();
-            list.Add(handler);
-            return new Subscription(() => list.Remove(handler));
-        }
-
-        public void SetTheme(string name) => Send("theme", name);
-
-        private void FlushPending()
-        {
-            while (_pending.Count > 0)
-                _view.CoreWebView2.PostWebMessageAsString(_pending.Dequeue());
-        }
-
-        private void MarkDocumentReady()
-        {
-            _domReady = true;
-            FlushPending();
-        }
-
-        private void OnWebMessageReceived(object? sender, CoreWebView2WebMessageReceivedEventArgs e) =>
-            Dispatch(e.TryGetWebMessageAsString());
-
-        private void OnDomContentLoaded(object? sender, CoreWebView2DOMContentLoadedEventArgs e) =>
-            MarkDocumentReady();
-
-        private void OnNavigationStarting(object? sender, CoreWebView2NavigationStartingEventArgs e) =>
-            _domReady = false;
-
-        private void OnNavigationCompleted(object? sender, CoreWebView2NavigationCompletedEventArgs e)
-        {
-            if (e.IsSuccess) MarkDocumentReady();
-        }
-
-        private void Dispatch(string? webMessageJson)
-        {
-            if (string.IsNullOrEmpty(webMessageJson)) return;
-            try
-            {
-                using var doc = JsonDocument.Parse(webMessageJson);
-                var root = doc.RootElement;
-                if (!root.TryGetProperty("channel", out var ch)) return;
-                var name = ch.GetString();
-                if (name is null || !_handlers.TryGetValue(name, out var list)) return;
-                var payload = root.TryGetProperty("payload", out var p) ? p.Clone() : default;
-                foreach (var h in list.ToArray()) h(payload);
-            }
-            catch (JsonException) { /* ignore malformed */ }
-        }
-
-        private void EnsureReady()
-        {
-            ThrowIfDisposed();
-            if (!_ready)
-                throw new InvalidOperationException("Call InitializeAsync() before using ZuiHost.");
-        }
-
-        private void ThrowIfDisposed()
-        {
-            ObjectDisposedException.ThrowIf(_disposed, this);
-        }
-
-        public ValueTask DisposeAsync()
-        {
-            if (_disposed) return ValueTask.CompletedTask;
-            _disposed = true;
-            if (_core is not null)
-            {
-                _core.WebMessageReceived -= OnWebMessageReceived;
-                _core.DOMContentLoaded -= OnDomContentLoaded;
-                _core.NavigationStarting -= OnNavigationStarting;
-                _core.NavigationCompleted -= OnNavigationCompleted;
-                _core = null;
-            }
-            _ready = false;
-            _domReady = false;
-            _handlers.Clear();
-            _pending.Clear();
-            return ValueTask.CompletedTask;
-        }
-
-        private sealed class Subscription : IDisposable
-        {
-            private readonly Action _dispose;
-            public Subscription(Action dispose) => _dispose = dispose;
-            public void Dispose() => _dispose();
-        }
+    private sealed class Subscription(Action dispose) : IDisposable
+    {
+        private Action? _dispose = dispose;
+        public void Dispose() { _dispose?.Invoke(); _dispose = null; }
     }
 }

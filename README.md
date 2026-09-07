@@ -1,132 +1,29 @@
 # zUI
 
-A visual UI subsystem that sits on top of native applications (a music app, a game
-engine, a project-management app) and gives all of them one consistent, themeable
-UI experience.
+zUI is an ahead-of-time UI compiler and native Windows widget runtime. ZML or
+ZSL describes a screen; `zslc.py` emits C# that builds WinForms controls or C++
+that builds Win32/common controls. Markup and theme-source CSS are never shipped
+or interpreted by the application.
 
-## Design
+## Build
 
-The default theme is **holo** — Google's Android Holo look: dark chrome, the
-Holo-blue `#33b5e5` accent, thin dividers, uppercase accent-coloured section
-headers. It is the `:root` token set in `core/css/tokens.css` and is restated in
-`core/css/themes/holo.css` for explicit selection.
-
-A light, neutral "native Windows utility" alternative — the aesthetic spelled out
-in [`design.txt`](design.txt) — ships as the **clean** theme
-(`core/css/themes/clean.css`). Structure, spacing, typography and interaction are
-identical between themes; only the palette differs. A theme is just a file that
-re-declares tokens — new themes need no component changes. See
-[`core/css/THEMES.md`](core/css/THEMES.md).
-
-## Architecture
-
-zUI is a **CSS + small JS runtime** rendered inside a host-provided web view. Both
-a C++ and a C# binding embed the exact same assets, so every host application gets
-a pixel-identical result.
-
-```
-core/
-  css/
-    tokens.css          design tokens (colour, spacing, type, border) as CSS vars
-    base.css            reset + platform typography
-    components/*.css     one file per widget, all driven by tokens
-    themes/holo.css     concrete token values for the holo theme
-  js/
-    zui.js              runtime: component behaviours + host<->UI message bus
-bindings/
-  csharp/               ZUI .NET library (WebView2 host)
-  cpp/                  zui C++ wrapper (host-webview agnostic)
-showcase/               standalone app demoing every component
+```powershell
+./build.ps1 -Config test
+./build.ps1 -Config debug
+./build.ps1 -Config release
 ```
 
-### The message bus & component IO
+Requirements are Python 3, .NET 8, Visual Studio C++ tools, CMake, and the
+Windows SDK. The test gate rejects browser documents, browser packages, and
+browser-rendering references in active code.
 
-UI and host talk over a single JSON channel. From the UI:
-`zui.send(channel, payload)`; the host replies / pushes with
-`zui.receive(channel, handler)`. Bindings map this onto their platform's web-view
-IPC (`postMessage` / `CoreWebView2.WebMessageReceived`).
+## Compile a screen
 
-Any component tagged `data-zui-id` (or ZSL/ZML `export="…"`) is readable and
-writable both ways — text, checkboxes, selects, progress bars, labels, button
-clicks/state, and scroll positions. `zui.values()` / `zui.field(id)` /
-`zui.set(id, value)` in the page; `value` / `set` / `set-many` / `query` /
-`submit` on the bus. Full contract in [`core/PROTOCOL.md`](core/PROTOCOL.md).
-
-## ZSL - the UI scripting language
-
-UI is written in **ZSL** and compiled ahead of time by
-[`compiler/zslc.py`](compiler/README.md) - never interpreted at runtime. Two
-interchangeable syntaxes, auto-detected:
-
-```
-panel "Tracks" { button "Play" }                          # brace  .zsl
-<panel title="Tracks"><button>Play</button></panel>       # ZML    .zml
+```powershell
+py compiler/zslc.py examples/showcase.zml --backend csharp -o ShowcaseUi.g.cs
+py compiler/zslc.py examples/showcase.zml --backend cpp -o showcase.g.cpp
 ```
 
-Backends: `html` (a self-contained zUI document), `csharp` and `cpp` (AOT-generated
-source compiled and linked into a native host executable). The native backends
-embed the themed zUI document as program data and expose normal C#/C++ callbacks;
-they do not ship or interpret ZSL/ZML at runtime. See [`compiler/GRAMMAR.md`](compiler/GRAMMAR.md) and
-[`examples/`](examples/).
-
-```
-py compiler/zslc.py examples/showcase.zml --backend html -o showcase.html
-```
-
-## Using it
-
-Start with the standalone [`docs/QUICKSTART.md`](docs/QUICKSTART.md): it goes
-from one `.zml` file to a running native .NET executable and wires a message in
-each direction. Deployment support for the `v0.1` line is summarized in
-[`docs/COMPATIBILITY.md`](docs/COMPATIBILITY.md).
-
-### C#
-
-```csharp
-using ZUI;
-
-var ui = new ZuiHost(webView2Control);
-await ui.InitializeAsync();
-await ui.LoadAsync("showcase/index.html");   // or your own zUI document
-ui.On("save", json => Save(json));
-ui.Send("theme", "holo");
-```
-
-### C++
-
-```cpp
-#include "zui.h"
-
-zui::Host ui(hwnd);            // wraps a platform web view
-ui.load("showcase/index.html");
-ui.on("save", [](const std::string& json){ save(json); });
-ui.send("theme", "holo");
-```
-
-## Building
-
-`build.ps1` copies `core/` into `builds/<debug|test|release>/zui/` and builds the
-bindings. The showcase app is pure static assets - open `showcase/index.html`.
-
-## Documentation
-
-`docs/index.html` — a click-through documentation site (styled with zUI itself)
-covering embedding, the ZSL/ZML language, components, the message-bus/IO
-protocol, theming, icons and building. Each section points at the authoritative
-markdown file. `design.txt` is the integration + visual-standard guide for
-agents working in host projects.
-
-## CI
-
-`.github/workflows/ci.yml` builds the whole project on `windows-latest` on every
-push: the Python compiler + token tests, the headless runtime self-tests
-(IO + reactivity), the C# binding and sample, the C++ core (+ envelope ctest),
-and the C++ WebView2 backend + sample against pinned WebView2/WIL packages.
-
-## Status
-
-`v0.1.0` is the integration baseline. The Holo token system, component runtime,
-ZSL/ZML compiler, C# and C++ native-host bindings, generated native samples,
-zSheets CSV editor, and WPF browser comparison all build from `build.ps1`.
-`-Config test` enforces compiler, message-bus, table-binding, theme policy,
-native binding, executable self-test, and headless application checks.
+The C# runtime is in `bindings/csharp`; the C++ runtime is in `bindings/cpp`.
+Runnable native examples are in `samples/csharp`, `samples/cpp`, and
+`samples/zsheets`. See `docs/QUICKSTART.md` for integration.
