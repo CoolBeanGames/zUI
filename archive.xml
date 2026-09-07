@@ -75,6 +75,39 @@
     <filesChanged>core/css/tokens.css, core/css/themes/holo.css, core/css/themes/clean.css, core/css/THEMES.md, core/css/base.css, core/css/components/{button,layout,panel,scrollbar,table,tooltip,window}.css, showcase/index.html, showcase/music.html, README.md, design.txt, task_images/ZU-33.png</filesChanged>
     <image>ZU-33.png</image>
   </task>
+  <task id="ZU-48">
+    <name>second test app</name>
+    <prompt>write a second program (maybe a full on web browser) using wpf. push commit build, then as a second build convert it to use zUI. I want executables for BOTH versions to test)</prompt>
+    <requirements></requirements>
+    <inProgress>false</inProgress>
+    <done>true</done>
+    <bug>false</bug>
+    <error>false</error>
+    <errorMessage></errorMessage>
+    <lockKey></lockKey>
+    <locked>false</locked>
+    <archived>true</archived>
+    <blockedBy></blockedBy>
+    <dateStarted></dateStarted>
+    <dueDate></dueDate>
+    <commit>false</commit>
+    <build>false</build>
+    <release>false</release>
+    <merge>false</merge>
+    <branch>refactor</branch>
+    <tags></tags>
+    <notes>Created two independently runnable WPF WebView2 browser builds. The native baseline uses stock WPF controls and was committed/pushed first as 0a4b366. The zUI conversion keeps WPF as the application host but replaces browser chrome with a Holo zUI surface; address/navigation commands and URL/title/history/status updates cross the zUI message bus. Added URL and headless toolbar self-tests, build.ps1/CI integration, and comparison documentation. Full test/debug builds pass. Executables: builds/debug/wpf-browser-native/zBrowser.Native.exe and builds/debug/wpf-browser-zui/zBrowser.zUI.exe. zUI conversion committed/pushed as 21467df.</notes>
+    <filesChanged>samples/wpf-browser-native/WpfBrowserNative.csproj, samples/wpf-browser-native/Program.cs, samples/wpf-browser-zui/WpfBrowserZui.csproj, samples/wpf-browser-zui/Program.cs, samples/wpf-browser-zui/toolbar.html, build.ps1, .github/workflows/ci.yml, samples/README.md</filesChanged>
+    <image></image>
+    <subtasks>
+      <subtask done="true">Implement and build a native-control WPF WebView2 browser baseline</subtask>
+      <subtask done="true">Commit and push the verified native WPF baseline as the first comparison build</subtask>
+      <subtask done="true">Implement the second WPF browser with Holo zUI chrome and host-to-content navigation wiring</subtask>
+      <subtask done="true">Integrate both browser variants into build.ps1, CI, and sample documentation</subtask>
+      <subtask done="true">Build and smoke-test both executables, then push the zUI conversion commit</subtask>
+      <subtask done="true">Record task metadata, mark completion, and release the ownership lock</subtask>
+    </subtasks>
+  </task>
   <task id="ZU-47">
     <name>create a test note taking app with zUI to test it</name>
     <prompt>make a app to test this new system fully, maybe a spreadsheet editor that saves to csv? call it zSheets</prompt>

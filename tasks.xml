@@ -1,38 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <tasks project="zUI" nextIndex="50">
-  <task id="ZU-48">
-    <name>second test app</name>
-    <prompt>write a second program (maybe a full on web browser) using wpf. push commit build, then as a second build convert it to use zUI. I want executables for BOTH versions to test)</prompt>
-    <requirements></requirements>
-    <inProgress>true</inProgress>
-    <done>false</done>
-    <bug>false</bug>
-    <error>false</error>
-    <errorMessage></errorMessage>
-    <lockKey>zr9K4m2Q7x</lockKey>
-    <locked>false</locked>
-    <archived>false</archived>
-    <blockedBy></blockedBy>
-    <dateStarted></dateStarted>
-    <dueDate></dueDate>
-    <commit>false</commit>
-    <build>false</build>
-    <release>false</release>
-    <merge>false</merge>
-    <branch>refactor</branch>
-    <tags></tags>
-    <notes></notes>
-    <filesChanged></filesChanged>
-    <image></image>
-    <subtasks>
-      <subtask done="true">Implement and build a native-control WPF WebView2 browser baseline</subtask>
-      <subtask done="true">Commit and push the verified native WPF baseline as the first comparison build</subtask>
-      <subtask done="true">Implement the second WPF browser with Holo zUI chrome and host-to-content navigation wiring</subtask>
-      <subtask done="true">Integrate both browser variants into build.ps1, CI, and sample documentation</subtask>
-      <subtask done="false">Build and smoke-test both executables, then push the zUI conversion commit</subtask>
-      <subtask done="false">Record task metadata, mark completion, and release the ownership lock</subtask>
-    </subtasks>
-  </task>
   <task id="ZU-49">
     <name>make sure everything is up to snuff</name>
     <prompt>make 100% sure this is fully functional and optimized, i want this working RIGHT and no more huge mistakes with implementation. I want ALL ui going forward based on googles HoloUI through this themeing system we have built using our custom widgets, please fix all issues and once they are done let me know and away further instructions</prompt>
