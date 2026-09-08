@@ -72,8 +72,18 @@ Common metadata: `id`, `export`, `bind`, `source`, `on`, `value`, `placeholder`,
 Extra event channels (payload in parentheses): `onchange` (editable → current
 value on every edit — same as `on` for `input`), `oncommit` (editable → value on
 Enter / blur), `onactivate` (`table`/`list`/`tree` → item key on double-click or
-Enter), `ontoggle` (`button kind="toggle"` → `"true"`/`"false"`). `<option
-value="x">Label</option>` — the change event and `selectedvalue` use the value.
+Enter), `ontoggle` (`button kind="toggle"` → `"true"`/`"false"`), `ontab`
+(`tabs` → selected `tabpanel` id), `oncontext` (right-click / Menu key on a
+`selectable` control → `{control, keys}`; the handler calls
+`host.PopupMenu(name, items)`), `ondrop` (drop onto the node → `{target,
+targetKey?, keys?}` for an internal drag carrying `dragsource` keys, or
+`{target, paths}` for an OS file drop), `onmenuopen` (menu-bar `menu` about to
+drop → its path). `dragsource` (flag) makes a `selectable` control a drag
+source. `<option value="x">Label</option>` — the change event and
+`selectedvalue` use the value.
+
+Menu-bar items are addressable after `Build()` by their `"Menu/Item"` path:
+`host.SetMenuEnabled(path, bool)` / `host.SetMenuChecked(path, bool)`.
 
 The compiler preserves this information in typed node constructors. Native host
 implementations decide the concrete control, layout, theme properties, and event.

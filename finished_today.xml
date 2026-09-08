@@ -1,5 +1,71 @@
 <?xml version="1.0" encoding="utf-8"?>
 <tasks project="zUI" nextIndex="89">
+  <task id="ZU-78">
+    <name>Layout nodes: grid, scroll container, working tabs, splitter</name>
+    <prompt>Extends ZU-66 for hTunes (ZU-74 / zui-requirements.md items 11,12,13,14). C# first; C++ parity ZU-87.</prompt>
+    <requirements></requirements>
+    <inProgress>false</inProgress>
+    <done>true</done>
+    <priority>false</priority>
+    <bug>false</bug>
+    <error>false</error>
+    <errorMessage></errorMessage>
+    <lockKey></lockKey>
+    <locked>false</locked>
+    <archived>false</archived>
+    <blockedBy></blockedBy>
+    <dateStarted></dateStarted>
+    <dueDate></dueDate>
+    <dateFinished>2026-09-08 01:19</dateFinished>
+    <commit>false</commit>
+    <build>false</build>
+    <release>false</release>
+    <merge>false</merge>
+    <branch>main</branch>
+    <tags></tags>
+    <notes>Done (C#): grid cols=N (row-major, colspan, gap); scroll container; tabs/tabpanel real switching (TabControl + headless deck) with ontab + Set selected; splitter (SplitContainer, per-child min, pos). C++ parity ZU-87.</notes>
+    <filesChanged>bindings/csharp/ZuiHost.cs; compiler/GRAMMAR.md; compiler/tests/test_compile.py; tests/csharp/Program.cs</filesChanged>
+    <image></image>
+    <subtasks>
+      <subtask done="true">grid cols=N row-major, colspan, gap</subtask>
+      <subtask done="true">scroll container node</subtask>
+      <subtask done="true">tabs/tabpanel real switching + ontab + Set selected + headless deck</subtask>
+      <subtask done="true">splitter node (SplitContainer)</subtask>
+      <subtask done="true">grammar + tests + gate</subtask>
+    </subtasks>
+  </task>
+  <task id="ZU-77">
+    <name>Small native control nodes: number, toggle, tooltip, console</name>
+    <prompt>ZU-74 / zui-requirements.md items 16,17,19,20. C# first; C++ parity ZU-87.</prompt>
+    <requirements></requirements>
+    <inProgress>false</inProgress>
+    <done>true</done>
+    <priority>false</priority>
+    <bug>false</bug>
+    <error>false</error>
+    <errorMessage></errorMessage>
+    <lockKey></lockKey>
+    <locked>false</locked>
+    <archived>false</archived>
+    <blockedBy></blockedBy>
+    <dateStarted></dateStarted>
+    <dueDate></dueDate>
+    <dateFinished>2026-09-08 01:19</dateFinished>
+    <commit>false</commit>
+    <build>false</build>
+    <release>false</release>
+    <merge>false</merge>
+    <branch>main</branch>
+    <tags></tags>
+    <notes>Done (C#): console node + host.Append(name,text) auto-scroll capped buffer. number/toggle/tooltip already landed in ZU-75/76. C++ parity ZU-87.</notes>
+    <filesChanged>bindings/csharp/ZuiHost.cs; compiler/GRAMMAR.md; compiler/tests/test_compile.py; tests/csharp/Program.cs</filesChanged>
+    <image></image>
+    <subtasks>
+      <subtask done="true">console/log node: read-only monospace multiline</subtask>
+      <subtask done="true">Append(name,text) appends + auto-scrolls, capped line buffer</subtask>
+      <subtask done="true">grammar + tests + gate</subtask>
+    </subtasks>
+  </task>
   <task id="ZU-76">
     <name>source= collection binding: keyed CRUD + per-row state (C#)</name>
     <prompt>Realizes ZU-67 for the C# runtime (ZU-74 / zui-requirements.md items 6,10). C++ parity is ZU-87.</prompt>

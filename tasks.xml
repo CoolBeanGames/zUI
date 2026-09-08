@@ -9,83 +9,17 @@
     <branch>main</branch>
     <clearAfterReading>false</clearAfterReading>
   </task>
-  <task id="ZU-77">
-    <name>Small native control nodes: number, toggle, tooltip, console</name>
-    <prompt>ZU-74 / zui-requirements.md items 16,17,19,20. C# first; C++ parity ZU-87.</prompt>
-    <requirements></requirements>
-    <inProgress>true</inProgress>
-    <done>false</done>
-    <priority>false</priority>
-    <bug>false</bug>
-    <error>false</error>
-    <errorMessage></errorMessage>
-    <lockKey>s5htunes</lockKey>
-    <locked>false</locked>
-    <archived>false</archived>
-    <blockedBy></blockedBy>
-    <dateStarted></dateStarted>
-    <dueDate></dueDate>
-    <dateFinished></dateFinished>
-    <commit>false</commit>
-    <build>false</build>
-    <release>false</release>
-    <merge>false</merge>
-    <branch>main</branch>
-    <tags></tags>
-    <notes>Partial: number node (NumericUpDown + change/commit), button kind=toggle (ontoggle + Get/Set 'pressed'), and tooltip= (shared ToolTip) all landed with ZU-75/76. REMAINING: console/log node + Append(name,text) auto-scroll monospace capped buffer.</notes>
-    <filesChanged></filesChanged>
-    <image></image>
-    <subtasks>
-      <subtask done="false">console/log node: read-only monospace multiline</subtask>
-      <subtask done="false">Append(name,text) appends + auto-scrolls, capped line buffer</subtask>
-      <subtask done="false">grammar + tests + gate</subtask>
-    </subtasks>
-  </task>
-  <task id="ZU-78">
-    <name>Layout nodes: grid, scroll container, working tabs, splitter</name>
-    <prompt>Extends ZU-66 for hTunes (ZU-74 / zui-requirements.md items 11,12,13,14). C# first; C++ parity ZU-87.</prompt>
-    <requirements></requirements>
-    <inProgress>true</inProgress>
-    <done>false</done>
-    <priority>false</priority>
-    <bug>false</bug>
-    <error>false</error>
-    <errorMessage></errorMessage>
-    <lockKey>s5htunes</lockKey>
-    <locked>false</locked>
-    <archived>false</archived>
-    <blockedBy></blockedBy>
-    <dateStarted></dateStarted>
-    <dueDate></dueDate>
-    <dateFinished></dateFinished>
-    <commit>false</commit>
-    <build>false</build>
-    <release>false</release>
-    <merge>false</merge>
-    <branch>main</branch>
-    <tags></tags>
-    <notes></notes>
-    <filesChanged></filesChanged>
-    <image></image>
-    <subtasks>
-      <subtask done="false">grid cols=N row-major, colspan, gap</subtask>
-      <subtask done="false">scroll container node</subtask>
-      <subtask done="false">tabs/tabpanel real switching + ontab + Set selected + headless deck</subtask>
-      <subtask done="false">splitter node (SplitContainer)</subtask>
-      <subtask done="false">grammar + tests + gate</subtask>
-    </subtasks>
-  </task>
   <task id="ZU-79">
     <name>Full Clean + Holo theme coverage for every control</name>
     <prompt>ZU-70 parity, needed now (ZU-74 / zui-requirements.md item 21).</prompt>
     <requirements></requirements>
-    <inProgress>false</inProgress>
+    <inProgress>true</inProgress>
     <done>false</done>
     <priority>false</priority>
     <bug>false</bug>
     <error>false</error>
     <errorMessage></errorMessage>
-    <lockKey></lockKey>
+    <lockKey>s5htunes</lockKey>
     <locked>false</locked>
     <archived>false</archived>
     <blockedBy></blockedBy>
@@ -101,18 +35,23 @@
     <notes>Partial: ApplyTheme broadened to TextBox/ListBox/TreeView/ComboBox/NumericUpDown/TrackBar/SplitContainer/bold-Labels; ZuiTheme gained Warn/Error/Ok and row-state colours; per-row state recolours on SetTheme. REMAINING: full audit of every control's selection/disabled/focus states for both Clean and Holo + the colour-assertion test.</notes>
     <filesChanged></filesChanged>
     <image></image>
+    <subtasks>
+      <subtask done="false">themed ToolStrip renderer (MenuStrip + ContextMenuStrip) for Holo + Clean</subtask>
+      <subtask done="false">theme ComboBox / NumericUpDown / TextBox / DataGridView gridlines / TabControl / ProgressBar</subtask>
+      <subtask done="false">colour-assertion host test for both themes</subtask>
+    </subtasks>
   </task>
   <task id="ZU-80">
     <name>Context menus: context request channel + menu-bar mutation</name>
     <prompt>NEW (ZU-74 / zui-requirements.md item 3). C# first; C++ parity ZU-87.</prompt>
     <requirements></requirements>
-    <inProgress>false</inProgress>
+    <inProgress>true</inProgress>
     <done>false</done>
     <priority>false</priority>
     <bug>false</bug>
     <error>false</error>
     <errorMessage></errorMessage>
-    <lockKey></lockKey>
+    <lockKey>s5htunes</lockKey>
     <locked>false</locked>
     <archived>false</archived>
     <blockedBy></blockedBy>
@@ -128,18 +67,24 @@
     <notes></notes>
     <filesChanged></filesChanged>
     <image></image>
+    <subtasks>
+      <subtask done="false">ZuiMenuItem spec type + host.PopupMenu(name, items) at cursor, routes clicks</subtask>
+      <subtask done="false">oncontext channel: right-click / Apps key -&gt; {control, keys} JSON</subtask>
+      <subtask done="false">menu-bar: path registry + SetMenuEnabled/SetMenuChecked + onmenuopen per menu</subtask>
+      <subtask done="false">tests + gate</subtask>
+    </subtasks>
   </task>
   <task id="ZU-81">
     <name>Drag and drop: drag-source, drop-target, file drop, reorder</name>
     <prompt>NEW (ZU-74 / zui-requirements.md item 4). C# first; C++ parity ZU-87.</prompt>
     <requirements></requirements>
-    <inProgress>false</inProgress>
+    <inProgress>true</inProgress>
     <done>false</done>
     <priority>false</priority>
     <bug>false</bug>
     <error>false</error>
     <errorMessage></errorMessage>
-    <lockKey></lockKey>
+    <lockKey>s5htunes</lockKey>
     <locked>false</locked>
     <archived>false</archived>
     <blockedBy></blockedBy>
@@ -155,6 +100,11 @@
     <notes></notes>
     <filesChanged></filesChanged>
     <image></image>
+    <subtasks>
+      <subtask done="false">dragsource: drag current selection, carry keys</subtask>
+      <subtask done="false">ondrop channel: internal {target,targetKey,keys} + OS file {target,paths}</subtask>
+      <subtask done="false">tests + gate</subtask>
+    </subtasks>
   </task>
   <task id="ZU-82">
     <name>image node + image cells + list-item images</name>

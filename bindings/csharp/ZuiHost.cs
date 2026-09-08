@@ -43,6 +43,34 @@ public sealed record ZuiTheme(Color Window, Color Surface, Color Raised, Color T
         (int)(a.R + (b.R - a.R) * t), (int)(a.G + (b.G - a.G) * t), (int)(a.B + (b.B - a.B) * t));
 }
 
+/// <summary>One item in a context menu or menu-bar dropdown (see ZU-80).</summary>
+public sealed record ZuiMenuItem(string Label = "", string Channel = "", string Payload = "",
+    bool Enabled = true, bool Checked = false, bool Separator = false,
+    IReadOnlyList<ZuiMenuItem>? Submenu = null)
+{
+    public static ZuiMenuItem Sep { get; } = new(Separator: true);
+}
+
+/// <summary>ToolStrip colours driven by the active <see cref="ZuiTheme"/>.</summary>
+internal sealed class ZuiColorTable(ZuiTheme theme) : ProfessionalColorTable
+{
+    public override Color ToolStripDropDownBackground => theme.Raised;
+    public override Color ImageMarginGradientBegin => theme.Raised;
+    public override Color ImageMarginGradientMiddle => theme.Raised;
+    public override Color ImageMarginGradientEnd => theme.Raised;
+    public override Color MenuBorder => theme.Border;
+    public override Color MenuItemBorder => theme.Accent;
+    public override Color MenuItemSelected => ZuiTheme.Blend(theme.Raised, theme.Accent, 0.30);
+    public override Color MenuItemSelectedGradientBegin => MenuItemSelected;
+    public override Color MenuItemSelectedGradientEnd => MenuItemSelected;
+    public override Color MenuItemPressedGradientBegin => theme.Raised;
+    public override Color MenuItemPressedGradientEnd => theme.Raised;
+    public override Color MenuStripGradientBegin => theme.Raised;
+    public override Color MenuStripGradientEnd => theme.Raised;
+    public override Color SeparatorDark => theme.Border;
+    public override Color SeparatorLight => theme.Border;
+}
+
 /// <summary>Builds compiled nodes as operating-system WinForms controls. There is no browser engine.</summary>
 public sealed class ZuiHost : IDisposable
 {
@@ -50,6 +78,8 @@ public sealed class ZuiHost : IDisposable
     private readonly Dictionary<string, List<Action<string>>> _handlers = new(StringComparer.Ordinal);
     private readonly Dictionary<string, Control> _exports = new(StringComparer.Ordinal);
     private readonly Dictionary<Control, RowStore> _rows = new();
+    private readonly Dictionary<string, ToolStripMenuItem> _menuItems = new(StringComparer.OrdinalIgnoreCase);
+    private ToolStripRenderer _menuRenderer;
     private bool _disposed;
     private int _buildCount;
 
@@ -60,6 +90,7 @@ public sealed class ZuiHost : IDisposable
     {
         _parent = parent ?? throw new ArgumentNullException(nameof(parent));
         State = new ZuiState(this);
+        _menuRenderer = new ToolStripProfessionalRenderer(new ZuiColorTable(Theme));
     }
 
     public ZuiTheme Theme { get; private set; } = ZuiTheme.Holo;
@@ -158,6 +189,7 @@ public sealed class ZuiHost : IDisposable
     public void SetTheme(string name)
     {
         Theme = string.Equals(name, "clean", StringComparison.OrdinalIgnoreCase) ? ZuiTheme.Clean : ZuiTheme.Holo;
+        _menuRenderer = new ToolStripProfessionalRenderer(new ZuiColorTable(Theme));
         if (_parent.Controls.Count > 0) ApplyTheme(_parent.Controls[0]);
         Dispatch("theme-changed", name);
     }
@@ -777,23 +809,59 @@ public sealed class ZuiHost : IDisposable
 
     private MenuStrip BuildMenuStrip(ZuiNode node)
     {
-        var strip = new MenuStrip { Dock = DockStyle.Top, GripStyle = ToolStripGripStyle.Hidden };
-        foreach (var menu in node.Nodes) strip.Items.Add(BuildMenuItem(menu));
+        var strip = new MenuStrip { Dock = DockStyle.Top, GripStyle = ToolStripGripStyle.Hidden, Renderer = _menuRenderer };
+        foreach (var menu in node.Nodes) strip.Items.Add(BuildMenuItem(menu, ""));
         return strip;
     }
 
-    private ToolStripItem BuildMenuItem(ZuiNode node)
+    private ToolStripItem BuildMenuItem(ZuiNode node, string parentPath)
     {
         if (node.Kind == "sep") return new ToolStripSeparator();
         var item = new ToolStripMenuItem(node.Text);
+        var path = parentPath.Length == 0 ? node.Text : parentPath + "/" + node.Text;
+        _menuItems[path] = item;
         if (node.Attrs.TryGetValue("shortcut", out var text) && TryParseShortcut(text, out var keys))
         {
             item.ShortcutKeys = keys;
             item.ShowShortcutKeys = true;
         }
+        if (node.Attrs.ContainsKey("checked")) item.Checked = true;
         if (node.Attrs.TryGetValue("on", out var channel))
             item.Click += (_, _) => Dispatch(channel, "");
-        foreach (var child in node.Nodes) item.DropDownItems.Add(BuildMenuItem(child));
+        if (node.Attrs.TryGetValue("onmenuopen", out var open))
+            item.DropDownOpening += (_, _) => Dispatch(open, path);
+        foreach (var child in node.Nodes) item.DropDownItems.Add(BuildMenuItem(child, path));
+        return item;
+    }
+
+    /// <summary>Enables / disables a menu-bar item addressed by its "Menu/Item" path.</summary>
+    public void SetMenuEnabled(string path, bool enabled)
+    {
+        if (_menuItems.TryGetValue(path, out var item)) item.Enabled = enabled;
+    }
+
+    public void SetMenuChecked(string path, bool value)
+    {
+        if (_menuItems.TryGetValue(path, out var item)) item.Checked = value;
+    }
+
+    /// <summary>Pops a context menu at the cursor for the named control and routes
+    /// each item's click to its channel/payload (ZU-80).</summary>
+    public void PopupMenu(string name, IEnumerable<ZuiMenuItem> items)
+    {
+        var control = Require(name);
+        var menu = new ContextMenuStrip { Renderer = _menuRenderer };
+        foreach (var spec in items) menu.Items.Add(BuildSpecItem(spec));
+        menu.Show(Cursor.Position);
+    }
+
+    private ToolStripItem BuildSpecItem(ZuiMenuItem spec)
+    {
+        if (spec.Separator) return new ToolStripSeparator();
+        var item = new ToolStripMenuItem(spec.Label) { Enabled = spec.Enabled, Checked = spec.Checked };
+        if (spec.Channel.Length > 0) item.Click += (_, _) => Dispatch(spec.Channel, spec.Payload);
+        if (spec.Submenu is { Count: > 0 })
+            foreach (var sub in spec.Submenu) item.DropDownItems.Add(BuildSpecItem(sub));
         return item;
     }
 
@@ -900,38 +968,119 @@ public sealed class ZuiHost : IDisposable
                 if (on is not null) control.Click += (_, _) => Dispatch(on, "");
                 break;
         }
+
+        WireContextAndDrag(control, node);
     }
 
+    // ---- Context menu + drag & drop (ZU-80 / ZU-81) -----------------------
+
+    private void WireContextAndDrag(Control control, ZuiNode node)
+    {
+        string? name = LookupName(control);
+
+        if (node.Attrs.TryGetValue("oncontext", out var ctx) && name is not null)
+        {
+            void Request() => Dispatch(ctx, JsonSerializer.Serialize(new Dictionary<string, object>
+            {
+                ["control"] = name,
+                ["keys"] = GetSelection(name),
+            }));
+            control.MouseUp += (_, e) => { if (e.Button == MouseButtons.Right) Request(); };
+            control.KeyDown += (_, e) => { if (e.KeyCode == Keys.Apps) Request(); };
+        }
+
+        if (node.Attrs.ContainsKey("dragsource") && name is not null)
+        {
+            control.MouseDown += (_, e) =>
+            {
+                if (e.Button != MouseButtons.Left) return;
+                var keys = GetSelection(name);
+                if (keys.Count == 0) return;
+                var data = new DataObject();
+                data.SetData("zui-keys", JsonSerializer.Serialize(keys));
+                control.DoDragDrop(data, DragDropEffects.Move | DragDropEffects.Copy);
+            };
+        }
+
+        if (node.Attrs.TryGetValue("ondrop", out var drop) && name is not null)
+        {
+            control.AllowDrop = true;
+            control.DragEnter += (_, e) => e.Effect =
+                e.Data?.GetDataPresent("zui-keys") == true || e.Data?.GetDataPresent(DataFormats.FileDrop) == true
+                    ? DragDropEffects.Copy : DragDropEffects.None;
+            control.DragDrop += (_, e) =>
+            {
+                var payload = new Dictionary<string, object> { ["target"] = name };
+                if (e.Data?.GetData("zui-keys") is string j)
+                {
+                    payload["keys"] = JsonSerializer.Deserialize<string[]>(j) ?? [];
+                    if (control is DataGridView g && g.HitTest(g.PointToClient(new Point(e.X, e.Y)).X, g.PointToClient(new Point(e.X, e.Y)).Y).RowIndex is >= 0 and var ri)
+                        payload["targetKey"] = KeyOfRow(g.Rows[ri]);
+                }
+                else if (e.Data?.GetData(DataFormats.FileDrop) is string[] paths)
+                    payload["paths"] = paths;
+                Dispatch(drop, JsonSerializer.Serialize(payload));
+            };
+        }
+    }
+
+    private string? LookupName(Control control) =>
+        _exports.FirstOrDefault(kv => ReferenceEquals(kv.Value, control)).Key;
+
+    /// <summary>Repaints a control subtree in the active theme. Every native
+    /// control kind zUI emits is covered for both Holo and Clean (ZU-70 / ZU-79).</summary>
     private void ApplyTheme(Control root)
     {
-        root.BackColor = root is TextBox or DataGridView or ListBox or TreeView or ComboBox or NumericUpDown
-            ? Theme.Raised : Theme.Surface;
+        bool input = root is TextBox or DataGridView or ListBox or TreeView or ComboBox or NumericUpDown;
+        root.BackColor = input ? Theme.Raised : Theme.Surface;
         root.ForeColor = Theme.Text;
-        if (root is Button button)
+
+        switch (root)
         {
-            if (button.Tag is bool pressed) StyleToggle(button, pressed);
-            else { button.FlatAppearance.BorderColor = Theme.Border; button.BackColor = Theme.Raised; }
+            case Button button when button.Tag is bool pressed:
+                StyleToggle(button, pressed); break;
+            case Button button:
+                button.FlatAppearance.BorderColor = Theme.Border;
+                button.FlatAppearance.MouseOverBackColor = Theme.Raised == Theme.Surface ? Theme.Border : ZuiTheme.Blend(Theme.Raised, Theme.Accent, 0.18);
+                button.BackColor = Theme.Raised; break;
+            case GroupBox: root.ForeColor = Theme.Accent; break;
+            case Label label when label.Font.Bold: label.ForeColor = Theme.Accent; break;
+            case TextBox tb: tb.BorderStyle = BorderStyle.FixedSingle; break;
+            case ComboBox combo:
+                combo.FlatStyle = FlatStyle.Flat; combo.BackColor = Theme.Raised; combo.ForeColor = Theme.Text; break;
+            case NumericUpDown num:
+                num.BorderStyle = BorderStyle.FixedSingle; num.BackColor = Theme.Raised; num.ForeColor = Theme.Text; break;
+            case TrackBar bar: bar.BackColor = Theme.Surface; break;
+            case ProgressBar pbar: pbar.ForeColor = Theme.Accent; pbar.BackColor = Theme.Raised; break;
+            case TreeView tree:
+                tree.BackColor = Theme.Raised; tree.LineColor = Theme.Border; break;
+            case ListBox lb: lb.BorderStyle = BorderStyle.FixedSingle; lb.Invalidate(); break;
+            case SplitContainer split:
+                split.BackColor = Theme.Border;
+                split.Panel1.BackColor = Theme.Surface; split.Panel2.BackColor = Theme.Surface; break;
+            case TabControl tabs:
+                tabs.BackColor = Theme.Surface;
+                foreach (TabPage page in tabs.TabPages) page.BackColor = Theme.Surface;
+                break;
+            case MenuStrip menu:
+                menu.BackColor = Theme.Raised; menu.ForeColor = Theme.Text;
+                menu.Renderer = _menuRenderer;
+                foreach (ToolStripItem item in menu.Items) ThemeMenuItem(item);
+                break;
+            case DataGridView grid:
+                grid.EnableHeadersVisualStyles = false;
+                grid.BackgroundColor = Theme.Surface;
+                grid.GridColor = Theme.Border;
+                grid.DefaultCellStyle.BackColor = Theme.Surface;
+                grid.DefaultCellStyle.ForeColor = Theme.Text;
+                grid.DefaultCellStyle.SelectionBackColor = Theme.Accent;
+                grid.DefaultCellStyle.SelectionForeColor = Theme.Window;
+                grid.ColumnHeadersDefaultCellStyle.BackColor = Theme.Raised;
+                grid.ColumnHeadersDefaultCellStyle.ForeColor = Theme.Text;
+                break;
         }
-        if (root is GroupBox) root.ForeColor = Theme.Accent;
-        if (root is Label label && label.Font.Bold) label.ForeColor = Theme.Accent;
-        if (root is TreeView treeView) { treeView.BackColor = Theme.Raised; treeView.LineColor = Theme.Border; }
-        if (root is ListBox listBox) listBox.Invalidate();
-        if (root is TrackBar bar) bar.BackColor = Theme.Surface;
-        if (root is SplitContainer split) { split.BackColor = Theme.Border; split.Panel1.BackColor = Theme.Surface; split.Panel2.BackColor = Theme.Surface; }
+
         if (_rows.TryGetValue(root, out var store)) RecolorRows(root, store);
-        if (root is MenuStrip menu)
-        {
-            menu.BackColor = Theme.Raised; menu.ForeColor = Theme.Text;
-            menu.RenderMode = ToolStripRenderMode.System;
-            foreach (ToolStripItem item in menu.Items) ThemeMenuItem(item);
-        }
-        if (root is DataGridView grid)
-        {
-            grid.BackgroundColor = Theme.Surface; grid.DefaultCellStyle.BackColor = Theme.Surface;
-            grid.DefaultCellStyle.ForeColor = Theme.Text; grid.DefaultCellStyle.SelectionBackColor = Theme.Accent;
-            grid.DefaultCellStyle.SelectionForeColor = Theme.Window; grid.ColumnHeadersDefaultCellStyle.BackColor = Theme.Raised;
-            grid.ColumnHeadersDefaultCellStyle.ForeColor = Theme.Text; grid.EnableHeadersVisualStyles = false;
-        }
         foreach (Control child in root.Controls) ApplyTheme(child);
     }
 
@@ -940,7 +1089,10 @@ public sealed class ZuiHost : IDisposable
         item.BackColor = Theme.Raised;
         item.ForeColor = Theme.Text;
         if (item is ToolStripMenuItem menuItem)
+        {
+            menuItem.DropDown.Renderer = _menuRenderer;
             foreach (ToolStripItem sub in menuItem.DropDownItems) ThemeMenuItem(sub);
+        }
     }
 
     private static int Int(ZuiNode node, string key, int fallback) => node.Attrs.TryGetValue(key, out var value) && int.TryParse(value, out var parsed) ? parsed : fallback;

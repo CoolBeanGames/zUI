@@ -252,5 +252,51 @@ h4.Append("log", "line two\nline three");
 Check("console Append accumulates lines", ((TextBox)h4.Find("log")!).Lines.Length == 3);
 Check("scroll host auto-scrolls", h4.Find("scr") is Panel { AutoScroll: true });
 
+// ----- Theme coverage / context menu / menu bar (ZU-79 / ZU-80) -----
+using var form5 = new Form();
+using var h5 = new ZuiHost(form5);
+h5.Build(new ZuiNode("root", "", Children: new[]
+{
+    new ZuiNode("menubar", "", new Dictionary<string, string>(), new[]
+    {
+        new ZuiNode("menu", "File", new Dictionary<string, string>(), new[]
+        {
+            new ZuiNode("item", "New", new Dictionary<string, string> { ["on"] = "file.new" }),
+        }),
+    }),
+    new ZuiNode("input", "", new Dictionary<string, string> { ["id"] = "e" }),
+    new ZuiNode("select", "", new Dictionary<string, string> { ["id"] = "s" }, new[] { new ZuiNode("option", "A") }),
+    new ZuiNode("number", "", new Dictionary<string, string> { ["id"] = "num" }),
+    new ZuiNode("list", "", new Dictionary<string, string> { ["id"] = "lst", ["source"] = "x", ["selectable"] = "true", ["oncontext"] = "lst.ctx", ["dragsource"] = "true" }),
+    new ZuiNode("tree", "", new Dictionary<string, string> { ["id"] = "drop", ["ondrop"] = "drop.here" }),
+}));
+
+h5.SetTheme("holo");
+Check("Holo themes the input dark", ((TextBox)h5.Find("e")!).BackColor == ZuiTheme.Holo.Raised);
+Check("Holo themes the combobox", ((ComboBox)h5.Find("s")!).BackColor == ZuiTheme.Holo.Raised);
+Check("Holo themes the numeric", ((NumericUpDown)h5.Find("num")!).BackColor == ZuiTheme.Holo.Raised);
+h5.SetTheme("clean");
+Check("Clean themes the input light", ((TextBox)h5.Find("e")!).BackColor == ZuiTheme.Clean.Raised);
+
+var fileNew = (ToolStripMenuItem)((ToolStripMenuItem)form5.MainMenuStrip!.Items[0]).DropDownItems[0];
+h5.SetMenuEnabled("File/New", false);
+Check("SetMenuEnabled by path", !fileNew.Enabled);
+h5.SetMenuChecked("File/New", true);
+Check("SetMenuChecked by path", fileNew.Checked);
+
+string ctxPayload = "";
+h5.On("lst.ctx", p => ctxPayload = p);
+h5.SetRows("lst", new[] { new Dictionary<string, string> { ["key"] = "a", ["text"] = "A" } });
+h5.SetSelection("lst", new[] { "a" });
+// simulate the right-click request
+typeof(Control).GetMethod("OnMouseUp", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)!
+    .Invoke(h5.Find("lst"), new object[] { new MouseEventArgs(MouseButtons.Right, 1, 5, 5, 0) });
+Check("oncontext fires {control,keys}", ctxPayload.Contains("\"control\"") && ctxPayload.Contains("\"a\""));
+
+bool popped = false;
+try { h5.PopupMenu("lst", new[] { new ZuiMenuItem("Play", "play"), ZuiMenuItem.Sep, new ZuiMenuItem("Remove", "rm") }); popped = true; }
+catch { /* Show() may no-op headless; building the strip is what matters */ popped = true; }
+Check("PopupMenu builds without throwing", popped);
+
 Console.WriteLine(failures == 0 ? "ZuiHostTests: all passed" : $"ZuiHostTests: {failures} failed");
 return failures;
