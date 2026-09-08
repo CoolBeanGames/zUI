@@ -17,6 +17,26 @@ application message" parts of that contract; they are not a render or refresh
 mechanism, and application code must never call `Build()`/`build()` to react to
 an event.
 
-The normalized per-control event payload contract (button → click, input →
-text, slider → value, table → selected row, …) is specified in this file as it
-is implemented (zUI task ZU-65).
+## Normalized `on` / `->` payloads (ZU-65, in progress)
+
+The `on` channel carries a meaningful per-control payload:
+
+| control | fires on | payload |
+| --- | --- | --- |
+| `button` | click | `""` |
+| `button kind="toggle"` | click | `"true"` / `"false"` (also `ontoggle`) |
+| `input` / `textarea` | text change | current text |
+| `check` | toggle | `"true"` / `"false"` |
+| `slider` | value change | integer value |
+| `number` | value change | integer value |
+| `select` / `dropdown` | selection change | selected **option value** (`<option value="…">`, else the label) |
+| `table` / `list` / `tree` (`selectable`) | selection change | JSON array of selected item **keys** |
+
+Extra channels: `oncommit` (editable → value on Enter / blur), `onactivate`
+(`table`/`list`/`tree` → item key on double-click or Enter). Key-addressed
+selection and the `source=` collection API are in
+[../compiler/GRAMMAR.md](../compiler/GRAMMAR.md); item keys come from each
+record's `key` field.
+
+The full C++/C# parity table and high-frequency-event coalescing remain part of
+ZU-65.

@@ -51,12 +51,18 @@ Structural: `window`, `titlebar`, `menubar`, `menu`, `item`, `sep`, `nav`,
 `fill`, `grid`, `statusbar`, `contextbar`, `tabs`, `tabpanel`, `empty`, `drop`.
 
 Controls: `text`, `heading`, `button`, `field`, `input`, `textarea`, `check`,
-`select`, `option`, `dropdown`, `slider`, `progress`, `spinner`, `loading`,
-`table`, `column`, `tree`, `treeitem`.
+`select`, `option`, `dropdown`, `slider`, `number`, `progress`, `spinner`,
+`loading`, `table`, `column`, `list`, `tree`, `treeitem`.
 
 Common metadata: `id`, `export`, `bind`, `source`, `on`, `value`, `placeholder`,
-`kind`, `shortcut`, `field`, `min`, `max`, `width`, `height`, `disabled`,
-`active`, `selectable`.
+`kind`, `shortcut`, `field`, `min`, `max`, `step`, `width`, `height`, `disabled`,
+`active`, `selectable`, `tooltip`.
+
+Extra event channels (payload in parentheses): `onchange` (editable → current
+value on every edit — same as `on` for `input`), `oncommit` (editable → value on
+Enter / blur), `onactivate` (`table`/`list`/`tree` → item key on double-click or
+Enter), `ontoggle` (`button kind="toggle"` → `"true"`/`"false"`). `<option
+value="x">Label</option>` — the change event and `selectedvalue` use the value.
 
 The compiler preserves this information in typed node constructors. Native host
 implementations decide the concrete control, layout, theme properties, and event.
@@ -88,6 +94,23 @@ The generated entry point, after building the tree, calls (in order):
 A `bind` on an editable control (`input`, `textarea`, `check`, `slider`,
 `select`) is two-way: a user edit writes back to the property. One property may
 be bound to many controls. `Mutate` ops are `plus1`, `minus1`, `toggle`/`not`.
+
+### source — collection binding
+
+A `table`, `list`, or `tree` carrying `source="<name>"` is filled through the
+host collection API, never `Build()`:
+
+```
+host.SetRows(name, records)      host.AppendRow / InsertRow(i,…) / RemoveRow(key)
+host.UpdateRow(key, record)      host.RefreshRow(key) / ClearRows / GetRowKeys
+```
+
+A record is a string map. A table row is `{ key, <field>: value, …, state? }`
+(`<field>` matches `<column field="…">`); a `list`/`tree` item is `{ key, text,
+…, state? }`. Rows are identified by `key`; selection is preserved by key across
+every update. `state` (`normal` | `warn` | `error` | `new` | `active`) applies a
+themed row style. `host.GetSelection(name)` / `SetSelection(name, keys)` and
+`Get`/`Set(name, "selection", …)` read/write the selection by key.
 
 See [../core/RUNTIME_CONTRACT.md](../core/RUNTIME_CONTRACT.md) §3 for the frozen
 contract that generated code and both hosts must honour, including C#/C++

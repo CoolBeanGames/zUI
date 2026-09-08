@@ -1,5 +1,311 @@
 <?xml version="1.0" encoding="utf-8"?>
-<tasks project="zUI" nextIndex="74">
+<tasks project="zUI" nextIndex="88">
+  <task id="ZU-74">
+    <name>hTunes UI redesign - required zUI capabilities</name>
+    <note>hTunes UI redesign umbrella. Broken into ZU-75..ZU-87 (created 2026-09-08). Full audit: htunes/docs/zui-requirements.md. ZU-75 events / ZU-76 collection binding / ZU-77 small controls / ZU-78 layout nodes / ZU-79 theme coverage / ZU-80 context menus / ZU-81 drag+drop / ZU-82 image / ZU-83 templated list items / ZU-84 icons / ZU-85 virtualization / ZU-86 P2 polish / ZU-87 C++ parity. This note is informational; work the numbered tasks.</note>
+    <done>false</done>
+    <dateFinished></dateFinished>
+    <archived>false</archived>
+    <branch>main</branch>
+    <clearAfterReading>false</clearAfterReading>
+  </task>
+  <task id="ZU-77">
+    <name>Small native control nodes: number, toggle, tooltip, console</name>
+    <prompt>ZU-74 / zui-requirements.md items 16,17,19,20. C# first; C++ parity ZU-87.</prompt>
+    <requirements></requirements>
+    <inProgress>false</inProgress>
+    <done>false</done>
+    <priority>false</priority>
+    <bug>false</bug>
+    <error>false</error>
+    <errorMessage></errorMessage>
+    <lockKey></lockKey>
+    <locked>false</locked>
+    <archived>false</archived>
+    <blockedBy></blockedBy>
+    <dateStarted></dateStarted>
+    <dueDate></dueDate>
+    <dateFinished></dateFinished>
+    <commit>false</commit>
+    <build>false</build>
+    <release>false</release>
+    <merge>false</merge>
+    <branch>main</branch>
+    <tags></tags>
+    <notes>Partial: number node (NumericUpDown + change/commit), button kind=toggle (ontoggle + Get/Set 'pressed'), and tooltip= (shared ToolTip) all landed with ZU-75/76. REMAINING: console/log node + Append(name,text) auto-scroll monospace capped buffer.</notes>
+    <filesChanged></filesChanged>
+    <image></image>
+  </task>
+  <task id="ZU-78">
+    <name>Layout nodes: grid, scroll container, working tabs, splitter</name>
+    <prompt>Extends ZU-66 for hTunes (ZU-74 / zui-requirements.md items 11,12,13,14). C# first; C++ parity ZU-87.</prompt>
+    <requirements></requirements>
+    <inProgress>false</inProgress>
+    <done>false</done>
+    <priority>false</priority>
+    <bug>false</bug>
+    <error>false</error>
+    <errorMessage></errorMessage>
+    <lockKey></lockKey>
+    <locked>false</locked>
+    <archived>false</archived>
+    <blockedBy></blockedBy>
+    <dateStarted></dateStarted>
+    <dueDate></dueDate>
+    <dateFinished></dateFinished>
+    <commit>false</commit>
+    <build>false</build>
+    <release>false</release>
+    <merge>false</merge>
+    <branch>main</branch>
+    <tags></tags>
+    <notes></notes>
+    <filesChanged></filesChanged>
+    <image></image>
+  </task>
+  <task id="ZU-79">
+    <name>Full Clean + Holo theme coverage for every control</name>
+    <prompt>ZU-70 parity, needed now (ZU-74 / zui-requirements.md item 21).</prompt>
+    <requirements></requirements>
+    <inProgress>false</inProgress>
+    <done>false</done>
+    <priority>false</priority>
+    <bug>false</bug>
+    <error>false</error>
+    <errorMessage></errorMessage>
+    <lockKey></lockKey>
+    <locked>false</locked>
+    <archived>false</archived>
+    <blockedBy></blockedBy>
+    <dateStarted></dateStarted>
+    <dueDate></dueDate>
+    <dateFinished></dateFinished>
+    <commit>false</commit>
+    <build>false</build>
+    <release>false</release>
+    <merge>false</merge>
+    <branch>main</branch>
+    <tags></tags>
+    <notes>Partial: ApplyTheme broadened to TextBox/ListBox/TreeView/ComboBox/NumericUpDown/TrackBar/SplitContainer/bold-Labels; ZuiTheme gained Warn/Error/Ok and row-state colours; per-row state recolours on SetTheme. REMAINING: full audit of every control's selection/disabled/focus states for both Clean and Holo + the colour-assertion test.</notes>
+    <filesChanged></filesChanged>
+    <image></image>
+  </task>
+  <task id="ZU-80">
+    <name>Context menus: context request channel + menu-bar mutation</name>
+    <prompt>NEW (ZU-74 / zui-requirements.md item 3). C# first; C++ parity ZU-87.</prompt>
+    <requirements></requirements>
+    <inProgress>false</inProgress>
+    <done>false</done>
+    <priority>false</priority>
+    <bug>false</bug>
+    <error>false</error>
+    <errorMessage></errorMessage>
+    <lockKey></lockKey>
+    <locked>false</locked>
+    <archived>false</archived>
+    <blockedBy></blockedBy>
+    <dateStarted></dateStarted>
+    <dueDate></dueDate>
+    <dateFinished></dateFinished>
+    <commit>false</commit>
+    <build>false</build>
+    <release>false</release>
+    <merge>false</merge>
+    <branch>main</branch>
+    <tags></tags>
+    <notes></notes>
+    <filesChanged></filesChanged>
+    <image></image>
+  </task>
+  <task id="ZU-81">
+    <name>Drag and drop: drag-source, drop-target, file drop, reorder</name>
+    <prompt>NEW (ZU-74 / zui-requirements.md item 4). C# first; C++ parity ZU-87.</prompt>
+    <requirements></requirements>
+    <inProgress>false</inProgress>
+    <done>false</done>
+    <priority>false</priority>
+    <bug>false</bug>
+    <error>false</error>
+    <errorMessage></errorMessage>
+    <lockKey></lockKey>
+    <locked>false</locked>
+    <archived>false</archived>
+    <blockedBy></blockedBy>
+    <dateStarted></dateStarted>
+    <dueDate></dueDate>
+    <dateFinished></dateFinished>
+    <commit>false</commit>
+    <build>false</build>
+    <release>false</release>
+    <merge>false</merge>
+    <branch>main</branch>
+    <tags></tags>
+    <notes></notes>
+    <filesChanged></filesChanged>
+    <image></image>
+  </task>
+  <task id="ZU-82">
+    <name>image node + image cells + list-item images</name>
+    <prompt>NEW (ZU-74 / zui-requirements.md item 8). C# first; C++ parity ZU-87.</prompt>
+    <requirements></requirements>
+    <inProgress>false</inProgress>
+    <done>false</done>
+    <priority>false</priority>
+    <bug>false</bug>
+    <error>false</error>
+    <errorMessage></errorMessage>
+    <lockKey></lockKey>
+    <locked>false</locked>
+    <archived>false</archived>
+    <blockedBy></blockedBy>
+    <dateStarted></dateStarted>
+    <dueDate></dueDate>
+    <dateFinished></dateFinished>
+    <commit>false</commit>
+    <build>false</build>
+    <release>false</release>
+    <merge>false</merge>
+    <branch>main</branch>
+    <tags></tags>
+    <notes></notes>
+    <filesChanged></filesChanged>
+    <image></image>
+  </task>
+  <task id="ZU-83">
+    <name>Templated list items</name>
+    <prompt>NEW (ZU-74 / zui-requirements.md item 9). Depends on ZU-82 (image), ZU-76 (records). C# first; C++ parity ZU-87.</prompt>
+    <requirements></requirements>
+    <inProgress>false</inProgress>
+    <done>false</done>
+    <priority>false</priority>
+    <bug>false</bug>
+    <error>false</error>
+    <errorMessage></errorMessage>
+    <lockKey></lockKey>
+    <locked>false</locked>
+    <archived>false</archived>
+    <blockedBy></blockedBy>
+    <dateStarted></dateStarted>
+    <dueDate></dueDate>
+    <dateFinished></dateFinished>
+    <commit>false</commit>
+    <build>false</build>
+    <release>false</release>
+    <merge>false</merge>
+    <branch>main</branch>
+    <tags></tags>
+    <notes></notes>
+    <filesChanged></filesChanged>
+    <image></image>
+  </task>
+  <task id="ZU-84">
+    <name>Icon set + icon= on button/item/label</name>
+    <prompt>NEW (ZU-74 / zui-requirements.md item 18). C# first; C++ parity ZU-87.</prompt>
+    <requirements></requirements>
+    <inProgress>false</inProgress>
+    <done>false</done>
+    <priority>false</priority>
+    <bug>false</bug>
+    <error>false</error>
+    <errorMessage></errorMessage>
+    <lockKey></lockKey>
+    <locked>false</locked>
+    <archived>false</archived>
+    <blockedBy></blockedBy>
+    <dateStarted></dateStarted>
+    <dueDate></dueDate>
+    <dateFinished></dateFinished>
+    <commit>false</commit>
+    <build>false</build>
+    <release>false</release>
+    <merge>false</merge>
+    <branch>main</branch>
+    <tags></tags>
+    <notes></notes>
+    <filesChanged></filesChanged>
+    <image></image>
+  </task>
+  <task id="ZU-85">
+    <name>Virtualized list/table</name>
+    <prompt>Realizes ZU-68 (ZU-74 / zui-requirements.md item 7). C# first; C++ parity ZU-87.</prompt>
+    <requirements></requirements>
+    <inProgress>false</inProgress>
+    <done>false</done>
+    <priority>false</priority>
+    <bug>false</bug>
+    <error>false</error>
+    <errorMessage></errorMessage>
+    <lockKey></lockKey>
+    <locked>false</locked>
+    <archived>false</archived>
+    <blockedBy></blockedBy>
+    <dateStarted></dateStarted>
+    <dueDate></dueDate>
+    <dateFinished></dateFinished>
+    <commit>false</commit>
+    <build>false</build>
+    <release>false</release>
+    <merge>false</merge>
+    <branch>main</branch>
+    <tags></tags>
+    <notes></notes>
+    <filesChanged></filesChanged>
+    <image></image>
+  </task>
+  <task id="ZU-86">
+    <name>P2 polish: attention state, overlay node, rename-in-place, embedded-panel test</name>
+    <prompt>NEW / misc (ZU-74 / zui-requirements.md items 22,23,24,25). C# first.</prompt>
+    <requirements></requirements>
+    <inProgress>false</inProgress>
+    <done>false</done>
+    <priority>false</priority>
+    <bug>false</bug>
+    <error>false</error>
+    <errorMessage></errorMessage>
+    <lockKey></lockKey>
+    <locked>false</locked>
+    <archived>false</archived>
+    <blockedBy></blockedBy>
+    <dateStarted></dateStarted>
+    <dueDate></dueDate>
+    <dateFinished></dateFinished>
+    <commit>false</commit>
+    <build>false</build>
+    <release>false</release>
+    <merge>false</merge>
+    <branch>main</branch>
+    <tags></tags>
+    <notes>Partial: Set(name,'attention',true) landed (bold + accent on labels) with ZU-75/76. REMAINING: pulse animation, &lt;canvas&gt;/&lt;overlay&gt; node, rename-in-place, embedded-panel (bare Panel, no Form) regression test.</notes>
+    <filesChanged></filesChanged>
+    <image></image>
+  </task>
+  <task id="ZU-87">
+    <name>C++ backend parity for the hTunes capability set</name>
+    <prompt>Bring the C++ zui::Host (bindings/cpp/zui.h/.cpp) to parity with the C# work done for ZU-75..ZU-84 and ZU-79: selection/activation/input events, source= collection CRUD + per-row state, number/toggle/tooltip/console nodes, grid/scroll/tabs/splitter layout, theme coverage, context menus, drag-and-drop, image, templated list items, icons. Mirror the same node kinds, channel names, payload shapes and mutation APIs. design.txt requires both runtimes; hTunes is C#-only so this trails the C# tasks. Add C++ host tests (bindings/cpp/tests) per capability. build.ps1 -Config test with the C++ ctests green.</prompt>
+    <requirements></requirements>
+    <inProgress>false</inProgress>
+    <done>false</done>
+    <priority>false</priority>
+    <bug>false</bug>
+    <error>false</error>
+    <errorMessage></errorMessage>
+    <lockKey></lockKey>
+    <locked>false</locked>
+    <archived>false</archived>
+    <blockedBy></blockedBy>
+    <dateStarted></dateStarted>
+    <dueDate></dueDate>
+    <dateFinished></dateFinished>
+    <commit>false</commit>
+    <build>false</build>
+    <release>false</release>
+    <merge>false</merge>
+    <branch>main</branch>
+    <tags></tags>
+    <notes></notes>
+    <filesChanged></filesChanged>
+    <image></image>
+  </task>
   <task id="ZU-65">
     <name>Normalize Native Event Semantics Across C# and C++</name>
     <prompt>Create a single documented zUI event contract and make both native backends conform to it.

@@ -96,6 +96,25 @@ def test_top_level_handler_without_node_event():
     _check('host.on("ping"' in cpp, "top-level-only handler must be wired (C++)")
 
 
+def test_htunes_nodes_and_channels_emitted():
+    src = ('col {\n'
+           '  input id="q" onchange="q.change" oncommit="q.commit"\n'
+           '  number id="n" min=1 max=999 step=1\n'
+           '  select id="p" { option "MP3" value="mp3-320" }\n'
+           '  table id="t" source=tracks selectable onactivate="t.play" {\n'
+           '    column "Name" field="name"\n'
+           '  }\n'
+           '  list id="l" source=artists selectable\n'
+           '}')
+    prog = zslc.compile_source(src)
+    for backend, gen in (("cs", lambda p: zslc.gen_csharp(p, "U", "N")),
+                         ("cpp", lambda p: zslc.gen_cpp(p, "build_ui"))):
+        out = gen(prog)
+        for needle in ('onchange', 'q.change', 'oncommit', 'onactivate', 't.play',
+                       '"number"', '"list"', 'mp3-320', 'source', 'tracks', 'selectable'):
+            _check(needle in out, f"{needle!r} missing from {backend} output")
+
+
 def test_parse_error_reported():
     try:
         zslc.compile_source("window { button ->")

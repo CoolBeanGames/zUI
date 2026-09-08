@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
+using System.Text.Json;
 using System.Windows.Forms;
 
 namespace ZUI;
@@ -15,15 +16,31 @@ public sealed record ZuiNode(string Kind, string Text = "",
 }
 
 public sealed record ZuiTheme(Color Window, Color Surface, Color Raised, Color Text,
-    Color Muted, Color Accent, Color Border, int Gap = 8, int SidebarWidth = 210)
+    Color Muted, Color Accent, Color Border, Color Warn, Color Error, Color Ok,
+    int Gap = 8, int SidebarWidth = 210)
 {
     public static ZuiTheme Holo { get; } = new(Color.FromArgb(0x10, 0x13, 0x16),
         Color.FromArgb(0x17, 0x1b, 0x20), Color.FromArgb(0x20, 0x25, 0x2b),
         Color.FromArgb(0xee, 0xf4, 0xf7), Color.FromArgb(0x99, 0xaa, 0xb3),
-        Color.FromArgb(0x33, 0xb5, 0xe5), Color.FromArgb(0x35, 0x3d, 0x45));
+        Color.FromArgb(0x33, 0xb5, 0xe5), Color.FromArgb(0x35, 0x3d, 0x45),
+        Color.FromArgb(0xff, 0xb3, 0x00), Color.FromArgb(0xff, 0x52, 0x52), Color.FromArgb(0x99, 0xcc, 0x00));
     public static ZuiTheme Clean { get; } = new(Color.FromArgb(0xf1, 0xf3, 0xf5), Color.White,
         Color.FromArgb(0xf8, 0xf9, 0xfa), Color.FromArgb(0x20, 0x24, 0x28),
-        Color.FromArgb(0x64, 0x6b, 0x73), Color.FromArgb(0x00, 0x78, 0xd4), Color.FromArgb(0xd3, 0xd7, 0xdb));
+        Color.FromArgb(0x64, 0x6b, 0x73), Color.FromArgb(0x00, 0x78, 0xd4), Color.FromArgb(0xd3, 0xd7, 0xdb),
+        Color.FromArgb(0x9a, 0x6a, 0x00), Color.FromArgb(0xc0, 0x39, 0x2b), Color.FromArgb(0x2e, 0x7d, 0x32));
+
+    /// <summary>Background / foreground for a row or item in a non-default state
+    /// (see <c>core/RUNTIME_CONTRACT.md</c>). <c>null</c> for <c>normal</c>.</summary>
+    public (Color back, Color fore)? RowState(string? state) => state switch
+    {
+        "warn" => (Blend(Surface, Warn, 0.22), Text),
+        "error" => (Blend(Surface, Error, 0.24), Text),
+        "active" => (Blend(Surface, Accent, 0.28), Text),
+        _ => null,
+    };
+
+    internal static Color Blend(Color a, Color b, double t) => Color.FromArgb(
+        (int)(a.R + (b.R - a.R) * t), (int)(a.G + (b.G - a.G) * t), (int)(a.B + (b.B - a.B) * t));
 }
 
 /// <summary>Builds compiled nodes as operating-system WinForms controls. There is no browser engine.</summary>
@@ -32,8 +49,12 @@ public sealed class ZuiHost : IDisposable
     private readonly Control _parent;
     private readonly Dictionary<string, List<Action<string>>> _handlers = new(StringComparer.Ordinal);
     private readonly Dictionary<string, Control> _exports = new(StringComparer.Ordinal);
+    private readonly Dictionary<Control, RowStore> _rows = new();
     private bool _disposed;
     private int _buildCount;
+
+    /// <summary>Shared native tooltip host for every <c>tooltip="…"</c> node.</summary>
+    public ToolTip Tooltip { get; } = new() { AutoPopDelay = 12000, InitialDelay = 500, ReshowDelay = 200 };
 
     public ZuiHost(Control parent)
     {
@@ -170,6 +191,13 @@ public sealed class ZuiHost : IDisposable
                 if (c is CheckBox cb) { cb.Checked = Bool(value); return true; }
                 if (c is RadioButton rb) { rb.Checked = Bool(value); return true; }
                 return false;
+            case "pressed":
+                if (c is Button tgl) { tgl.Tag = Bool(value); StyleToggle(tgl, Bool(value)); return true; }
+                return false;
+            case "attention":
+                c.Font = new Font(c.Font, Bool(value) ? FontStyle.Bold : FontStyle.Regular);
+                if (c is Label al) al.ForeColor = Bool(value) ? Theme.Accent : Theme.Text;
+                return true;
             case "value":
                 switch (c)
                 {
@@ -194,10 +222,21 @@ public sealed class ZuiHost : IDisposable
             case "selectedvalue": case "selectedtext":
                 if (c is ComboBox cbv)
                 {
-                    var idx = cbv.Items.IndexOf(Str(value));
+                    var target = Str(value);
+                    var idx = cbv.Tag is string[] vals ? Array.IndexOf(vals, target) : -1;
+                    if (idx < 0) idx = cbv.Items.IndexOf(target);
                     if (idx >= 0) { cbv.SelectedIndex = idx; return true; }
                 }
                 return false;
+            case "selection":
+                SetSelection(name, value switch
+                {
+                    IEnumerable<string> keys => keys,
+                    string s when s.TrimStart().StartsWith('[') => JsonSerializer.Deserialize<string[]>(s) ?? [],
+                    string s => [s],
+                    _ => [],
+                });
+                return true;
             default: return false;
         }
     }
@@ -214,9 +253,11 @@ public sealed class ZuiHost : IDisposable
             "width" => c.Width,
             "height" => c.Height,
             "checked" => c is CheckBox cb ? cb.Checked : c is RadioButton rb ? rb.Checked : null,
+            "pressed" => c is Button pbtn && pbtn.Tag is bool pv && pv,
             "value" => c switch { TrackBar tb => tb.Value, ProgressBar pb => pb.Value, NumericUpDown n => (int)n.Value, TextBox t => t.Text, _ => null },
             "selected" or "selectedindex" => c switch { ComboBox cx => cx.SelectedIndex, ListBox l => l.SelectedIndex, DataGridView g => g.CurrentRow?.Index ?? -1, _ => null },
-            "selectedvalue" or "selectedtext" => c is ComboBox cv ? cv.SelectedItem?.ToString() : null,
+            "selectedvalue" or "selectedtext" => c is ComboBox cv ? SelectedOptionValue(cv) : null,
+            "selection" => GetSelection(name),
             _ => null,
         };
     }
@@ -271,7 +312,7 @@ public sealed class ZuiHost : IDisposable
     private static readonly string[] LeafKinds =
         ["heading", "section-label", "text", "empty", "item", "menu", "button", "input",
          "textarea", "check", "select", "dropdown", "slider", "progress", "table", "tree",
-         "spinner", "loading", "sep", "option", "column"];
+         "list", "number", "spinner", "loading", "sep", "option", "column"];
 
     private int Gap => Theme.Gap;
 
@@ -313,6 +354,13 @@ public sealed class ZuiHost : IDisposable
             },
             "check" => new CheckBox { Text = node.Text, AutoSize = true },
             "select" or "dropdown" => Select(node),
+            "number" => new NumericUpDown
+            {
+                Minimum = Int(node, "min", 0), Maximum = Int(node, "max", int.MaxValue / 2),
+                Increment = Math.Max(1, Int(node, "step", 1)),
+                Value = Math.Clamp(Int(node, "value", Int(node, "min", 0)), Int(node, "min", 0), Int(node, "max", int.MaxValue / 2)),
+                MinimumSize = new Size(90, 0),
+            },
             "slider" => Slider(node),
             "progress" => new ProgressBar
             {
@@ -320,6 +368,7 @@ public sealed class ZuiHost : IDisposable
             },
             "table" => Table(node),
             "tree" => Tree(node),
+            "list" => MakeList(node),
             "spinner" or "loading" => new ProgressBar { Style = ProgressBarStyle.Marquee, Width = 110, Height = 10 },
             "sep" => new Label { AutoSize = false, Height = 1, Margin = new Padding(0, Gap / 2, 0, Gap / 2) },
             _ => VStack(fill: true),
@@ -336,7 +385,9 @@ public sealed class ZuiHost : IDisposable
         })
             if (key.Length > 0) _exports[key] = control;
         if (node.Attrs.ContainsKey("disabled")) control.Enabled = false;
-        if (node.Attrs.TryGetValue("on", out var channel)) WireEvent(control, channel);
+        if (node.Attrs.TryGetValue("tooltip", out var tip) && tip.Length > 0) Tooltip.SetToolTip(control, tip);
+        RegisterCollection(control, node);
+        WireInteractions(control, node);
 
         Place(parent, control, node);
 
@@ -389,8 +440,8 @@ public sealed class ZuiHost : IDisposable
 
     private static bool Grows(ZuiNode node, bool horizontal) => horizontal
         ? node.Kind is "input" or "textarea" or "select" or "dropdown" or "slider" or "progress"
-            or "table" or "tree" or "fill" or "row" or "col" or "workspace"
-        : node.Kind is "table" or "tree" or "textarea" or "fill" or "workspace" or "tabpanel" or "window";
+            or "table" or "tree" or "list" or "fill" or "row" or "col" or "workspace"
+        : node.Kind is "table" or "tree" or "list" or "textarea" or "fill" or "workspace" or "tabpanel" or "window";
 
     /// <summary>Keeps a vertical stack's children pinned to the top: if nothing in
     /// it already claims the leftover height, a flexible spacer row absorbs it.</summary>
@@ -458,10 +509,18 @@ public sealed class ZuiHost : IDisposable
     private static ComboBox Select(ZuiNode node)
     {
         var box = new ComboBox { DropDownStyle = ComboBoxStyle.DropDownList, MinimumSize = new Size(140, 0) };
-        box.Items.AddRange(node.Nodes.Where(n => n.Kind is "option" or "item").Select(n => (object)n.Text).ToArray());
+        var options = node.Nodes.Where(n => n.Kind is "option" or "item").ToArray();
+        box.Items.AddRange(options.Select(n => (object)n.Text).ToArray());
+        // Parallel value list: <option value="x">Label</option>. Falls back to the label.
+        box.Tag = options.Select(n => n.Attrs.GetValueOrDefault("value", n.Text)).ToArray();
         if (box.Items.Count > 0) box.SelectedIndex = 0;
         return box;
     }
+
+    private static string SelectedOptionValue(ComboBox box) =>
+        box.Tag is string[] values && box.SelectedIndex >= 0 && box.SelectedIndex < values.Length
+            ? values[box.SelectedIndex]
+            : box.SelectedItem?.ToString() ?? "";
 
     private static TrackBar Slider(ZuiNode node)
     {
@@ -496,7 +555,10 @@ public sealed class ZuiHost : IDisposable
 
     private static TreeNode TreeItem(ZuiNode node)
     {
-        var item = new TreeNode(node.Text);
+        var item = new TreeNode(node.Text)
+        {
+            Name = node.Attrs.GetValueOrDefault("key", node.Attrs.GetValueOrDefault("id", node.Text)),
+        };
         foreach (var child in node.Nodes) item.Nodes.Add(TreeItem(child));
         return item;
     }
@@ -540,20 +602,111 @@ public sealed class ZuiHost : IDisposable
         return keys != Keys.None && (keys & Keys.KeyCode) != Keys.None;
     }
 
-    private void WireEvent(Control control, string channel)
+    // ---- Interaction wiring -------------------------------------------------
+    //
+    // The `on` / `->` channel carries a normalized per-control payload (see
+    // core/PROTOCOL.md): button -> "", input/textarea -> current text, check ->
+    // "true"/"false", slider/number -> value, select -> selected option value,
+    // selectable table/list/tree -> JSON array of selected item keys. Extra
+    // channels: onactivate (double-click / Enter -> item key), oncommit
+    // (Enter / blur on an editable -> value), ontoggle (toggle button).
+
+    private void WireInteractions(Control control, ZuiNode node)
     {
-        if (control is ComboBox combo) combo.SelectedValueChanged += (_, _) => Dispatch(channel, combo.Text);
-        else if (control is TrackBar slider) slider.ValueChanged += (_, _) => Dispatch(channel, slider.Value.ToString());
-        else if (control is CheckBox check) check.CheckedChanged += (_, _) => Dispatch(channel, check.Checked.ToString().ToLowerInvariant());
-        else control.Click += (_, _) => Dispatch(channel, "");
+        string? on = node.Attrs.GetValueOrDefault("on");
+        string? activate = node.Attrs.GetValueOrDefault("onactivate");
+        string? commit = node.Attrs.GetValueOrDefault("oncommit");
+
+        switch (control)
+        {
+            case Button button when node.Attrs.GetValueOrDefault("kind") == "toggle":
+            {
+                string? toggle = node.Attrs.GetValueOrDefault("ontoggle") ?? on;
+                button.Click += (_, _) =>
+                {
+                    bool pressed = !(button.Tag is bool b && b);
+                    button.Tag = pressed;
+                    StyleToggle(button, pressed);
+                    if (toggle is not null) Dispatch(toggle, pressed ? "true" : "false");
+                };
+                break;
+            }
+            case Button button:
+                if (on is not null) button.Click += (_, _) => Dispatch(on, "");
+                break;
+            case CheckBox check:
+                if (on is not null) check.CheckedChanged += (_, _) => Dispatch(on, check.Checked ? "true" : "false");
+                break;
+            case TrackBar slider:
+                if (on is not null) slider.ValueChanged += (_, _) => Dispatch(on, slider.Value.ToString());
+                break;
+            case NumericUpDown number:
+                if (on is not null) number.ValueChanged += (_, _) => Dispatch(on, ((int)number.Value).ToString());
+                if (commit is not null)
+                {
+                    number.Leave += (_, _) => Dispatch(commit, ((int)number.Value).ToString());
+                    number.KeyDown += (_, e) => { if (e.KeyCode == Keys.Enter) Dispatch(commit, ((int)number.Value).ToString()); };
+                }
+                break;
+            case ComboBox combo:
+                if (on is not null) combo.SelectedIndexChanged += (_, _) => Dispatch(on, SelectedOptionValue(combo));
+                break;
+            case TextBox text:
+                if (on is not null) text.TextChanged += (_, _) => Dispatch(on, text.Text);
+                if (commit is not null)
+                {
+                    text.Leave += (_, _) => Dispatch(commit, text.Text);
+                    text.KeyDown += (_, e) => { if (e.KeyCode == Keys.Enter) Dispatch(commit, text.Text); };
+                }
+                break;
+            case DataGridView grid:
+                if (on is not null) grid.SelectionChanged += (_, _) => Dispatch(on, SelectionJson(grid));
+                if (activate is not null)
+                {
+                    grid.CellDoubleClick += (_, e) => { if (e.RowIndex >= 0) Dispatch(activate, KeyOfRow(grid.Rows[e.RowIndex])); };
+                    grid.KeyDown += (_, e) => { if (e.KeyCode == Keys.Enter && grid.CurrentRow is { } r) Dispatch(activate, KeyOfRow(r)); };
+                }
+                break;
+            case ListBox list:
+                if (on is not null) list.SelectedIndexChanged += (_, _) => Dispatch(on, SelectionJson(list));
+                if (activate is not null)
+                {
+                    list.DoubleClick += (_, _) => { if (list.SelectedItem is RowItem it) Dispatch(activate, it.Key); };
+                    list.KeyDown += (_, e) => { if (e.KeyCode == Keys.Enter && list.SelectedItem is RowItem it) Dispatch(activate, it.Key); };
+                }
+                break;
+            case TreeView tree:
+                if (on is not null) tree.AfterSelect += (_, e) => Dispatch(on, JsonSerializer.Serialize(e.Node?.Name is { Length: > 0 } k ? new[] { k } : Array.Empty<string>()));
+                if (activate is not null)
+                {
+                    tree.NodeMouseDoubleClick += (_, e) => Dispatch(activate, e.Node.Name);
+                    tree.KeyDown += (_, e) => { if (e.KeyCode == Keys.Enter && tree.SelectedNode is { } n) Dispatch(activate, n.Name); };
+                }
+                break;
+            default:
+                // Labels, containers, nav items, etc. — a plain click channel.
+                if (on is not null) control.Click += (_, _) => Dispatch(on, "");
+                break;
+        }
     }
 
     private void ApplyTheme(Control root)
     {
-        root.BackColor = root is TextBox or DataGridView ? Theme.Raised : Theme.Surface;
+        root.BackColor = root is TextBox or DataGridView or ListBox or TreeView or ComboBox or NumericUpDown
+            ? Theme.Raised : Theme.Surface;
         root.ForeColor = Theme.Text;
-        if (root is Button button) { button.FlatAppearance.BorderColor = Theme.Border; button.BackColor = Theme.Raised; }
+        if (root is Button button)
+        {
+            if (button.Tag is bool pressed) StyleToggle(button, pressed);
+            else { button.FlatAppearance.BorderColor = Theme.Border; button.BackColor = Theme.Raised; }
+        }
         if (root is GroupBox) root.ForeColor = Theme.Accent;
+        if (root is Label label && label.Font.Bold) label.ForeColor = Theme.Accent;
+        if (root is TreeView treeView) { treeView.BackColor = Theme.Raised; treeView.LineColor = Theme.Border; }
+        if (root is ListBox listBox) listBox.Invalidate();
+        if (root is TrackBar bar) bar.BackColor = Theme.Surface;
+        if (root is SplitContainer split) { split.BackColor = Theme.Border; split.Panel1.BackColor = Theme.Surface; split.Panel2.BackColor = Theme.Surface; }
+        if (_rows.TryGetValue(root, out var store)) RecolorRows(root, store);
         if (root is MenuStrip menu)
         {
             menu.BackColor = Theme.Raised; menu.ForeColor = Theme.Text;
@@ -580,7 +733,297 @@ public sealed class ZuiHost : IDisposable
 
     private static int Int(ZuiNode node, string key, int fallback) => node.Attrs.TryGetValue(key, out var value) && int.TryParse(value, out var parsed) ? parsed : fallback;
 
-    public void Dispose() { if (_disposed) return; _disposed = true; _handlers.Clear(); _exports.Clear(); }
+    // ---- Collection binding (source=) -------------------------------------
+    //
+    // A table / list / tree marked `source=` is filled through the collection
+    // API below, never Build(). Records are string maps: a table row is
+    // { key, <field>: value, …, state? }; a list/tree item is { key, text, …,
+    // state? }. Rows are identified by their `key`; selection is preserved by
+    // key across every update. See core/RUNTIME_CONTRACT.md and ZU-67.
+
+    /// <summary>Leading-element / owner-data record for a list item.</summary>
+    internal sealed class RowItem(string key, string text)
+    {
+        public string Key { get; } = key;
+        public string Text { get; set; } = text;
+        public IReadOnlyDictionary<string, string> Record { get; set; } = new Dictionary<string, string>();
+        public override string ToString() => Text;
+    }
+
+    private sealed class RowStore
+    {
+        public string[] Fields = [];                                  // table column field names
+        public readonly List<string> Order = [];                      // keys, in display order
+        public readonly Dictionary<string, Dictionary<string, string>> Records = new(StringComparer.Ordinal);
+    }
+
+    private static ListBox MakeList(ZuiNode node) => new()
+    {
+        MinimumSize = new Size(0, 120), BorderStyle = BorderStyle.FixedSingle,
+        IntegralHeight = false, DrawMode = DrawMode.OwnerDrawFixed, ItemHeight = 22,
+        SelectionMode = node.Attrs.ContainsKey("selectable") ? SelectionMode.MultiExtended : SelectionMode.One,
+    };
+
+    private void RegisterCollection(Control control, ZuiNode node)
+    {
+        if (control is not (DataGridView or ListBox or TreeView)) return;
+        var store = new RowStore();
+        if (control is DataGridView grid)
+            store.Fields = grid.Columns.Cast<DataGridViewColumn>().Select(c => c.Name).ToArray();
+        _rows[control] = store;
+        if (control is ListBox lb) lb.DrawItem += (_, e) => DrawListItem(lb, e);
+    }
+
+    private RowStore Store(string name)
+    {
+        var c = Require(name);
+        return _rows.TryGetValue(c, out var s) ? s
+            : throw new InvalidOperationException($"zUI: '{name}' is not a collection control (table/list/tree).");
+    }
+
+    private static string Key(IReadOnlyDictionary<string, string> record) =>
+        record.TryGetValue("key", out var k) && k.Length > 0 ? k
+            : throw new ArgumentException("zUI: every collection record needs a non-empty 'key'.");
+
+    /// <summary>Replaces every row/item, preserving selection by key.</summary>
+    public void SetRows(string name, IEnumerable<IReadOnlyDictionary<string, string>> records)
+    {
+        var store = Store(name);
+        var keep = new HashSet<string>(GetSelection(name), StringComparer.Ordinal);
+        store.Order.Clear();
+        store.Records.Clear();
+        foreach (var r in records)
+        {
+            var key = Key(r);
+            store.Order.Add(key);
+            store.Records[key] = new Dictionary<string, string>(r, StringComparer.Ordinal);
+        }
+        RenderRows(name);
+        SetSelection(name, keep.Where(store.Records.ContainsKey));
+    }
+
+    public void AppendRow(string name, IReadOnlyDictionary<string, string> record) => InsertRow(name, Store(name).Order.Count, record);
+
+    public void InsertRow(string name, int index, IReadOnlyDictionary<string, string> record)
+    {
+        var store = Store(name);
+        var key = Key(record);
+        store.Records[key] = new Dictionary<string, string>(record, StringComparer.Ordinal);
+        store.Order.Remove(key);
+        store.Order.Insert(Math.Clamp(index, 0, store.Order.Count), key);
+        var keep = GetSelection(name).ToArray();
+        RenderRows(name);
+        SetSelection(name, keep);
+    }
+
+    public void RemoveRow(string name, string key)
+    {
+        var store = Store(name);
+        if (!store.Records.Remove(key)) return;
+        store.Order.Remove(key);
+        var keep = GetSelection(name).Where(k => k != key).ToArray();
+        RenderRows(name);
+        SetSelection(name, keep);
+    }
+
+    /// <summary>Merges <paramref name="record"/> into the row and re-renders just that row.</summary>
+    public void UpdateRow(string name, string key, IReadOnlyDictionary<string, string> record)
+    {
+        var store = Store(name);
+        if (!store.Records.TryGetValue(key, out var existing)) { AppendRow(name, record); return; }
+        foreach (var (k, v) in record) existing[k] = v;
+        RefreshRow(name, key);
+    }
+
+    public void RefreshRow(string name, string key)
+    {
+        var store = Store(name);
+        if (!store.Records.TryGetValue(key, out var record)) return;
+        int i = store.Order.IndexOf(key);
+        switch (Require(name))
+        {
+            case DataGridView grid when i >= 0 && i < grid.Rows.Count:
+                FillGridRow(grid.Rows[i], store, record);
+                break;
+            case ListBox lb when i >= 0 && i < lb.Items.Count:
+                ((RowItem)lb.Items[i]).Text = record.GetValueOrDefault("text", key);
+                ((RowItem)lb.Items[i]).Record = record;
+                lb.Invalidate(lb.GetItemRectangle(i));
+                break;
+            case TreeView tree when i >= 0 && i < tree.Nodes.Count:
+                ApplyNodeState(tree.Nodes[i], record);
+                break;
+        }
+    }
+
+    public void ClearRows(string name)
+    {
+        var store = Store(name);
+        store.Order.Clear();
+        store.Records.Clear();
+        RenderRows(name);
+    }
+
+    public IReadOnlyList<string> GetRowKeys(string name) => Store(name).Order.ToArray();
+
+    private void RenderRows(string name)
+    {
+        var store = Store(name);
+        switch (Require(name))
+        {
+            case DataGridView grid:
+                grid.SuspendLayout();
+                grid.Rows.Clear();
+                foreach (var key in store.Order)
+                {
+                    int idx = grid.Rows.Add();
+                    FillGridRow(grid.Rows[idx], store, store.Records[key]);
+                }
+                grid.ClearSelection();
+                grid.ResumeLayout();
+                break;
+            case ListBox lb:
+                lb.BeginUpdate();
+                lb.Items.Clear();
+                foreach (var key in store.Order)
+                {
+                    var rec = store.Records[key];
+                    lb.Items.Add(new RowItem(key, rec.GetValueOrDefault("text", key)) { Record = rec });
+                }
+                lb.EndUpdate();
+                break;
+            case TreeView tree:
+                tree.BeginUpdate();
+                tree.Nodes.Clear();
+                foreach (var key in store.Order)
+                {
+                    var rec = store.Records[key];
+                    var tn = new TreeNode(rec.GetValueOrDefault("text", key)) { Name = key };
+                    ApplyNodeState(tn, rec);
+                    tree.Nodes.Add(tn);
+                }
+                tree.EndUpdate();
+                break;
+        }
+    }
+
+    private void RecolorRows(Control control, RowStore store)
+    {
+        switch (control)
+        {
+            case DataGridView grid:
+                foreach (DataGridViewRow row in grid.Rows)
+                    if (row.Tag is string k && store.Records.TryGetValue(k, out var rec))
+                    {
+                        var s = Theme.RowState(rec.GetValueOrDefault("state"));
+                        row.DefaultCellStyle.BackColor = s?.back ?? Theme.Surface;
+                        row.DefaultCellStyle.ForeColor = s?.fore ?? Theme.Text;
+                    }
+                break;
+            case TreeView tree:
+                foreach (TreeNode n in tree.Nodes)
+                    if (store.Records.TryGetValue(n.Name, out var rec)) ApplyNodeState(n, rec);
+                break;
+            case ListBox lb:
+                lb.Invalidate();
+                break;
+        }
+    }
+
+    private void FillGridRow(DataGridViewRow row, RowStore store, IReadOnlyDictionary<string, string> record)
+    {
+        row.Tag = Key(record);
+        for (int c = 0; c < store.Fields.Length && c < row.Cells.Count; c++)
+            row.Cells[c].Value = record.GetValueOrDefault(store.Fields[c], "");
+        var style = Theme.RowState(record.GetValueOrDefault("state"));
+        row.DefaultCellStyle.BackColor = style?.back ?? Theme.Surface;
+        row.DefaultCellStyle.ForeColor = style?.fore ?? Theme.Text;
+    }
+
+    private void ApplyNodeState(TreeNode node, IReadOnlyDictionary<string, string> record)
+    {
+        node.Text = record.GetValueOrDefault("text", node.Name);
+        var style = Theme.RowState(record.GetValueOrDefault("state"));
+        node.BackColor = style?.back ?? Color.Empty;
+        node.ForeColor = style?.fore ?? Color.Empty;
+    }
+
+    private void DrawListItem(ListBox lb, DrawItemEventArgs e)
+    {
+        if (e.Index < 0 || e.Index >= lb.Items.Count) return;
+        var item = (RowItem)lb.Items[e.Index];
+        bool selected = (e.State & DrawItemState.Selected) != 0;
+        var state = Theme.RowState(item.Record.GetValueOrDefault("state"));
+        var back = selected ? Theme.Accent : state?.back ?? Theme.Surface;
+        var fore = selected ? Theme.Window : state?.fore ?? Theme.Text;
+        using var b = new SolidBrush(back);
+        e.Graphics.FillRectangle(b, e.Bounds);
+        var text = new Rectangle(e.Bounds.X + 8, e.Bounds.Y, e.Bounds.Width - 10, e.Bounds.Height);
+        if (item.Record.GetValueOrDefault("state") == "new")
+        {
+            using var dot = new SolidBrush(Theme.Accent);
+            e.Graphics.FillEllipse(dot, e.Bounds.X + 4, e.Bounds.Y + e.Bounds.Height / 2 - 3, 6, 6);
+            text = new Rectangle(e.Bounds.X + 16, e.Bounds.Y, e.Bounds.Width - 18, e.Bounds.Height);
+        }
+        TextRenderer.DrawText(e.Graphics, item.Text, lb.Font, text, fore,
+            TextFormatFlags.Left | TextFormatFlags.VerticalCenter | TextFormatFlags.EndEllipsis);
+    }
+
+    // ---- Selection --------------------------------------------------------
+
+    /// <summary>The keys of the currently selected rows/items.</summary>
+    public IReadOnlyList<string> GetSelection(string name) => Require(name) switch
+    {
+        DataGridView grid => grid.Rows.Cast<DataGridViewRow>().Where(r => r.Selected)
+            .OrderBy(r => r.Index).Select(KeyOfRow).Where(k => k.Length > 0).ToArray(),
+        ListBox list => list.SelectedIndices.Cast<int>().OrderBy(i => i)
+            .Select(i => list.Items[i]).OfType<RowItem>().Select(i => i.Key).ToArray(),
+        TreeView tree => tree.SelectedNode is { Name.Length: > 0 } n ? [n.Name] : [],
+        _ => [],
+    };
+
+    public void SetSelection(string name, IEnumerable<string> keys)
+    {
+        var wanted = new HashSet<string>(keys, StringComparer.Ordinal);
+        switch (Require(name))
+        {
+            case DataGridView grid:
+                grid.ClearSelection();
+                var hit = grid.Rows.Cast<DataGridViewRow>().Where(r => wanted.Contains(KeyOfRow(r))).ToList();
+                if (hit.Count > 0 && hit[0].Cells.Count > 0)
+                {
+                    grid.CurrentCell = hit[0].Cells[0];   // set the anchor first, then extend
+                    foreach (var r in hit) r.Selected = true;
+                }
+                break;
+            case ListBox list:
+                list.ClearSelected();
+                for (int i = 0; i < list.Items.Count; i++)
+                    if (list.Items[i] is RowItem it && wanted.Contains(it.Key)) list.SetSelected(i, true);
+                break;
+            case TreeView tree:
+                tree.SelectedNode = tree.Nodes.Cast<TreeNode>().FirstOrDefault(n => wanted.Contains(n.Name));
+                break;
+        }
+    }
+
+    private static string KeyOfRow(DataGridViewRow row) => row.Tag as string ?? row.Index.ToString();
+
+    private static string SelectionJson(Control control) => JsonSerializer.Serialize(control switch
+    {
+        DataGridView grid => grid.Rows.Cast<DataGridViewRow>().Where(r => r.Selected).OrderBy(r => r.Index).Select(KeyOfRow).ToArray(),
+        ListBox list => list.SelectedIndices.Cast<int>().OrderBy(i => i).Select(i => list.Items[i]).OfType<RowItem>().Select(i => i.Key).ToArray(),
+        _ => [],
+    });
+
+    private void StyleToggle(Button button, bool pressed)
+    {
+        button.FlatAppearance.BorderColor = pressed ? Theme.Accent : Theme.Border;
+        button.BackColor = pressed ? ZuiTheme.Blend(Theme.Raised, Theme.Accent, 0.30) : Theme.Raised;
+        button.ForeColor = Theme.Text;
+    }
+
+    public void Dispose() { if (_disposed) return; _disposed = true; _handlers.Clear(); _exports.Clear(); _rows.Clear(); Tooltip.Dispose(); }
 
     private sealed class Subscription(Action dispose) : IDisposable
     {
