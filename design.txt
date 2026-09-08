@@ -99,14 +99,24 @@ Controls
 Use platform controls for standard behavior:
 
     text/heading/section-label/item  Label or STATIC
-    button                          Button or BUTTON
-    input/textarea                  TextBox or EDIT
+    button (kind=icon/toggle)        Button or BUTTON
+    input/textarea/console           TextBox or EDIT
+    number                          NumericUpDown or UPDOWN_CLASS
     check                           CheckBox or BUTTON(BS_AUTOCHECKBOX)
     select/dropdown                 ComboBox or WC_COMBOBOX
     slider                          TrackBar or TRACKBAR_CLASS
     progress/spinner/loading        ProgressBar or PROGRESS_CLASS
-    table                           DataGridView or WC_LISTVIEW
+    table (virtual)                 DataGridView (VirtualMode) or WC_LISTVIEW (LVS_OWNERDATA)
+    list (template)                 owner-drawn ListBox or WC_LISTVIEW
     tree                            TreeView or WC_TREEVIEW
+    tabs/tabpanel                   TabControl or WC_TABCONTROL (+ headless deck)
+    splitter                        SplitContainer or a sizing bar between two panes
+    image                           PictureBox or STATIC(SS_BITMAP) / GDI blit
+    canvas/overlay                  owner-painted Panel / GDI+ surface
+    grid/scroll                     TableLayoutPanel / AutoScroll Panel
+
+Context menus (ContextMenuStrip / TrackPopupMenu), drag-and-drop, tooltips, and
+the icon set (`ZuiIcons`, GDI/GDI+ drawn — no sprite sheet) are host-side too.
 
 If a platform lacks a direct match, create a native composite control. Custom
 drawing may use GDI/GDI+, Direct2D, or framework drawing APIs, but must remain in

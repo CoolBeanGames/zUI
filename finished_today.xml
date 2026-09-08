@@ -1,5 +1,38 @@
 <?xml version="1.0" encoding="utf-8"?>
 <tasks project="zUI" nextIndex="89">
+  <task id="ZU-85">
+    <name>Virtualized list/table</name>
+    <prompt>Realizes ZU-68 (ZU-74 / zui-requirements.md item 7). C# first; C++ parity ZU-87.</prompt>
+    <requirements></requirements>
+    <inProgress>false</inProgress>
+    <done>true</done>
+    <priority>false</priority>
+    <bug>false</bug>
+    <error>false</error>
+    <errorMessage></errorMessage>
+    <lockKey></lockKey>
+    <locked>false</locked>
+    <archived>false</archived>
+    <blockedBy></blockedBy>
+    <dateStarted></dateStarted>
+    <dueDate></dueDate>
+    <dateFinished>2026-09-08 01:34</dateFinished>
+    <commit>false</commit>
+    <build>false</build>
+    <release>false</release>
+    <merge>false</merge>
+    <branch>main</branch>
+    <tags></tags>
+    <notes>Done (C#): table 'virtual' flag -&gt; DataGridView VirtualMode (CellValueNeeded + RowPrePaint from RowStore, no per-row control); collection API drives RowCount; selection by key via index map; incremental insert/remove read selection pre-mutation; onsort channel {field,dir}. 50k-row host test &lt; 1s. C++ ZU-87.</notes>
+    <filesChanged>bindings/csharp/ZuiHost.cs; compiler/GRAMMAR.md; tests/csharp/Program.cs</filesChanged>
+    <image></image>
+    <subtasks>
+      <subtask done="true">table virtual flag -&gt; DataGridView VirtualMode, CellValueNeeded from RowStore</subtask>
+      <subtask done="true">RowCount-driven incremental updates, selection by key via index map</subtask>
+      <subtask done="true">50k-row host test (fast, no per-row control)</subtask>
+      <subtask done="true">sortable column metadata + item identity != display index</subtask>
+    </subtasks>
+  </task>
   <task id="ZU-86">
     <name>P2 polish: attention state, overlay node, rename-in-place, embedded-panel test</name>
     <prompt>NEW / misc (ZU-74 / zui-requirements.md items 22,23,24,25). C# first.</prompt>

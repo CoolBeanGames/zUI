@@ -1,5 +1,18 @@
 # zUI — integration guide for host projects
 
+> ## ⚠️ Which zUI to pull
+>
+> - **Repo:** `https://github.com/CoolBeanGames/zUI`
+> - **Use `main`** (or a `zUI_buildN` tag — highest N is newest). Nothing else.
+> - Branches other than `main` (`refactor`, `final-build-push`, …) and any tag
+>   below `zUI_build4` are **historical**. An early version of zUI rendered its
+>   UI in an embedded **WebView2 / HTML / CSS / JS** — that architecture is
+>   **dead and removed**. If you find `webview`, a `--backend html`, `core/js/`,
+>   or an `.html` UI document, you are on the wrong branch — `git checkout main`.
+> - **Sanity check after cloning:** `core/RUNTIME_CONTRACT.md` exists and its
+>   §6 says *"No browser, ever"*; `compiler/zslc.py --backend` offers only
+>   `csharp` and `cpp`; `tests/check-native.py` is the gate.
+
 zUI is a themeable UI framework that sits on top of a host application (a music
 app, a game engine, a project-management app, …) so every one of them presents
 the same UI. This file tells an agent working in one of those projects how to
@@ -12,7 +25,8 @@ WebView2, DOM, HTML document, stylesheet cascade, or JavaScript runtime** — an
 you must not introduce one to implement a zUI feature. Markup and theme-source
 CSS are build-time inputs only; they are never shipped or parsed at runtime.
 
-Repo: <https://github.com/CoolBeanGames/zUI> (default branch `main` is current)
+Repo: <https://github.com/CoolBeanGames/zUI> — branch **`main`**, current release
+**`zUI_build4`**.
 
 Reference docs — read these before extending anything:
 
@@ -143,6 +157,51 @@ host.Bind("count", "someControl")
 ```
 
 Full semantics: `core/RUNTIME_CONTRACT.md` §3.
+
+## 4a. Lists, tables, trees — `source=` collection binding
+
+A `table` / `list` / `tree` with `source="x"` is filled through the collection
+API, **never `Build()`**. Records are string maps keyed by `key`; a table row's
+other fields match `<column field="…">`, a list/tree item uses `text`.
+
+```csharp
+host.SetRows("tracks", records);   // IEnumerable<IReadOnlyDictionary<string,string>>
+host.AppendRow / InsertRow(i, …) / RemoveRow(key) / UpdateRow(key, patch)
+host.RefreshRow(key) / ClearRows("tracks") / GetRowKeys("tracks")
+host.GetSelection("tracks") / SetSelection("tracks", keys)   // by key, no rebuild
+```
+
+Selection is preserved by key across every update. A record's `state`
+(`warn` | `error` | `active` | `new`) themes the row. Channels a selectable
+list/table/tree fires: `on` → JSON array of selected keys; `onactivate` →
+activated key (double-click / Enter); `oncontext` → `{control, keys}` (the
+handler then calls `host.PopupMenu(name, items)`). A `table virtual` handles
+tens of thousands of rows without a per-row control (`onsort` → `{field, dir}`).
+
+## 4b. The rest of the widget set
+
+| need | node / API |
+| --- | --- |
+| numeric field | `<number min= max= step=/>`, two-way `bind`, `onchange` / `oncommit` |
+| toggle button | `<button kind="toggle">`, `ontoggle`, `Get`/`Set "pressed"` |
+| tooltip | `tooltip="…"` on any node |
+| dropdown value ≠ label | `<option value="mp3-320">MP3 — 320</option>` |
+| N-column form | `<grid cols="4">`, `colspan` on a child |
+| own scrollbar | `<scroll>{ … }` |
+| tabbed / swapped panes | `<tabs>{ <tabpanel id="a"> … }`, `ontab`, `Set "selected"`; `headless` = deck |
+| draggable divider | `<splitter>{ a  b }` (`horizontal`, per-child `min`, `pos`) |
+| append-only log | `<console/>` + `host.Append(name, line)` |
+| image / album art | `<image src=|bind=/>`, `fit=`; `<column kind="image">` |
+| rich list rows | `<list template>` — record `image`/`icon`/`text`/`subtitle`/`badge` |
+| icons | `icon="play"` on button/label; `button kind="icon"`; `ZuiIcons.Names` |
+| context / app menu | `host.PopupMenu`, `oncontext`; `host.SetMenuEnabled/SetMenuChecked("File/New", …)`, `onmenuopen` |
+| drag & drop | `dragsource` flag; `ondrop="ch"` → `{target,targetKey?,keys}` or `{target,paths}` |
+| rename in place | `rename="ch"` on a list/tree item → `{key, value}` |
+| custom drawing | `<canvas/>` + `host.OnPaint(name, (g, rect) => …)` / `host.Redraw(name)` |
+| "busy" emphasis | `host.Set(name, "attention", true)` |
+
+C++ parity for §4a/§4b is landing incrementally (task ZU-87); the C# host has
+all of it today.
 
 ## 5. Build once, then mutate — the runtime contract
 

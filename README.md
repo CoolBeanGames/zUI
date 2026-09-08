@@ -1,5 +1,11 @@
 # zUI
 
+> **Pulling zUI into another project?** Use branch **`main`** (or a `zUI_buildN`
+> tag). Other branches and pre-`zUI_build4` tags are historical — an old version
+> rendered in an embedded WebView2/HTML/CSS/JS and that is **gone**. If you see
+> `webview`, `--backend html`, `core/js/`, or an `.html` UI file, you are on the
+> wrong branch. Full guide: [docs/INTEGRATION.md](docs/INTEGRATION.md).
+
 zUI is a **native Windows UI framework with web-like authoring**. It is an
 ahead-of-time UI compiler and native Windows widget runtime: ZML or ZSL describes
 a screen; `zslc.py` emits C# that builds WinForms controls or C++ that builds

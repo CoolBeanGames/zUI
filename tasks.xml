@@ -9,39 +9,6 @@
     <branch>main</branch>
     <clearAfterReading>false</clearAfterReading>
   </task>
-  <task id="ZU-85">
-    <name>Virtualized list/table</name>
-    <prompt>Realizes ZU-68 (ZU-74 / zui-requirements.md item 7). C# first; C++ parity ZU-87.</prompt>
-    <requirements></requirements>
-    <inProgress>true</inProgress>
-    <done>false</done>
-    <priority>false</priority>
-    <bug>false</bug>
-    <error>false</error>
-    <errorMessage></errorMessage>
-    <lockKey>s5htunes</lockKey>
-    <locked>false</locked>
-    <archived>false</archived>
-    <blockedBy></blockedBy>
-    <dateStarted></dateStarted>
-    <dueDate></dueDate>
-    <dateFinished></dateFinished>
-    <commit>false</commit>
-    <build>false</build>
-    <release>false</release>
-    <merge>false</merge>
-    <branch>main</branch>
-    <tags></tags>
-    <notes></notes>
-    <filesChanged></filesChanged>
-    <image></image>
-    <subtasks>
-      <subtask done="false">table virtual flag -&gt; DataGridView VirtualMode, CellValueNeeded from RowStore</subtask>
-      <subtask done="false">RowCount-driven incremental updates, selection by key via index map</subtask>
-      <subtask done="false">50k-row host test (fast, no per-row control)</subtask>
-      <subtask done="false">sortable column metadata + item identity != display index</subtask>
-    </subtasks>
-  </task>
   <task id="ZU-87">
     <name>C++ backend parity for the hTunes capability set</name>
     <prompt>Bring the C++ zui::Host (bindings/cpp/zui.h/.cpp) to parity with the C# work done for ZU-75..ZU-84 and ZU-79: selection/activation/input events, source= collection CRUD + per-row state, number/toggle/tooltip/console nodes, grid/scroll/tabs/splitter layout, theme coverage, context menus, drag-and-drop, image, templated list items, icons. Mirror the same node kinds, channel names, payload shapes and mutation APIs. design.txt requires both runtimes; hTunes is C#-only so this trails the C# tasks. Add C++ host tests (bindings/cpp/tests) per capability. build.ps1 -Config test with the C++ ctests green.</prompt>
@@ -73,13 +40,13 @@
     <name>Documentation refresh + which link to pull</name>
     <prompt>docs/INTEGRATION.md, README.md, docs/QUICKSTART.md, compiler/GRAMMAR.md and core/PROTOCOL.md must be current with everything landed in ZU-62..ZU-87.</prompt>
     <requirements></requirements>
-    <inProgress>false</inProgress>
+    <inProgress>true</inProgress>
     <done>false</done>
     <priority>false</priority>
     <bug>false</bug>
     <error>false</error>
     <errorMessage></errorMessage>
-    <lockKey></lockKey>
+    <lockKey>s5htunes</lockKey>
     <locked>false</locked>
     <archived>false</archived>
     <blockedBy></blockedBy>
@@ -95,6 +62,12 @@
     <notes></notes>
     <filesChanged></filesChanged>
     <image></image>
+    <subtasks>
+      <subtask done="false">INTEGRATION.md + README: unambiguous pull target (main / zUI_buildN), old web build is dead</subtask>
+      <subtask done="false">document every node/channel/API landed in ZU-75..ZU-86 with a one-line C# example</subtask>
+      <subtask done="false">refresh GRAMMAR.md lists + design.txt Layout/Controls + PROTOCOL.md</subtask>
+      <subtask done="false">gate</subtask>
+    </subtasks>
   </task>
   <task id="ZU-65">
     <name>Normalize Native Event Semantics Across C# and C++</name>
