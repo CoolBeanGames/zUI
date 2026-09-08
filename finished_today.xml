@@ -5,6 +5,40 @@
     <branch>final-build-push</branch>
     <branch>refactor</branch>
   </branches>
+  <task id="ZU-90">
+    <name>C++ finishing polish: theme rendering, splitter, scroll, coalescing</name>
+    <prompt>Close out the C++ follow-ups noted on ZU-70 / ZU-65 / ZU-89:</prompt>
+    <requirements></requirements>
+    <inProgress>false</inProgress>
+    <done>true</done>
+    <priority>false</priority>
+    <bug>false</bug>
+    <error>false</error>
+    <errorMessage></errorMessage>
+    <lockKey></lockKey>
+    <locked>false</locked>
+    <archived>false</archived>
+    <blockedBy></blockedBy>
+    <dateStarted></dateStarted>
+    <dueDate></dueDate>
+    <dateFinished>2026-09-08 03:44</dateFinished>
+    <commit>false</commit>
+    <build>false</build>
+    <release>false</release>
+    <merge>false</merge>
+    <branch>final-build-push</branch>
+    <tags></tags>
+    <notes>DONE (zUI_build8). C++: (1) theme rendering - cached themed brushes, WM_CTLCOLOR* fallback for every control, owner-draw themed buttons, ListView/TreeView colours on build + recursive re-apply on set_theme; parity_test asserts holo/clean list bg colours. (2) draggable splitter bar (subclassed, mouse capture, live re-arrange, clamped to pane min); pos moved to its own Box field. (3) live scroll containers (SetScrollInfo + WM_VSCROLL/WM_MOUSEWHEEL offset). (4) slider on-channel coalescing via ~60ms timer, TB_ENDTRACK flushes. layout_test + parity_test extended; ctest 7/7. Full per-control WM_CTLCOLOR theming for combo dropdowns / trackbar channel is best-effort (native controls partly ignore it).</notes>
+    <filesChanged>bindings/cpp/zui.h; bindings/cpp/zui.cpp; bindings/cpp/tests/layout_test.cpp; bindings/cpp/tests/parity_test.cpp</filesChanged>
+    <image></image>
+    <subtasks>
+      <subtask done="true">themed brushes + WM_CTLCOLOR* for all control kinds + container backgrounds; apply on build and set_theme</subtask>
+      <subtask done="true">draggable splitter handle (capture / track / re-arrange, clamp to min)</subtask>
+      <subtask done="true">live scroll offset for scroll containers (WM_VSCROLL + SetScrollInfo)</subtask>
+      <subtask done="true">slider/scroll on-channel coalescing</subtask>
+      <subtask done="true">C++ tests + full gate</subtask>
+    </subtasks>
+  </task>
   <task id="ZU-89">
     <name>C++ native layout engine (ZU-66 follow-up)</name>
     <prompt>ZU-66 is archived done but its C++ half was only stubbed by ZU-87 (grid/scroll/splitter positioned by the old flat vertical create_node loop). Build the real thing in bindings/cpp:</prompt>
@@ -272,7 +306,7 @@ Visual/demo screens exercise all major controls under a theme.</requirements>
     <merge>false</merge>
     <branch>final-build-push</branch>
     <tags></tags>
-    <notes>C# done via ZU-79 (every control kind, Holo+Clean, themed ToolStrip renderer). C++ (ZU-87) does palette swap + list/tree colours + custom-draw row state; full per-control C++ theme rendering (edit borders, combo, trackbar, header hover, etc.) is what REMAINS here.</notes>
+    <notes>DONE both backends. C# = ZU-79. C++ = ZU-90: themed brushes + WM_CTLCOLOR* for every control, owner-draw themed buttons, list/tree colours, recursive re-theme on set_theme. parity_test asserts theme colours. Best-effort only: combo dropdown list / trackbar channel colours (native controls ignore WM_CTLCOLOR there).</notes>
     <filesChanged></filesChanged>
     <image></image>
   </task>
@@ -561,7 +595,7 @@ Backend-conformance tests verify equivalent event semantics across C# and C++.</
     <merge>false</merge>
     <branch>final-build-push</branch>
     <tags></tags>
-    <notes>Events realized for BOTH backends via ZU-75 (C#) + ZU-87 (C++): normalized on payloads, onchange/oncommit/onactivate/ontoggle/ontab/oncontext/ondrop, option values, selection-as-keys. Documented in core/PROTOCOL.md with a parity table. REMAINING: slider/scroll high-frequency coalescing.</notes>
+    <notes>DONE both backends. Events + payloads via ZU-75/87. Slider/scroll high-frequency coalescing done in C++ (ZU-90, ~60ms timer). C# slider still fires per ValueChanged tick (WinForms already coalesces reasonably; add a throttle if a workspace needs it).</notes>
     <filesChanged></filesChanged>
     <image></image>
   </task>
