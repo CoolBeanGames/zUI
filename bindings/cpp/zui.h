@@ -10,6 +10,7 @@
 namespace zui {
 
 using MessageHandler = std::function<void(const std::string& payload)>;
+using Record = std::unordered_map<std::string, std::string>;
 
 class Host;
 
@@ -98,7 +99,31 @@ public:
     int get_value(const std::string& name) const;
     int get_selected(const std::string& name) const;
 
+    // ----- source= collection binding (ZU-67 / ZU-87). Records are string maps
+    // keyed by "key"; a table row's other fields match <column field=>, a
+    // list/tree item uses "text". Never rebuilds. -----
+    void set_rows(const std::string& name, const std::vector<Record>& records);
+    void append_row(const std::string& name, const Record& record);
+    void remove_row(const std::string& name, const std::string& key);
+    void update_row(const std::string& name, const std::string& key, const Record& patch);
+    void clear_rows(const std::string& name);
+    std::vector<std::string> row_keys(const std::string& name) const;
+    std::vector<std::string> get_selection(const std::string& name) const;
+    void set_selection(const std::string& name, const std::vector<std::string>& keys);
+
+    /// Appends a line to a `console` control and scrolls to the bottom.
+    void append(const std::string& name, const std::string& text);
+
 private:
+    struct RowStore {
+        std::vector<std::string> fields;
+        std::vector<std::string> order;
+        std::unordered_map<std::string, Record> records;
+    };
+    RowStore* store_for(const std::string& name);
+    const RowStore* store_for(const std::string& name) const;
+    void render_rows(const std::string& name);
+    std::vector<std::string> get_selection_for(void* control) const;
     void* create_node(void* parent, const Node& node, int& x, int& y, int width);
     void dispatch(const std::string& channel, const std::string& payload);
     void* require(const std::string& name) const;
@@ -117,8 +142,13 @@ private:
     std::unordered_map<void*, std::string> control_channels_;
     std::unordered_map<void*, std::string> control_kinds_;
     std::unordered_map<void*, std::string> control_binds_;
+    std::unordered_map<void*, std::string> control_activate_;
+    std::unordered_map<void*, std::string> control_commit_;
+    std::unordered_map<void*, std::vector<std::string>> option_values_;
     std::unordered_map<void*, ControlColor> control_colors_;
+    std::unordered_map<void*, RowStore> rows_;
     std::unordered_map<std::string, void*> exports_;
+    std::string payload_for(void* control) const;
 };
 
 std::string make_envelope(const std::string& channel, const std::string& payload_json);

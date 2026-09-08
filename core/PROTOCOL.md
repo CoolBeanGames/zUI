@@ -38,5 +38,16 @@ selection and the `source=` collection API are in
 [../compiler/GRAMMAR.md](../compiler/GRAMMAR.md); item keys come from each
 record's `key` field.
 
-The full C++/C# parity table and high-frequency-event coalescing remain part of
-ZU-65.
+### C# / C++ parity status (ZU-87)
+
+| capability | C# | C++ |
+| --- | --- | --- |
+| normalized `on` payloads, `onactivate`, `oncommit` | ✓ | ✓ |
+| `<option value=>` + `selectedvalue` | ✓ | ✓ |
+| `number`, `console` (`host.append`) nodes | ✓ | ✓ |
+| `source=` collection CRUD + selection by key | ✓ | ✓ (ListView / TreeView) |
+| per-row `state` styling | ✓ | pending (needs `NM_CUSTOMDRAW`) |
+| context menus, drag & drop | ✓ | pending |
+| `image`, icons, `tabs`/`splitter`/`grid`, templated `list`, virtualization | ✓ | pending |
+
+High-frequency-event coalescing (slider/scroll) still open on both.

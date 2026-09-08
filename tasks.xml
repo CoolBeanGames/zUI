@@ -13,33 +13,6 @@
     <name>C++ backend parity for the hTunes capability set</name>
     <prompt>Bring the C++ zui::Host (bindings/cpp/zui.h/.cpp) to parity with the C# work done for ZU-75..ZU-84 and ZU-79: selection/activation/input events, source= collection CRUD + per-row state, number/toggle/tooltip/console nodes, grid/scroll/tabs/splitter layout, theme coverage, context menus, drag-and-drop, image, templated list items, icons. Mirror the same node kinds, channel names, payload shapes and mutation APIs. design.txt requires both runtimes; hTunes is C#-only so this trails the C# tasks. Add C++ host tests (bindings/cpp/tests) per capability. build.ps1 -Config test with the C++ ctests green.</prompt>
     <requirements></requirements>
-    <inProgress>false</inProgress>
-    <done>false</done>
-    <priority>false</priority>
-    <bug>false</bug>
-    <error>false</error>
-    <errorMessage></errorMessage>
-    <lockKey></lockKey>
-    <locked>false</locked>
-    <archived>false</archived>
-    <blockedBy></blockedBy>
-    <dateStarted></dateStarted>
-    <dueDate></dueDate>
-    <dateFinished></dateFinished>
-    <commit>false</commit>
-    <build>false</build>
-    <release>false</release>
-    <merge>false</merge>
-    <branch>main</branch>
-    <tags></tags>
-    <notes></notes>
-    <filesChanged></filesChanged>
-    <image></image>
-  </task>
-  <task id="ZU-88">
-    <name>Documentation refresh + which link to pull</name>
-    <prompt>docs/INTEGRATION.md, README.md, docs/QUICKSTART.md, compiler/GRAMMAR.md and core/PROTOCOL.md must be current with everything landed in ZU-62..ZU-87.</prompt>
-    <requirements></requirements>
     <inProgress>true</inProgress>
     <done>false</done>
     <priority>false</priority>
@@ -63,10 +36,11 @@
     <filesChanged></filesChanged>
     <image></image>
     <subtasks>
-      <subtask done="false">INTEGRATION.md + README: unambiguous pull target (main / zUI_buildN), old web build is dead</subtask>
-      <subtask done="false">document every node/channel/API landed in ZU-75..ZU-86 with a one-line C# example</subtask>
-      <subtask done="false">refresh GRAMMAR.md lists + design.txt Layout/Controls + PROTOCOL.md</subtask>
-      <subtask done="false">gate</subtask>
+      <subtask done="false">normalized on payloads in subclass_proc (input/check/slider/select/table)</subtask>
+      <subtask done="false">onactivate + oncommit channels; option value= ; number + console nodes</subtask>
+      <subtask done="false">source= collection CRUD for listview/treeview + selection by key + per-row state</subtask>
+      <subtask done="false">C++ host tests (bindings/cpp/tests) + ctest green</subtask>
+      <subtask done="false">REMAINING: context menus, drag-drop, image, icons, tabs/splitter/grid, virtualization, templated list</subtask>
     </subtasks>
   </task>
   <task id="ZU-65">

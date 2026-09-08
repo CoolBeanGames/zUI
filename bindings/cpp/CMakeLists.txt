@@ -30,4 +30,8 @@ if(ZUI_BUILD_TESTS)
     add_executable(zui_state_test tests/state_test.cpp)
     target_link_libraries(zui_state_test PRIVATE zui)
     add_test(NAME state COMMAND zui_state_test)
+
+    add_executable(zui_collection_test tests/collection_test.cpp)
+    target_link_libraries(zui_collection_test PRIVATE zui)
+    add_test(NAME collection COMMAND zui_collection_test)
 endif()

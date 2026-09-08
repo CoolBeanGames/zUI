@@ -27,6 +27,22 @@ std::string narrow(const std::wstring& value) {
 
 bool truthy(const std::string& v) { return v == "true" || v == "1" || v == "on" || v == "yes"; }
 
+std::string json_array(const std::vector<std::string>& items) {
+    std::string out = "[";
+    for (size_t i = 0; i < items.size(); ++i) {
+        if (i) out += ',';
+        out += '"';
+        for (char c : items[i]) { if (c == '"' || c == '\\') out += '\\'; out += c; }
+        out += '"';
+    }
+    return out + "]";
+}
+
+std::string record_key(const Record& r) {
+    auto it = r.find("key");
+    return it == r.end() ? std::string{} : it->second;
+}
+
 std::string attr(const Node& n, const char* key, const char* fallback = "") {
     auto it = n.attributes.find(key);
     return it == n.attributes.end() ? fallback : it->second;
@@ -77,6 +93,10 @@ void Host::build(const Node& root) {
     control_channels_.clear();
     control_kinds_.clear();
     control_binds_.clear();
+    control_activate_.clear();
+    control_commit_.clear();
+    option_values_.clear();
+    rows_.clear();
     for (auto& [hwnd, color] : control_colors_)
         if (color.brush) DeleteObject(static_cast<HGDIOBJ>(color.brush));
     control_colors_.clear();
@@ -96,14 +116,24 @@ void* Host::create_node(void* raw_parent, const Node& node, int& x, int& y, int 
 
     if (node.kind == "button") { klass = L"BUTTON"; style |= BS_PUSHBUTTON | WS_TABSTOP; }
     else if (node.kind == "check") { klass = L"BUTTON"; style |= BS_AUTOCHECKBOX | WS_TABSTOP; }
+    else if (node.kind == "number") { klass = L"EDIT"; style |= WS_BORDER | WS_TABSTOP | ES_NUMBER | ES_RIGHT; }
+    else if (node.kind == "console") {
+        klass = L"EDIT";
+        style |= WS_BORDER | ES_MULTILINE | ES_AUTOVSCROLL | ES_READONLY | WS_VSCROLL | WS_HSCROLL;
+        height = 140;
+    }
     else if (node.kind == "input" || node.kind == "textarea") {
         klass = L"EDIT"; style |= WS_BORDER | WS_TABSTOP | ES_AUTOHSCROLL;
         if (node.kind == "textarea") { style |= ES_MULTILINE | ES_AUTOVSCROLL | WS_VSCROLL; height = 90; }
     }
+    else if (node.kind == "list") { klass = WC_LISTVIEWW; style |= LVS_REPORT | LVS_NOCOLUMNHEADER | WS_BORDER | WS_TABSTOP; height = 240; }
     else if (node.kind == "slider") { klass = TRACKBAR_CLASSW; style |= TBS_HORZ | WS_TABSTOP; height = 36; }
     else if (node.kind == "progress" || node.kind == "spinner" || node.kind == "loading") { klass = PROGRESS_CLASSW; height = 16; }
     else if (node.kind == "select" || node.kind == "dropdown") { klass = WC_COMBOBOXW; style |= CBS_DROPDOWNLIST | WS_TABSTOP; height = 180; }
-    else if (node.kind == "table") { klass = WC_LISTVIEWW; style |= LVS_REPORT | LVS_SINGLESEL | WS_BORDER | WS_TABSTOP; height = 300; }
+    else if (node.kind == "table") {
+        klass = WC_LISTVIEWW; style |= LVS_REPORT | WS_BORDER | WS_TABSTOP; height = 300;
+        if (node.attributes.find("selectable") == node.attributes.end()) style |= LVS_SINGLESEL;
+    }
     else if (node.kind == "tree") { klass = WC_TREEVIEWW; style |= TVS_HASLINES | TVS_LINESATROOT | WS_BORDER | WS_TABSTOP; height = 300; }
     else if (node.kind == "window" || node.kind == "root" || node.kind == "col" || node.kind == "fill" ||
              node.kind == "workspace" || node.kind == "row" || node.kind == "panel" || node.kind == "sidebar" ||
@@ -121,16 +151,32 @@ void* Host::create_node(void* raw_parent, const Node& node, int& x, int& y, int 
         SendMessageW(control, TBM_SETPOS, TRUE, number(node, "value", 0));
     }
     if (node.kind == "progress") SendMessageW(control, PBM_SETPOS, number(node, "value", 0), 0);
-    if (node.kind == "table") {
+    if (node.kind == "number") SetWindowTextW(control, std::to_wstring(number(node, "value", number(node, "min", 0))).c_str());
+    if (node.kind == "console" || node.kind == "input" || node.kind == "textarea" || node.kind == "list" || node.kind == "table" || node.kind == "tree") {
+        if (node.kind == "console")
+            SendMessageW(control, WM_SETFONT, reinterpret_cast<WPARAM>(GetStockObject(ANSI_FIXED_FONT)), TRUE);
+    }
+    if (node.kind == "table" || node.kind == "list") {
+        ListView_SetExtendedListViewStyle(control, LVS_EX_FULLROWSELECT);
+        auto& store = rows_[control];
         int index = 0;
         for (const auto& col : node.children) if (col.kind == "column") {
             auto heading = wide(col.text); LVCOLUMNW spec{LVCF_TEXT | LVCF_WIDTH, 0, 150, heading.data()};
             ListView_InsertColumn(control, index++, &spec);
+            store.fields.push_back(attr(col, "field", col.text.c_str()));
+        }
+        if (node.kind == "list" && store.fields.empty()) {
+            LVCOLUMNW spec{LVCF_WIDTH, 0, 240, nullptr};
+            ListView_InsertColumn(control, 0, &spec);
+            store.fields.push_back("text");
         }
     }
+    if (node.kind == "tree") rows_[control];
     if (node.kind == "select" || node.kind == "dropdown") {
+        auto& values = option_values_[control];
         for (const auto& item : node.children) if (item.kind == "option" || item.kind == "item") {
             auto value = wide(item.text); SendMessageW(control, CB_ADDSTRING, 0, reinterpret_cast<LPARAM>(value.c_str()));
+            values.push_back(attr(item, "value", item.text.c_str()));
         }
         SendMessageW(control, CB_SETCURSEL, 0, 0);
     }
@@ -143,6 +189,8 @@ void* Host::create_node(void* raw_parent, const Node& node, int& x, int& y, int 
 
     auto event = node.attributes.find("on");
     if (event != node.attributes.end()) control_channels_[control] = event->second;
+    if (auto a = node.attributes.find("onactivate"); a != node.attributes.end()) control_activate_[control] = a->second;
+    if (auto c = node.attributes.find("oncommit"); c != node.attributes.end()) control_commit_[control] = c->second;
     control_kinds_[control] = node.kind;
     // Register every lookup name. Priority is export > bind > id (a more specific
     // name wins), but all three resolve to this control.
@@ -212,11 +260,16 @@ bool Host::set(const std::string& name, const std::string& property, const std::
     }
     if ((property == "selectedvalue" || property == "selectedtext") &&
         (kind == "select" || kind == "dropdown")) {
+        if (auto it = option_values_.find(h); it != option_values_.end()) {
+            for (int i = 0; i < static_cast<int>(it->second.size()); ++i)
+                if (it->second[i] == value) { SendMessageW(h, CB_SETCURSEL, i, 0); return true; }
+        }
         int idx = static_cast<int>(SendMessageW(h, CB_FINDSTRINGEXACT, static_cast<WPARAM>(-1),
                                                 reinterpret_cast<LPARAM>(wide(value).c_str())));
         if (idx >= 0) { SendMessageW(h, CB_SETCURSEL, idx, 0); return true; }
         return false;
     }
+    if (property == "selection") return false;  // use set_selection(name, keys)
     if (property == "fg" || property == "foreground") {
         control_colors_[h].fg = static_cast<unsigned long>(std::stoul(value, nullptr, 0));
         InvalidateRect(h, nullptr, TRUE); return true;
@@ -255,10 +308,19 @@ std::string Host::get(const std::string& name, const std::string& property) cons
     if (property == "selected" || property == "selectedindex") {
         if (kind == "select" || kind == "dropdown")
             return std::to_string(static_cast<int>(SendMessageW(h, CB_GETCURSEL, 0, 0)));
-        if (kind == "table")
+        if (kind == "table" || kind == "list")
             return std::to_string(ListView_GetNextItem(h, -1, LVNI_SELECTED));
         return {};
     }
+    if (property == "selectedvalue" || property == "selectedtext") {
+        if (kind == "select" || kind == "dropdown") {
+            int i = static_cast<int>(SendMessageW(h, CB_GETCURSEL, 0, 0));
+            if (auto it = option_values_.find(h); it != option_values_.end() && i >= 0 && i < static_cast<int>(it->second.size()))
+                return it->second[i];
+        }
+        return {};
+    }
+    if (property == "selection") return json_array(get_selection_for(h));
     return {};
 }
 
@@ -285,6 +347,199 @@ int Host::get_selected(const std::string& name) const { auto v = get(name, "sele
 std::string Host::kind_of(void* control) const {
     auto it = control_kinds_.find(control);
     return it == control_kinds_.end() ? std::string{} : it->second;
+}
+
+// Normalized `on` payload for a control (see core/PROTOCOL.md).
+std::string Host::payload_for(void* raw) const {
+    HWND h = static_cast<HWND>(raw);
+    std::string kind = kind_of(raw);
+    if (kind == "input" || kind == "textarea" || kind == "number") {
+        int len = GetWindowTextLengthW(h);
+        std::wstring buf(len + 1, L'\0');
+        GetWindowTextW(h, buf.data(), len + 1); buf.resize(len);
+        return narrow(buf);
+    }
+    if (kind == "check") return SendMessageW(h, BM_GETCHECK, 0, 0) == BST_CHECKED ? "true" : "false";
+    if (kind == "slider") return std::to_string(static_cast<int>(SendMessageW(h, TBM_GETPOS, 0, 0)));
+    if (kind == "select" || kind == "dropdown") {
+        int i = static_cast<int>(SendMessageW(h, CB_GETCURSEL, 0, 0));
+        auto it = option_values_.find(raw);
+        if (it != option_values_.end() && i >= 0 && i < static_cast<int>(it->second.size())) return it->second[i];
+        return std::to_string(i);
+    }
+    if (kind == "table" || kind == "list" || kind == "tree") {
+        auto keys = get_selection_for(raw);
+        return json_array(keys);
+    }
+    return "";
+}
+
+std::vector<std::string> Host::get_selection_for(void* raw) const {
+    std::vector<std::string> keys;
+    HWND h = static_cast<HWND>(raw);
+    std::string kind = kind_of(raw);
+    auto it = rows_.find(raw);
+    if (it == rows_.end()) return keys;
+    if (kind == "tree") {
+        HTREEITEM sel = TreeView_GetSelection(h);
+        for (int i = 0; i < static_cast<int>(it->second.order.size()); ++i) {
+            // treeitem lParam holds the row index
+        }
+        if (sel) {
+            TVITEMW tv{}; tv.mask = TVIF_PARAM; tv.hItem = sel;
+            if (TreeView_GetItem(h, &tv) && tv.lParam >= 0 && tv.lParam < static_cast<LONG_PTR>(it->second.order.size()))
+                keys.push_back(it->second.order[tv.lParam]);
+        }
+        return keys;
+    }
+    for (int i = ListView_GetNextItem(h, -1, LVNI_SELECTED); i >= 0; i = ListView_GetNextItem(h, i, LVNI_SELECTED))
+        if (i < static_cast<int>(it->second.order.size())) keys.push_back(it->second.order[i]);
+    return keys;
+}
+
+Host::RowStore* Host::store_for(const std::string& name) {
+    void* c = find(name);
+    auto it = c ? rows_.find(c) : rows_.end();
+    return it == rows_.end() ? nullptr : &it->second;
+}
+const Host::RowStore* Host::store_for(const std::string& name) const {
+    void* c = find(name);
+    auto it = c ? rows_.find(c) : rows_.end();
+    return it == rows_.end() ? nullptr : &it->second;
+}
+
+void Host::set_rows(const std::string& name, const std::vector<Record>& records) {
+    RowStore* s = store_for(name);
+    if (!s) return;
+    auto keep = get_selection(name);
+    s->order.clear(); s->records.clear();
+    for (const auto& r : records) {
+        auto key = record_key(r);
+        if (key.empty()) continue;
+        s->order.push_back(key);
+        s->records[key] = r;
+    }
+    render_rows(name);
+    std::vector<std::string> still;
+    for (auto& k : keep) if (s->records.count(k)) still.push_back(k);
+    set_selection(name, still);
+}
+
+void Host::append_row(const std::string& name, const Record& record) {
+    RowStore* s = store_for(name);
+    if (!s) return;
+    auto key = record_key(record);
+    if (key.empty()) return;
+    auto keep = get_selection(name);
+    if (!s->records.count(key)) s->order.push_back(key);
+    s->records[key] = record;
+    render_rows(name);
+    set_selection(name, keep);
+}
+
+void Host::update_row(const std::string& name, const std::string& key, const Record& patch) {
+    RowStore* s = store_for(name);
+    if (!s || !s->records.count(key)) { if (s) append_row(name, patch); return; }
+    auto keep = get_selection(name);
+    for (auto& [k, v] : patch) s->records[key][k] = v;
+    render_rows(name);
+    set_selection(name, keep);
+}
+
+void Host::remove_row(const std::string& name, const std::string& key) {
+    RowStore* s = store_for(name);
+    if (!s || !s->records.count(key)) return;
+    auto keep = get_selection(name);
+    keep.erase(std::remove(keep.begin(), keep.end(), key), keep.end());
+    s->records.erase(key);
+    s->order.erase(std::remove(s->order.begin(), s->order.end(), key), s->order.end());
+    render_rows(name);
+    set_selection(name, keep);
+}
+
+void Host::clear_rows(const std::string& name) {
+    RowStore* s = store_for(name);
+    if (!s) return;
+    s->order.clear(); s->records.clear();
+    render_rows(name);
+}
+
+std::vector<std::string> Host::row_keys(const std::string& name) const {
+    const RowStore* s = store_for(name);
+    return s ? s->order : std::vector<std::string>{};
+}
+
+std::vector<std::string> Host::get_selection(const std::string& name) const {
+    void* c = find(name);
+    return c ? get_selection_for(c) : std::vector<std::string>{};
+}
+
+void Host::set_selection(const std::string& name, const std::vector<std::string>& keys) {
+    RowStore* s = store_for(name);
+    void* c = find(name);
+    if (!s || !c) return;
+    HWND h = static_cast<HWND>(c);
+    std::string kind = kind_of(c);
+    std::unordered_set<std::string> want(keys.begin(), keys.end());
+    if (kind == "tree") {
+        HTREEITEM item = TreeView_GetRoot(h);
+        while (item) {
+            TVITEMW tv{}; tv.mask = TVIF_PARAM; tv.hItem = item;
+            if (TreeView_GetItem(h, &tv) && tv.lParam >= 0 && tv.lParam < static_cast<LONG_PTR>(s->order.size())
+                && want.count(s->order[tv.lParam])) { TreeView_SelectItem(h, item); return; }
+            item = TreeView_GetNextSibling(h, item);
+        }
+        return;
+    }
+    ListView_SetItemState(h, -1, 0, LVIS_SELECTED | LVIS_FOCUSED);
+    for (int i = 0; i < static_cast<int>(s->order.size()); ++i)
+        if (want.count(s->order[i]))
+            ListView_SetItemState(h, i, LVIS_SELECTED | LVIS_FOCUSED, LVIS_SELECTED | LVIS_FOCUSED);
+}
+
+void Host::render_rows(const std::string& name) {
+    RowStore* s = store_for(name);
+    void* c = find(name);
+    if (!s || !c) return;
+    HWND h = static_cast<HWND>(c);
+    std::string kind = kind_of(c);
+    if (kind == "tree") {
+        TreeView_DeleteAllItems(h);
+        for (int i = 0; i < static_cast<int>(s->order.size()); ++i) {
+            auto& rec = s->records[s->order[i]];
+            auto text = wide(rec.count("text") ? rec["text"] : s->order[i]);
+            TVINSERTSTRUCTW ins{}; ins.hParent = TVI_ROOT; ins.hInsertAfter = TVI_LAST;
+            ins.item.mask = TVIF_TEXT | TVIF_PARAM; ins.item.pszText = text.data(); ins.item.lParam = i;
+            TreeView_InsertItem(h, &ins);
+        }
+        return;
+    }
+    SendMessageW(h, WM_SETREDRAW, FALSE, 0);
+    SendMessageW(h, LVM_DELETEALLITEMS, 0, 0);
+    for (int i = 0; i < static_cast<int>(s->order.size()); ++i) {
+        auto& rec = s->records[s->order[i]];
+        const std::string firstField = s->fields.empty() ? "text" : s->fields[0];
+        std::wstring first = wide(rec.count(firstField) ? rec[firstField] : std::string{});
+        LVITEMW item{}; item.mask = LVIF_TEXT; item.iItem = i; item.pszText = first.data();
+        SendMessageW(h, LVM_INSERTITEMW, 0, reinterpret_cast<LPARAM>(&item));
+        for (int col = 1; col < static_cast<int>(s->fields.size()); ++col) {
+            auto cell = wide(rec.count(s->fields[col]) ? rec[s->fields[col]] : std::string{});
+            LVITEMW sub{}; sub.iSubItem = col; sub.pszText = cell.data();
+            SendMessageW(h, LVM_SETITEMTEXTW, i, reinterpret_cast<LPARAM>(&sub));
+        }
+    }
+    SendMessageW(h, WM_SETREDRAW, TRUE, 0);
+    InvalidateRect(h, nullptr, TRUE);
+}
+
+void Host::append(const std::string& name, const std::string& text) {
+    HWND h = static_cast<HWND>(require(name));
+    if (!h || kind_of(h) != "console") return;
+    int len = GetWindowTextLengthW(h);
+    SendMessageW(h, EM_SETSEL, len, len);
+    auto line = wide((len ? "\r\n" : "") + text);
+    SendMessageW(h, EM_REPLACESEL, FALSE, reinterpret_cast<LPARAM>(line.c_str()));
+    SendMessageW(h, WM_VSCROLL, SB_BOTTOM, 0);
 }
 
 void Host::bind(const std::string& state_name, const std::string& control_name) {
@@ -372,12 +627,37 @@ long long Host::subclass_proc(void* hwnd, unsigned msg, unsigned long long wpara
             }
         }
     }
-    if (msg == WM_COMMAND || msg == WM_HSCROLL || msg == WM_NOTIFY) {
-        HWND source = msg == WM_COMMAND ? reinterpret_cast<HWND>(lparam)
-                    : msg == WM_HSCROLL ? reinterpret_cast<HWND>(lparam)
-                    : reinterpret_cast<NMHDR*>(lparam)->hwndFrom;
+    if (msg == WM_NOTIFY) {
+        auto* nm = reinterpret_cast<NMHDR*>(lparam);
+        HWND source = nm->hwndFrom;
+        // Row activation (double-click / Enter) -> onactivate with the item key.
+        if (auto a = self->control_activate_.find(source); a != self->control_activate_.end()) {
+            if (nm->code == LVN_ITEMACTIVATE) {
+                auto keys = self->get_selection_for(source);
+                if (!keys.empty()) self->dispatch(a->second, keys.front());
+            } else if (nm->code == NM_DBLCLK && self->kind_of(source) == "tree") {
+                auto keys = self->get_selection_for(source);
+                if (!keys.empty()) self->dispatch(a->second, keys.front());
+            }
+        }
+        // Selection change -> on channel with the JSON key array.
+        if ((nm->code == LVN_ITEMCHANGED || nm->code == TVN_SELCHANGEDW)) {
+            if (auto it = self->control_channels_.find(source); it != self->control_channels_.end())
+                self->dispatch(it->second, self->payload_for(source));
+        }
+    }
+    if (msg == WM_COMMAND || msg == WM_HSCROLL) {
+        HWND source = reinterpret_cast<HWND>(lparam);
+        unsigned code = HIWORD(wparam);
         auto it = self->control_channels_.find(source);
-        if (it != self->control_channels_.end()) self->dispatch(it->second, "");
+        bool editish = self->kind_of(source) == "input" || self->kind_of(source) == "textarea" || self->kind_of(source) == "number";
+        if (it != self->control_channels_.end()) {
+            // Coalesce: for an edit, `on` fires on EN_CHANGE; for others, on any command.
+            if (!editish || msg == WM_HSCROLL || code == EN_CHANGE)
+                self->dispatch(it->second, self->payload_for(source));
+        }
+        if (auto c = self->control_commit_.find(source); c != self->control_commit_.end() && code == EN_KILLFOCUS)
+            self->dispatch(c->second, self->payload_for(source));
         // Two-way binding write-back: mirror the control's current value into state.
         auto bound = self->control_binds_.find(source);
         if (bound != self->control_binds_.end()) {
