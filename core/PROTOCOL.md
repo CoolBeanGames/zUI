@@ -45,9 +45,17 @@ record's `key` field.
 | normalized `on` payloads, `onactivate`, `oncommit` | ✓ | ✓ |
 | `<option value=>` + `selectedvalue` | ✓ | ✓ |
 | `number`, `console` (`host.append`) nodes | ✓ | ✓ |
-| `source=` collection CRUD + selection by key | ✓ | ✓ (ListView / TreeView) |
-| per-row `state` styling | ✓ | pending (needs `NM_CUSTOMDRAW`) |
-| context menus, drag & drop | ✓ | pending |
-| `image`, icons, `tabs`/`splitter`/`grid`, templated `list`, virtualization | ✓ | pending |
+| `source=` collection CRUD + selection by key | ✓ | ✓ |
+| per-row `state` styling | ✓ | ✓ (`NM_CUSTOMDRAW` / owner-draw) |
+| virtualized `table` | ✓ | ✓ (`LVS_OWNERDATA`) |
+| templated `list` rows | ✓ | ✓ (`LVS_OWNERDRAWFIXED`) |
+| `image` node + `host.set_image` / `on_paint` canvas | ✓ | ✓ (GDI+) |
+| icon set (`icon=`, `kind="icon"`) | ✓ | ✓ (GDI+ paths) |
+| `tabs` / `tabpanel` switching + `ontab` | ✓ | ✓ (`WC_TABCONTROL`) |
+| `grid` / `scroll` / `splitter` | ✓ | ✓ (basic; polished layout is ZU-66) |
+| context menu (`popup_menu`, `oncontext`) + menu-bar path mutation | ✓ | ✓ (`TrackPopupMenu` / `HMENU`) |
+| drag & drop (`dragsource`, `ondrop`, OS file drop) | ✓ | ✓ (`WM_DROPFILES` + manual internal drag) |
+| full theme rendering for every control | ✓ | partial (ZU-70) |
 
-High-frequency-event coalescing (slider/scroll) still open on both.
+High-frequency-event coalescing (slider/scroll) still open on both; polished
+C++ layout for grid/scroll/splitter is ZU-66.

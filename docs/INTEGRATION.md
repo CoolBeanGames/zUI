@@ -200,8 +200,12 @@ tens of thousands of rows without a per-row control (`onsort` → `{field, dir}`
 | custom drawing | `<canvas/>` + `host.OnPaint(name, (g, rect) => …)` / `host.Redraw(name)` |
 | "busy" emphasis | `host.Set(name, "attention", true)` |
 
-C++ parity for §4a/§4b is landing incrementally (task ZU-87); the C# host has
-all of it today.
+Both backends now cover §4a/§4b. The C++ host (`bindings/cpp/zui.h`) exposes the
+same node kinds, channel names, and payload shapes; the API spellings are
+snake_case: `host.set_rows` / `append_row` / `remove_row` / `get_selection` /
+`popup_menu` / `set_menu_enabled` / `set_image` / `on_paint`. Polished C++
+layout for `grid` / `scroll` / `splitter` and full C++ theme rendering are the
+remaining follow-ups (ZU-66 / ZU-70).
 
 ## 5. Build once, then mutate — the runtime contract
 

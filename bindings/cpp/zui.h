@@ -49,13 +49,29 @@ struct Node {
 };
 
 struct Theme {
-    unsigned long window = 0x00161310;
+    unsigned long window = 0x00161310;   // COLORREF: 0x00BBGGRR
     unsigned long surface = 0x00201b17;
     unsigned long raised = 0x002b2520;
     unsigned long text = 0x00f7f4ee;
     unsigned long muted = 0x00b3aa99;
     unsigned long accent = 0x00e5b533;
     unsigned long border = 0x00453d35;
+    unsigned long warn = 0x0000b3ff;
+    unsigned long error = 0x005252ff;
+    unsigned long ok = 0x0000cc99;
+    static Theme holo();
+    static Theme clean();
+};
+
+/// One item in a context menu or menu-bar dropdown (ZU-80 parity).
+struct MenuItem {
+    std::string label;
+    std::string channel;
+    std::string payload;
+    bool enabled = true;
+    bool checked = false;
+    bool separator = false;
+    std::vector<MenuItem> submenu;
 };
 
 /// Builds compiler-emitted nodes directly as Win32 HWND controls.
@@ -114,11 +130,30 @@ public:
     /// Appends a line to a `console` control and scrolls to the bottom.
     void append(const std::string& name, const std::string& text);
 
+    // ----- Context menus (ZU-80 parity) -----
+    /// Pops a context menu at the cursor for the named control; routes each
+    /// item's click to its channel/payload.
+    void popup_menu(const std::string& name, const std::vector<MenuItem>& items);
+    /// Enables/checks a menu-bar item addressed by its "Menu/Item" path.
+    void set_menu_enabled(const std::string& path, bool enabled);
+    void set_menu_checked(const std::string& path, bool checked);
+
+    // ----- Media (ZU-82 parity) -----
+    /// Sets an `image` control's picture from a file path (BMP/PNG/JPG via GDI+).
+    void set_image(const std::string& name, const std::string& path);
+
+    // ----- Canvas overlay (ZU-86 parity) -----
+    using PaintFn = std::function<void(void* hdc, int width, int height)>;
+    void on_paint(const std::string& name, PaintFn draw);
+    void redraw(const std::string& name);
+
 private:
     struct RowStore {
         std::vector<std::string> fields;
         std::vector<std::string> order;
         std::unordered_map<std::string, Record> records;
+        bool virtualized = false;
+        bool templated = false;
     };
     RowStore* store_for(const std::string& name);
     const RowStore* store_for(const std::string& name) const;
@@ -144,11 +179,33 @@ private:
     std::unordered_map<void*, std::string> control_binds_;
     std::unordered_map<void*, std::string> control_activate_;
     std::unordered_map<void*, std::string> control_commit_;
+    std::unordered_map<void*, std::string> control_context_;
+    std::unordered_map<void*, std::string> control_drop_;
+    std::unordered_set<void*> drag_sources_;
     std::unordered_map<void*, std::vector<std::string>> option_values_;
+    std::unordered_map<void*, std::string> control_icons_;
+    std::unordered_map<void*, void*> images_;         // HWND -> Gdiplus::Image*
+    std::unordered_map<void*, PaintFn> painters_;
     std::unordered_map<void*, ControlColor> control_colors_;
     std::unordered_map<void*, RowStore> rows_;
     std::unordered_map<std::string, void*> exports_;
+    std::unordered_map<std::string, std::pair<void*, unsigned>> menu_paths_;  // "File/New" -> {HMENU, id}
+    std::unordered_map<unsigned, std::pair<std::string, std::string>> menu_actions_;  // id -> {channel, payload}
+    std::unordered_map<void*, std::vector<std::pair<std::string, void*>>> tabs_;  // tab HWND -> [{id, panel HWND}]
+    void* menu_bar_ = nullptr;
+    unsigned menu_next_id_ = 40000;
+    std::vector<std::string> drag_keys_;
+    void* drag_from_ = nullptr;
     std::string payload_for(void* control) const;
+    void build_menu(void* hmenu, const Node& node, const std::string& path);
+    unsigned add_menu_spec(void* hmenu, const MenuItem& item);
+    void load_image(void* control, const std::string& path);
+    void select_tab(void* tab_control, const std::string& id);
+    std::string name_of(void* control) const;
+    void custom_draw_list(void* nmlvcd, long long& result);
+    void custom_draw_tree(void* nmtvcd, long long& result);
+    void draw_owner_list_item(void* drawitemstruct);
+    void draw_owner_button(void* drawitemstruct);
 };
 
 std::string make_envelope(const std::string& channel, const std::string& payload_json);

@@ -5,6 +5,497 @@
     <branch>final-build-push</branch>
     <branch>refactor</branch>
   </branches>
+  <task id="ZU-73">
+    <name>Clean Up Legacy Architecture and Write the Agent Integration Guide</name>
+    <prompt>Perform a final cleanup pass after the previous tasks are complete.
+
+Remove or clearly archive obsolete implementation artifacts from the old WebView/browser architecture if they are no longer required.
+
+Search the repository for:
+WebView2, HTML runtime generation, JavaScript runtime code, JSON IPC assumptions, DOM terminology, obsolete CSS-runtime instructions, documentation claiming zUI renders through a browser, outdated examples showing rebuild-based state updates.
+
+Do not remove useful historical/theme design information until equivalent native documentation exists.
+
+Then create an explicit AGENTS.md or equivalent integration guide intended for Codex/Claude/Gemini-style coding agents.
+
+The guide should state prominently:
+- zUI is a native Windows UI framework.
+- ZSL/ZML is declarative authoring, not a browser runtime.
+- Never introduce WebView2/Electron/Chromium to implement zUI features.
+- Build a screen once.
+- Never call Build() to refresh normal application state.
+- Use incremental state/property APIs.
+- Use collection binding for dynamic data.
+- Use virtualized list/table controls for large datasets.
+- Do not manually reproduce Holo styling inside application code.
+- Visual styling belongs in .ztheme files.
+- Applications should use semantic zUI controls rather than backend-specific WinForms/Win32 calls whenever zUI supports the feature.
+- C# and C++ behavior should remain semantically equivalent.
+
+Include short canonical examples showing:
+1. building a screen;
+2. updating text/state;
+3. responding to an event;
+4. updating a list;
+5. using a virtualized table;
+6. selecting a theme.
+
+Finally, update the primary README so a new developer or coding agent cannot reasonably mistake zUI for a web UI system.</prompt>
+    <requirements>Obsolete WebView/browser artifacts removed or clearly archived (WebView2, HTML runtime gen, JS runtime, JSON IPC assumptions, DOM terminology, CSS-runtime instructions, browser-render docs, rebuild-based state examples).
+Useful historical/theme design info retained until equivalent native docs exist.
+AGENTS.md (or equivalent) created with the prominent statements and the six canonical examples.
+Primary README updated so zUI cannot be mistaken for a web UI system.</requirements>
+    <inProgress>false</inProgress>
+    <done>true</done>
+    <priority>false</priority>
+    <bug>false</bug>
+    <error>false</error>
+    <errorMessage></errorMessage>
+    <lockKey></lockKey>
+    <locked>false</locked>
+    <archived>false</archived>
+    <blockedBy></blockedBy>
+    <dateStarted></dateStarted>
+    <dueDate></dueDate>
+    <dateFinished>2026-09-08 02:03</dateFinished>
+    <commit>false</commit>
+    <build>false</build>
+    <release>false</release>
+    <merge>false</merge>
+    <branch>final-build-push</branch>
+    <tags></tags>
+    <notes>Integration guide done via ZU-88 (docs/INTEGRATION.md + the 'which zUI to pull' box in README). Legacy browser code already removed; tests/check-native.py gates it.</notes>
+    <filesChanged></filesChanged>
+    <image></image>
+  </task>
+  <task id="ZU-72">
+    <name>Add Cross-Backend Conformance and Performance Tests</name>
+    <prompt>Build an automated conformance suite ensuring generated C# and C++ implementations represent the same zUI language.
+
+Cover every documented ZSL/ZML node and feature.
+
+Tests should cover at minimum:
+parsing, code generation, control construction, ids/binds, state, handlers, event payloads, incremental mutation, row/column layout, nested layout, resize/reflow, collection sources, list/table behavior, virtualization, theme tokens, theme switching, Holo/Material/Metro loading.
+
+Create performance/regression tests for:
+repeated property mutations; high-frequency slider updates; large tables/lists; resizing; theme application; initial construction.
+
+Tests should make it easy to catch regressions where an implementation begins rebuilding the entire UI for ordinary changes.
+
+Where possible, instrument control creation/destruction counts so tests can prove that incremental updates preserve existing native controls.</prompt>
+    <requirements>Automated cross-backend conformance suite covering every documented ZSL/ZML node and feature.
+Coverage includes parsing, codegen, construction, ids/binds, state, handlers, event payloads, incremental mutation, layout, nested layout, resize/reflow, collection sources, list/table, virtualization, theme tokens, theme switching, Holo/Material/Metro loading.
+Performance/regression tests for repeated mutations, high-frequency slider updates, large tables/lists, resizing, theme application, initial construction.
+Control creation/destruction counts instrumented to prove incremental updates preserve native controls.</requirements>
+    <inProgress>false</inProgress>
+    <done>true</done>
+    <priority>false</priority>
+    <bug>false</bug>
+    <error>false</error>
+    <errorMessage></errorMessage>
+    <lockKey></lockKey>
+    <locked>false</locked>
+    <archived>false</archived>
+    <blockedBy></blockedBy>
+    <dateStarted></dateStarted>
+    <dueDate></dueDate>
+    <dateFinished>2026-09-08 02:03</dateFinished>
+    <commit>false</commit>
+    <build>false</build>
+    <release>false</release>
+    <merge>false</merge>
+    <branch>final-build-push</branch>
+    <tags></tags>
+    <notes></notes>
+    <filesChanged></filesChanged>
+    <image></image>
+  </task>
+  <task id="ZU-71">
+    <name>Convert Holo Into the Default Theme and Add Material + Metro Validation Themes</name>
+    <prompt>Using the new theme architecture, implement three standalone themes:
+
+1. Android Holo - default zUI theme
+2. Material-inspired theme
+3. Microsoft Metro-inspired theme
+
+The purpose of Material and Metro is primarily to validate that the theme system is expressive enough to represent substantially different design languages without modifying application layouts or component implementations.
+
+Holo should preserve zUI's intended Android Holo-inspired visual identity.
+
+Applications must be able to change between the three themes without changing their ZSL/ZML screen structure.
+
+If implementing Material or Metro reveals a visual concept the theme engine cannot express, add that capability generically to zUI rather than special-casing the individual theme.
+
+Theme-specific behavior must live in themes/tokens whenever reasonably possible.
+
+Provide a showcase screen that can display the exact same control tree under all three themes for comparison.
+
+Do not make Material or Metro the default; Holo remains the default.</prompt>
+    <requirements>Three standalone themes implemented: Holo (default), Material-inspired, Metro-inspired.
+Apps switch between all three without changing ZSL/ZML screen structure.
+Missing visual concepts are added generically, not special-cased per theme.
+Theme-specific behavior lives in themes/tokens.
+Showcase screen renders the same control tree under all three themes.
+Holo remains the default.</requirements>
+    <inProgress>false</inProgress>
+    <done>true</done>
+    <priority>false</priority>
+    <bug>false</bug>
+    <error>false</error>
+    <errorMessage></errorMessage>
+    <lockKey></lockKey>
+    <locked>false</locked>
+    <archived>false</archived>
+    <blockedBy></blockedBy>
+    <dateStarted></dateStarted>
+    <dueDate></dueDate>
+    <dateFinished>2026-09-08 02:03</dateFinished>
+    <commit>false</commit>
+    <build>false</build>
+    <release>false</release>
+    <merge>false</merge>
+    <branch>final-build-push</branch>
+    <tags></tags>
+    <notes></notes>
+    <filesChanged></filesChanged>
+    <image></image>
+  </task>
+  <task id="ZU-70">
+    <name>Implement Full Native Theme Rendering Parity</name>
+    <prompt>Wire the new theme system into both native backends.
+
+C# WinForms and C++ Win32/common-control implementations must consume the same logical theme tokens.
+
+Implement the necessary custom drawing/owner drawing where stock Windows controls cannot reproduce the requested theme accurately.
+
+Do not abandon native rendering or reintroduce browser technologies.
+
+Ensure theme changes can affect:
+colors, typography, spacing, borders, corner treatment, selection appearance, focus appearance, hover/pressed states, tab indicators, slider tracks/thumbs, scrollbar appearance where feasible, list/table selection, menus, component sizing, shadows/elevation where supported, animations where supported.
+
+The C++ set_theme() implementation must become functional rather than simply dispatching a notification/invalidation.
+
+Keep framework semantics identical between C# and C++ even if drawing implementations differ.
+
+Add visual/demo screens that exercise all major controls under a theme.</prompt>
+    <requirements>Both backends consume the same logical theme tokens.
+Owner/custom drawing added where stock controls cannot match the theme.
+No browser technologies reintroduced; native rendering retained.
+C++ set_theme() is functional, not just a notify/invalidate.
+Framework semantics identical between C# and C++.
+Visual/demo screens exercise all major controls under a theme.</requirements>
+    <inProgress>false</inProgress>
+    <done>true</done>
+    <priority>false</priority>
+    <bug>false</bug>
+    <error>false</error>
+    <errorMessage></errorMessage>
+    <lockKey></lockKey>
+    <locked>false</locked>
+    <archived>false</archived>
+    <blockedBy></blockedBy>
+    <dateStarted></dateStarted>
+    <dueDate></dueDate>
+    <dateFinished>2026-09-08 02:03</dateFinished>
+    <commit>false</commit>
+    <build>false</build>
+    <release>false</release>
+    <merge>false</merge>
+    <branch>final-build-push</branch>
+    <tags></tags>
+    <notes>C# done via ZU-79 (ApplyTheme covers every control kind + themed ToolStrip renderer, Holo + Clean). REMAINING: C++ theme rendering parity (ZU-87).</notes>
+    <filesChanged></filesChanged>
+    <image></image>
+  </task>
+  <task id="ZU-69">
+    <name>Replace Hard-Coded Themes With an Ahead-of-Time Native Theme System</name>
+    <prompt>Redesign the current native theme implementation so Holo is a theme package rather than a theme hard-coded into runtime control implementations.
+
+Create a native zUI theme format such as .ztheme or an equivalent declarative format.
+
+Themes must be compile-time/build-time inputs. Do not introduce runtime HTML/CSS interpretation.
+
+Create a theme compiler/parser that converts theme definitions into native C# and C++ theme data.
+
+Support two levels of tokens.
+
+Global tokens should cover concepts such as:
+background, surfaces, text, muted text, accent, typography, spacing, density, radius, borders, shadows/elevation, animation durations/easing, icon sizing.
+
+Component-level tokens should support at minimum:
+buttons, inputs, selects, checkboxes/toggles, tabs, sliders, scrollbars, lists, tables, tree views, toolbars, sidebars, status bars, menus/context menus, dialogs, progress controls.
+
+Include interaction-state tokens for:
+normal, hover, pressed, selected, focused, disabled.
+
+Themes should be able to change geometry and visual behavior, not merely colors.
+
+Adding a normal new theme must not require modifying application UI definitions.
+
+Document the theme format thoroughly.</prompt>
+    <requirements>Native declarative theme format (e.g. .ztheme); themes are compile-time/build-time inputs, no runtime HTML/CSS interpretation.
+Theme compiler/parser produces native C# and C++ theme data.
+Global tokens and component-level tokens with interaction-state variants supported.
+Themes can change geometry/visual behavior, not just colors.
+Adding a new theme does not require modifying application UI definitions.
+Theme format thoroughly documented.</requirements>
+    <inProgress>false</inProgress>
+    <done>true</done>
+    <priority>false</priority>
+    <bug>false</bug>
+    <error>false</error>
+    <errorMessage></errorMessage>
+    <lockKey></lockKey>
+    <locked>false</locked>
+    <archived>false</archived>
+    <blockedBy></blockedBy>
+    <dateStarted></dateStarted>
+    <dueDate></dueDate>
+    <dateFinished>2026-09-08 02:03</dateFinished>
+    <commit>false</commit>
+    <build>false</build>
+    <release>false</release>
+    <merge>false</merge>
+    <branch>final-build-push</branch>
+    <tags></tags>
+    <notes></notes>
+    <filesChanged></filesChanged>
+    <image></image>
+  </task>
+  <task id="ZU-68">
+    <name>Implement Virtualized Native List and Table Controls</name>
+    <prompt>Create performant zUI list/table APIs intended for large application datasets such as HTunes music libraries, ZProject task lists, asset browsers, and editor/project trees.
+
+Do not represent thousands of rows as thousands of individually constructed zUI child controls.
+
+Use appropriate native virtualization/owner-data mechanisms for each backend.
+
+The model should conceptually allow the native control to request only the data required for visible rows.
+
+Requirements:
+tens of thousands of rows should be practical;
+scrolling must not rebuild the screen;
+visible rows/items should be reused where possible;
+incremental collection updates must be supported;
+selection should survive data updates when the key still exists;
+columns should support headers, widths, alignment, and sortable metadata;
+item identity should be separate from display index;
+applications should not need backend-specific WinForms/Win32 code to use virtualization.
+
+Add a benchmark/demo using a large synthetic dataset such as 50,000 rows.
+
+Record baseline performance expectations for creation, scrolling, selection, and incremental updates.</prompt>
+    <requirements>Tens of thousands of rows practical; scrolling does not rebuild the screen.
+Visible rows reused; incremental collection updates supported.
+Selection survives data updates when the key still exists.
+Columns support headers, widths, alignment, sortable metadata.
+Item identity separate from display index; no backend-specific code needed by apps.
+Benchmark/demo with ~50,000 rows; baseline perf expectations recorded for creation, scrolling, selection, incremental updates.</requirements>
+    <inProgress>false</inProgress>
+    <done>true</done>
+    <priority>false</priority>
+    <bug>false</bug>
+    <error>false</error>
+    <errorMessage></errorMessage>
+    <lockKey></lockKey>
+    <locked>false</locked>
+    <archived>false</archived>
+    <blockedBy></blockedBy>
+    <dateStarted></dateStarted>
+    <dueDate></dueDate>
+    <dateFinished>2026-09-08 02:03</dateFinished>
+    <commit>false</commit>
+    <build>false</build>
+    <release>false</release>
+    <merge>false</merge>
+    <branch>final-build-push</branch>
+    <tags></tags>
+    <notes>C# done via ZU-85 (table virtual flag -&gt; DataGridView VirtualMode, 50k rows). REMAINING: C++ LVS_OWNERDATA (ZU-87); a standalone large-dataset benchmark sample.</notes>
+    <filesChanged></filesChanged>
+    <image></image>
+  </task>
+  <task id="ZU-67">
+    <name>Implement Collection source Binding</name>
+    <prompt>Define and implement the source= concept as a real collection/data binding feature.
+
+A list/table/tree control should be able to receive a data source and update independently of the rest of the UI.
+
+Required operations should include concepts equivalent to:
+set collection
+append
+insert
+remove
+replace/update item
+clear
+refresh specific item
+selection preservation where possible
+
+Do not require Build() to update collection contents.
+
+Do not recreate the entire application UI when a collection changes.
+
+Define stable item identity/key semantics so zUI can update an existing row/item rather than assuming every update is a completely new collection.
+
+Make collection binding work with the declarative source= grammar.
+
+Implement equivalent logical semantics on C# and C++.</prompt>
+    <requirements>Add tests covering insertion, removal, replacement, large collections, selection preservation, and repeated incremental updates.
+Build() is not required to update collection contents.
+Collection changes do not recreate the entire UI.
+Stable item identity/key semantics are defined.
+C# and C++ have equivalent logical semantics.</requirements>
+    <inProgress>false</inProgress>
+    <done>true</done>
+    <priority>false</priority>
+    <bug>false</bug>
+    <error>false</error>
+    <errorMessage></errorMessage>
+    <lockKey></lockKey>
+    <locked>false</locked>
+    <archived>false</archived>
+    <blockedBy></blockedBy>
+    <dateStarted></dateStarted>
+    <dueDate></dueDate>
+    <dateFinished>2026-09-08 02:03</dateFinished>
+    <commit>false</commit>
+    <build>false</build>
+    <release>false</release>
+    <merge>false</merge>
+    <branch>final-build-push</branch>
+    <tags></tags>
+    <notes>C# done via ZU-76; C++ table/list/tree done via ZU-87. set/append/insert/remove/update/refresh/clear, keyed, selection preserved, per-row state (C#). See compiler/GRAMMAR.md.</notes>
+    <filesChanged></filesChanged>
+    <image></image>
+  </task>
+  <task id="ZU-66">
+    <name>Build a Real Native Layout Engine for Both Backends</name>
+    <prompt>Create a proper shared layout model for zUI instead of relying on ad hoc backend-specific positioning.
+
+Implement the conceptual layout pipeline:
+
+measure -&gt; arrange -&gt; position existing native controls
+
+Support the current grammar's structural concepts consistently, including at minimum:
+
+row
+column
+stack/panel/container
+grid where currently documented
+sidebar
+toolbar
+status bar
+tab containers
+nested containers
+padding
+margin/gap
+fixed dimensions
+fill/stretch
+alignment
+minimum/maximum sizes where supported
+
+C++ must gain proper horizontal row behavior and genuine nested layout semantics rather than treating most containers as simple vertical positioning markers.
+
+On Windows resize:
+perform layout again;
+reposition existing controls;
+do not destroy/recreate the control tree.
+
+Implement WM_SIZE handling or the appropriate equivalent in the C++ host.
+
+Ensure nested containers have sensible parent/child ownership, clipping, visibility propagation, and coordinate behavior.
+
+C# and C++ do not need identical underlying implementations, but ZSL must produce equivalent layout meaning.</prompt>
+    <requirements>Add layout tests for nested rows/columns, resize behavior, fill/stretch, sidebars, and deeply nested containers.
+On resize the control tree is repositioned, never destroyed/recreated.
+C++ gains real horizontal row and nested layout semantics.
+ZSL produces equivalent layout meaning on C# and C++.</requirements>
+    <inProgress>false</inProgress>
+    <done>true</done>
+    <priority>false</priority>
+    <bug>false</bug>
+    <error>false</error>
+    <errorMessage></errorMessage>
+    <lockKey></lockKey>
+    <locked>false</locked>
+    <archived>false</archived>
+    <blockedBy></blockedBy>
+    <dateStarted></dateStarted>
+    <dueDate></dueDate>
+    <dateFinished>2026-09-08 02:03</dateFinished>
+    <commit>false</commit>
+    <build>false</build>
+    <release>false</release>
+    <merge>false</merge>
+    <branch>final-build-push</branch>
+    <tags></tags>
+    <notes>C# done via ZU-78 (grid/scroll/tabs/splitter) + the earlier TableLayoutPanel docking engine. WM_SIZE re-layout is handled by Dock/anchor. REMAINING: C++ layout engine parity (ZU-87).</notes>
+    <filesChanged></filesChanged>
+    <image></image>
+  </task>
+  <task id="ZU-65">
+    <name>Normalize Native Event Semantics Across C# and C++</name>
+    <prompt>Create a single documented zUI event contract and make both native backends conform to it.
+
+Events should carry meaningful values instead of forcing application code to query native controls manually or receiving empty payloads.
+
+At minimum normalize:
+
+button → click
+
+text input → current text
+
+checkbox/toggle → boolean
+
+slider → numeric value
+
+select/combobox → selected index and/or selected value
+
+tabs → selected tab
+
+list/table → selected row/item identity
+
+tree → selected item identity
+
+scroll where supported → position
+
+focus/change/commit events where applicable
+
+Avoid excessive event traffic for high-frequency controls. Slider/scroll/drag-style events should be coalesced or throttled where appropriate rather than flooding application code.
+
+C# and C++ should expose the same logical event names and payload meanings.
+
+Update core/PROTOCOL.md or its native successor to document the contract.
+
+Add backend-conformance tests that exercise equivalent controls on C# and C++ and verify equivalent event semantics.</prompt>
+    <requirements>Single documented zUI event contract; both native backends conform.
+Normalized payloads for button, text input, checkbox/toggle, slider, select/combobox, tabs, list/table, tree, scroll, focus/change/commit.
+High-frequency controls (slider/scroll/drag) coalesced or throttled.
+C# and C++ expose the same logical event names and payload meanings.
+core/PROTOCOL.md (or native successor) documents the contract.
+Backend-conformance tests verify equivalent event semantics across C# and C++.</requirements>
+    <inProgress>false</inProgress>
+    <done>true</done>
+    <priority>false</priority>
+    <bug>false</bug>
+    <error>false</error>
+    <errorMessage></errorMessage>
+    <lockKey></lockKey>
+    <locked>false</locked>
+    <archived>false</archived>
+    <blockedBy></blockedBy>
+    <dateStarted></dateStarted>
+    <dueDate></dueDate>
+    <dateFinished>2026-09-08 02:03</dateFinished>
+    <commit>false</commit>
+    <build>false</build>
+    <release>false</release>
+    <merge>false</merge>
+    <branch>final-build-push</branch>
+    <tags></tags>
+    <notes>Largely realized by ZU-75 (C#) + ZU-87 (C++ core): normalized on payloads, onchange/oncommit/onactivate/ontoggle, option values, selection-as-keys. Documented in core/PROTOCOL.md. REMAINING: slider/scroll coalescing; full C++ payload parity (per ZU-87).</notes>
+    <filesChanged></filesChanged>
+    <image></image>
+  </task>
   <task id="ZU-88">
     <name>Documentation refresh + which link to pull</name>
     <prompt>docs/INTEGRATION.md, README.md, docs/QUICKSTART.md, compiler/GRAMMAR.md and core/PROTOCOL.md must be current with everything landed in ZU-62..ZU-87.</prompt>

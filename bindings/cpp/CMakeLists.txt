@@ -34,4 +34,8 @@ if(ZUI_BUILD_TESTS)
     add_executable(zui_collection_test tests/collection_test.cpp)
     target_link_libraries(zui_collection_test PRIVATE zui)
     add_test(NAME collection COMMAND zui_collection_test)
+
+    add_executable(zui_parity_test tests/parity_test.cpp)
+    target_link_libraries(zui_parity_test PRIVATE zui)
+    add_test(NAME parity COMMAND zui_parity_test)
 endif()
