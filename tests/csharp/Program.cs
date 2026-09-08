@@ -339,5 +339,35 @@ Check("rename channel wired without throwing", h6.Find("shows") is ListBox);
 
 Check("icon set exposes named glyphs", ZuiIcons.Names.Contains("play") && ZuiIcons.Render("play", 16, Color.White) is not null);
 
+// ----- virtualized table (ZU-85) -----
+using var form7 = new Form();
+using var h7 = new ZuiHost(form7);
+form7.Show();
+h7.Build(new ZuiNode("root", "", Children: new[]
+{
+    new ZuiNode("table", "", new Dictionary<string, string> { ["id"] = "lib", ["source"] = "lib", ["selectable"] = "true", ["virtual"] = "true", ["on"] = "lib.sel" }, new[]
+    {
+        new ZuiNode("column", "Name", new Dictionary<string, string> { ["field"] = "name" }),
+        new ZuiNode("column", "Artist", new Dictionary<string, string> { ["field"] = "artist" }),
+    }),
+}));
+var libGrid = (DataGridView)h7.Find("lib")!;
+Check("virtual table is in VirtualMode", libGrid.VirtualMode);
+
+var sw = System.Diagnostics.Stopwatch.StartNew();
+var big = Enumerable.Range(0, 50000).Select(n => (IReadOnlyDictionary<string, string>)new Dictionary<string, string>
+{
+    ["key"] = "k" + n, ["name"] = "Track " + n, ["artist"] = "Artist " + (n % 500),
+});
+h7.SetRows("lib", big);
+sw.Stop();
+Check("50k rows load fast (< 1s) with no per-row control", sw.ElapsedMilliseconds < 1000 && libGrid.RowCount == 50000);
+Check("virtual CellValueNeeded pulls from the store", (string?)libGrid.Rows[42000].Cells[0].Value == "Track 42000");
+h7.SetSelection("lib", new[] { "k100", "k49999" });
+Check("virtual selection by key survives", string.Join(",", h7.GetSelection("lib")) == "k100,k49999");
+h7.RemoveRow("lib", "k0");
+Check("virtual incremental remove adjusts RowCount", libGrid.RowCount == 49999);
+Check("virtual selection survives an incremental remove", h7.GetSelection("lib").Contains("k100"));
+
 Console.WriteLine(failures == 0 ? "ZuiHostTests: all passed" : $"ZuiHostTests: {failures} failed");
 return failures;

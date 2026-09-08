@@ -9,127 +9,10 @@
     <branch>main</branch>
     <clearAfterReading>false</clearAfterReading>
   </task>
-  <task id="ZU-82">
-    <name>image node + image cells + list-item images</name>
-    <prompt>NEW (ZU-74 / zui-requirements.md item 8). C# first; C++ parity ZU-87.</prompt>
-    <requirements></requirements>
-    <inProgress>true</inProgress>
-    <done>false</done>
-    <priority>false</priority>
-    <bug>false</bug>
-    <error>false</error>
-    <errorMessage></errorMessage>
-    <lockKey>s5htunes</lockKey>
-    <locked>false</locked>
-    <archived>false</archived>
-    <blockedBy></blockedBy>
-    <dateStarted></dateStarted>
-    <dueDate></dueDate>
-    <dateFinished></dateFinished>
-    <commit>false</commit>
-    <build>false</build>
-    <release>false</release>
-    <merge>false</merge>
-    <branch>main</branch>
-    <tags></tags>
-    <notes></notes>
-    <filesChanged></filesChanged>
-    <image></image>
-    <subtasks>
-      <subtask done="false">image bind= + placeholder + table column kind=image</subtask>
-    </subtasks>
-  </task>
-  <task id="ZU-83">
-    <name>Templated list items</name>
-    <prompt>NEW (ZU-74 / zui-requirements.md item 9). Depends on ZU-82 (image), ZU-76 (records). C# first; C++ parity ZU-87.</prompt>
-    <requirements></requirements>
-    <inProgress>true</inProgress>
-    <done>false</done>
-    <priority>false</priority>
-    <bug>false</bug>
-    <error>false</error>
-    <errorMessage></errorMessage>
-    <lockKey>s5htunes</lockKey>
-    <locked>false</locked>
-    <archived>false</archived>
-    <blockedBy></blockedBy>
-    <dateStarted></dateStarted>
-    <dueDate></dueDate>
-    <dateFinished></dateFinished>
-    <commit>false</commit>
-    <build>false</build>
-    <release>false</release>
-    <merge>false</merge>
-    <branch>main</branch>
-    <tags></tags>
-    <notes></notes>
-    <filesChanged></filesChanged>
-    <image></image>
-    <subtasks>
-      <subtask done="false">list item template: leading image, status dot, title, subtitle, badge (owner-draw)</subtask>
-    </subtasks>
-  </task>
-  <task id="ZU-84">
-    <name>Icon set + icon= on button/item/label</name>
-    <prompt>NEW (ZU-74 / zui-requirements.md item 18). C# first; C++ parity ZU-87.</prompt>
-    <requirements></requirements>
-    <inProgress>true</inProgress>
-    <done>false</done>
-    <priority>false</priority>
-    <bug>false</bug>
-    <error>false</error>
-    <errorMessage></errorMessage>
-    <lockKey>s5htunes</lockKey>
-    <locked>false</locked>
-    <archived>false</archived>
-    <blockedBy></blockedBy>
-    <dateStarted></dateStarted>
-    <dueDate></dueDate>
-    <dateFinished></dateFinished>
-    <commit>false</commit>
-    <build>false</build>
-    <release>false</release>
-    <merge>false</merge>
-    <branch>main</branch>
-    <tags></tags>
-    <notes></notes>
-    <filesChanged></filesChanged>
-    <image></image>
-    <subtasks>
-      <subtask done="false">built-in monochrome icon set (GDI+); icon= on button/item/label; kind=icon button</subtask>
-    </subtasks>
-  </task>
   <task id="ZU-85">
     <name>Virtualized list/table</name>
     <prompt>Realizes ZU-68 (ZU-74 / zui-requirements.md item 7). C# first; C++ parity ZU-87.</prompt>
     <requirements></requirements>
-    <inProgress>false</inProgress>
-    <done>false</done>
-    <priority>false</priority>
-    <bug>false</bug>
-    <error>false</error>
-    <errorMessage></errorMessage>
-    <lockKey></lockKey>
-    <locked>false</locked>
-    <archived>false</archived>
-    <blockedBy></blockedBy>
-    <dateStarted></dateStarted>
-    <dueDate></dueDate>
-    <dateFinished></dateFinished>
-    <commit>false</commit>
-    <build>false</build>
-    <release>false</release>
-    <merge>false</merge>
-    <branch>main</branch>
-    <tags></tags>
-    <notes></notes>
-    <filesChanged></filesChanged>
-    <image></image>
-  </task>
-  <task id="ZU-86">
-    <name>P2 polish: attention state, overlay node, rename-in-place, embedded-panel test</name>
-    <prompt>NEW / misc (ZU-74 / zui-requirements.md items 22,23,24,25). C# first.</prompt>
-    <requirements></requirements>
     <inProgress>true</inProgress>
     <done>false</done>
     <priority>false</priority>
@@ -149,13 +32,14 @@
     <merge>false</merge>
     <branch>main</branch>
     <tags></tags>
-    <notes>Partial: Set(name,'attention',true) landed (bold + accent on labels) with ZU-75/76. REMAINING: pulse animation, &lt;canvas&gt;/&lt;overlay&gt; node, rename-in-place, embedded-panel (bare Panel, no Form) regression test.</notes>
+    <notes></notes>
     <filesChanged></filesChanged>
     <image></image>
     <subtasks>
-      <subtask done="false">rename-in-place (rename= channel, F2/slow-double-click)</subtask>
-      <subtask done="false">canvas/overlay node (native GDI+ paint callback)</subtask>
-      <subtask done="false">embedded-panel regression test (bare Panel, no Form)</subtask>
+      <subtask done="false">table virtual flag -&gt; DataGridView VirtualMode, CellValueNeeded from RowStore</subtask>
+      <subtask done="false">RowCount-driven incremental updates, selection by key via index map</subtask>
+      <subtask done="false">50k-row host test (fast, no per-row control)</subtask>
+      <subtask done="false">sortable column metadata + item identity != display index</subtask>
     </subtasks>
   </task>
   <task id="ZU-87">

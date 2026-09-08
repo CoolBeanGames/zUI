@@ -143,6 +143,12 @@ every update. `state` (`normal` | `warn` | `error` | `new` | `active`) applies a
 themed row style. `host.GetSelection(name)` / `SetSelection(name, keys)` and
 `Get`/`Set(name, "selection", …)` read/write the selection by key.
 
+A `table` with the `virtual` flag is owner-data (ZU-68): tens of thousands of
+rows scroll without a per-row control, the same collection API drives it, and
+selection still tracks by key. `onsort="channel"` fires `{field, dir}` on a
+header click so the app can re-sort and call `SetRows` — item identity (`key`)
+stays independent of the display index.
+
 See [../core/RUNTIME_CONTRACT.md](../core/RUNTIME_CONTRACT.md) §3 for the frozen
 contract that generated code and both hosts must honour, including C#/C++
 semantic parity and the prohibition on any browser/DOM/JS runtime.

@@ -883,6 +883,8 @@ public sealed class ZuiHost : IDisposable
             MinimumSize = new Size(0, 160), AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill,
             AllowUserToAddRows = false, RowHeadersVisible = false, BorderStyle = BorderStyle.FixedSingle,
             SelectionMode = DataGridViewSelectionMode.FullRowSelect, ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize,
+            VirtualMode = node.Attrs.ContainsKey("virtual"),
+            MultiSelect = node.Attrs.ContainsKey("selectable"),
         };
         foreach (var col in node.Nodes.Where(n => n.Kind == "column"))
         {
@@ -1284,8 +1286,12 @@ public sealed class ZuiHost : IDisposable
     private sealed class RowStore
     {
         public string[] Fields = [];                                  // table column field names
+        public bool Virtual;                                          // DataGridView VirtualMode
         public readonly List<string> Order = [];                      // keys, in display order
         public readonly Dictionary<string, Dictionary<string, string>> Records = new(StringComparer.Ordinal);
+        public Dictionary<string, string> Rec(int i) =>
+            i >= 0 && i < Order.Count && Records.TryGetValue(Order[i], out var r) ? r : Empty;
+        private static readonly Dictionary<string, string> Empty = new();
     }
 
     private static ListBox MakeList(ZuiNode node) => new()
@@ -1300,10 +1306,39 @@ public sealed class ZuiHost : IDisposable
     {
         if (control is not (DataGridView or ListBox or TreeView)) return;
         var store = new RowStore();
-        if (control is DataGridView grid)
-            store.Fields = grid.Columns.Cast<DataGridViewColumn>().Select(c => c.Name).ToArray();
         _rows[control] = store;
         if (control is ListBox lb) lb.DrawItem += (_, e) => DrawListItem(lb, e);
+        if (control is DataGridView grid)
+        {
+            store.Fields = grid.Columns.Cast<DataGridViewColumn>().Select(c => c.Name).ToArray();
+            store.Virtual = grid.VirtualMode;
+            if (store.Virtual)
+            {
+                grid.CellValueNeeded += (_, e) =>
+                {
+                    if (e.ColumnIndex < store.Fields.Length)
+                        e.Value = store.Rec(e.RowIndex).GetValueOrDefault(store.Fields[e.ColumnIndex], "");
+                };
+                grid.RowPrePaint += (_, e) =>
+                {
+                    var s = Theme.RowState(store.Rec(e.RowIndex).GetValueOrDefault("state"));
+                    grid.Rows[e.RowIndex].DefaultCellStyle.BackColor = s?.back ?? Theme.Surface;
+                    grid.Rows[e.RowIndex].DefaultCellStyle.ForeColor = s?.fore ?? Theme.Text;
+                };
+            }
+            string? sortCh = node.Attrs.GetValueOrDefault("onsort");
+            foreach (DataGridViewColumn c in grid.Columns)
+                c.SortMode = DataGridViewColumnSortMode.NotSortable;
+            if (sortCh is not null)
+                grid.ColumnHeaderMouseClick += (_, e) =>
+                {
+                    var col = grid.Columns[e.ColumnIndex];
+                    var dir = col.HeaderCell.SortGlyphDirection == SortOrder.Ascending ? "desc" : "asc";
+                    foreach (DataGridViewColumn c in grid.Columns) c.HeaderCell.SortGlyphDirection = SortOrder.None;
+                    col.HeaderCell.SortGlyphDirection = dir == "asc" ? SortOrder.Ascending : SortOrder.Descending;
+                    Dispatch(sortCh, JsonSerializer.Serialize(new Dictionary<string, string> { ["field"] = col.Name, ["dir"] = dir }));
+                };
+        }
     }
 
     private RowStore Store(string name)
@@ -1339,11 +1374,11 @@ public sealed class ZuiHost : IDisposable
     public void InsertRow(string name, int index, IReadOnlyDictionary<string, string> record)
     {
         var store = Store(name);
+        var keep = GetSelection(name).ToArray();          // read selection BEFORE mutating the store
         var key = Key(record);
         store.Records[key] = new Dictionary<string, string>(record, StringComparer.Ordinal);
         store.Order.Remove(key);
         store.Order.Insert(Math.Clamp(index, 0, store.Order.Count), key);
-        var keep = GetSelection(name).ToArray();
         RenderRows(name);
         SetSelection(name, keep);
     }
@@ -1351,9 +1386,10 @@ public sealed class ZuiHost : IDisposable
     public void RemoveRow(string name, string key)
     {
         var store = Store(name);
-        if (!store.Records.Remove(key)) return;
+        if (!store.Records.ContainsKey(key)) return;
+        var keep = GetSelection(name).Where(k => k != key).ToArray();   // before mutating
+        store.Records.Remove(key);
         store.Order.Remove(key);
-        var keep = GetSelection(name).Where(k => k != key).ToArray();
         RenderRows(name);
         SetSelection(name, keep);
     }
@@ -1374,6 +1410,9 @@ public sealed class ZuiHost : IDisposable
         int i = store.Order.IndexOf(key);
         switch (Require(name))
         {
+            case DataGridView grid when store.Virtual && i >= 0 && i < grid.RowCount:
+                grid.InvalidateRow(i);
+                break;
             case DataGridView grid when i >= 0 && i < grid.Rows.Count:
                 FillGridRow(grid.Rows[i], store, record);
                 break;
@@ -1403,6 +1442,13 @@ public sealed class ZuiHost : IDisposable
         var store = Store(name);
         switch (Require(name))
         {
+            case DataGridView grid when store.Virtual:
+                // Virtualized: the grid owns no per-row control; it pulls values
+                // from the store on demand (ZU-68 / ZU-85).
+                grid.RowCount = 0;
+                grid.RowCount = store.Order.Count;
+                grid.Invalidate();
+                break;
             case DataGridView grid:
                 grid.SuspendLayout();
                 grid.Rows.Clear();
@@ -1590,9 +1636,16 @@ public sealed class ZuiHost : IDisposable
         }
     }
 
-    private static string KeyOfRow(DataGridViewRow row) => row.Tag as string ?? row.Index.ToString();
+    private string KeyOfRow(DataGridViewRow row)
+    {
+        if (row.Tag is string t) return t;
+        if (row.DataGridView is { } dgv && _rows.TryGetValue(dgv, out var s) && s.Virtual
+            && row.Index >= 0 && row.Index < s.Order.Count)
+            return s.Order[row.Index];
+        return row.Index.ToString();
+    }
 
-    private static string SelectionJson(Control control) => JsonSerializer.Serialize(control switch
+    private string SelectionJson(Control control) => JsonSerializer.Serialize(control switch
     {
         DataGridView grid => grid.Rows.Cast<DataGridViewRow>().Where(r => r.Selected).OrderBy(r => r.Index).Select(KeyOfRow).ToArray(),
         ListBox list => list.SelectedIndices.Cast<int>().OrderBy(i => i).Select(i => list.Items[i]).OfType<RowItem>().Select(i => i.Key).ToArray(),
