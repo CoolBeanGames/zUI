@@ -14,38 +14,4 @@
     <branch>main</branch>
     <clearAfterReading>false</clearAfterReading>
   </task>
-  <task id="ZU-87">
-    <name>C++ backend parity for the hTunes capability set</name>
-    <prompt>Bring the C++ zui::Host (bindings/cpp/zui.h/.cpp) to parity with the C# work done for ZU-75..ZU-84 and ZU-79: selection/activation/input events, source= collection CRUD + per-row state, number/toggle/tooltip/console nodes, grid/scroll/tabs/splitter layout, theme coverage, context menus, drag-and-drop, image, templated list items, icons. Mirror the same node kinds, channel names, payload shapes and mutation APIs. design.txt requires both runtimes; hTunes is C#-only so this trails the C# tasks. Add C++ host tests (bindings/cpp/tests) per capability. build.ps1 -Config test with the C++ ctests green.</prompt>
-    <requirements></requirements>
-    <inProgress>true</inProgress>
-    <done>false</done>
-    <priority>false</priority>
-    <bug>false</bug>
-    <error>false</error>
-    <errorMessage></errorMessage>
-    <lockKey>s5htunes</lockKey>
-    <locked>false</locked>
-    <archived>false</archived>
-    <blockedBy></blockedBy>
-    <dateStarted></dateStarted>
-    <dueDate></dueDate>
-    <dateFinished></dateFinished>
-    <commit>false</commit>
-    <build>false</build>
-    <release>false</release>
-    <merge>false</merge>
-    <branch>main</branch>
-    <tags></tags>
-    <notes>PARTIAL (core done, zUI_build5). Done in C++ (bindings/cpp/zui.cpp): normalized on payloads + onactivate/oncommit; &lt;option value=&gt; + selectedvalue; number + console(host.append) nodes; source= collection CRUD for table/list (WC_LISTVIEW) + tree (WC_TREEVIEW) with selection by key preserved across updates. New collection_test.cpp; ctest 5/5. REMAINING (each its own Win32 chunk): per-row state colour via NM_CUSTOMDRAW; context menus (TrackPopupMenu + oncontext); drag &amp; drop (OLE IDropTarget / DoDragDrop); image node (GDI blit); icon set (GDI paths mirroring ZuiIcons); tabs/tabpanel (WC_TABCONTROL) + splitter + grid + scroll layout; templated list rows (LVS_OWNERDRAW); virtualization (LVS_OWNERDATA). Next agent: pick up here.</notes>
-    <filesChanged>bindings/cpp/zui.h; bindings/cpp/zui.cpp; bindings/cpp/CMakeLists.txt; bindings/cpp/tests/collection_test.cpp; core/PROTOCOL.md; design.txt</filesChanged>
-    <image></image>
-    <subtasks>
-      <subtask done="true">normalized on payloads in subclass_proc (input/check/slider/select/table)</subtask>
-      <subtask done="true">onactivate + oncommit channels; option value= ; number + console nodes</subtask>
-      <subtask done="true">source= collection CRUD for listview/treeview + selection by key + per-row state</subtask>
-      <subtask done="true">C++ host tests (bindings/cpp/tests) + ctest green</subtask>
-      <subtask done="false">REMAINING: context menus, drag-drop, image, icons, tabs/splitter/grid, virtualization, templated list</subtask>
-    </subtasks>
-  </task>
 </tasks>

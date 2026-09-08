@@ -1,0 +1,288 @@
+# zUI — TOOLCHAIN GUIDE
+
+zUI is a themeable UI framework that sits on top of a host application (a music
+app, a game engine, a project-management app, ...) so every one of them presents
+the same UI. This file tells an agent working in one of those projects how to
+pull zUI in and use it. The visual rules are in Part 2.
+
+zUI is a native Windows UI framework with web-like authoring. You describe a
+screen in a declarative language; a compiler emits C# that builds WinForms
+controls or C++ that builds Win32/common controls. There is NO browser,
+WebView2, DOM, HTML document, stylesheet cascade, or JavaScript runtime -- and
+you must not introduce one to implement a zUI feature. Markup and theme-source
+CSS are build-time inputs only; they are never shipped or parsed at runtime.
+
+--------------------------------------------------------------------------------
+WHICH zUI TO PULL
+
+  Repo:            https://github.com/CoolBeanGames/zUI
+  Use:            branch `main`  (or a `zUI_buildN` tag -- highest N is newest)
+  Do NOT use:     any other branch, or any tag below zUI_build4.
+
+An early version of zUI rendered its UI in an embedded WebView2 / HTML / CSS / JS.
+That architecture is DEAD and removed. If, after cloning, you see `webview`,
+a `--backend html`, a `core/js/` folder, or an `.html` UI document, you are on
+the wrong branch -- run `git checkout main`.
+
+Sanity check a fresh clone:
+  - core/RUNTIME_CONTRACT.md exists and its section 6 says "No browser, ever".
+  - `py compiler/zslc.py --help` lists only `--backend {csharp,cpp}`.
+  - tests/check-native.py is the policy gate.
+
+--------------------------------------------------------------------------------
+Reference docs -- read these before extending anything:
+
+  README.md                  overview + architecture
+  design.txt                 global design & implementation contract (mandatory)
+  core/RUNTIME_CONTRACT.md    frozen runtime behaviour: construction vs mutation,
+                             control lookup, state/bind/handlers, C#/C++ parity
+  core/PROTOCOL.md           the host <-> UI event channel + per-control payloads
+                             + the C# / C++ parity table
+  compiler/GRAMMAR.md        the ZSL / ZML UI language and every supported node
+  docs/QUICKSTART.md         minimal end-to-end integration
+  docs/INTEGRATION.md        this guide, kept current in the repo
+  samples/                   runnable native apps (csharp, cpp, zforge, zsheets)
+
+
+================================================================================
+PART 1 -- USING zUI
+================================================================================
+
+1. GET IT
+
+Vendor it as a git submodule (preferred) or a plain clone, on `main`:
+
+    git submodule add https://github.com/CoolBeanGames/zUI.git third_party/zui
+    git -C third_party/zui checkout main
+
+What the host consumes:
+
+    compiler/zslc.py            the ZSL/ZML -> C#/C++ compiler (Python 3, no deps)
+    bindings/csharp/ZUI.csproj  the C# runtime (WinForms, net8.0-windows, no pkgs)
+    bindings/cpp/               the C++ runtime (CMake target `zui`; user32 gdi32
+                               comctl32 gdiplus shell32)
+    compiler/GRAMMAR.md         language + node reference
+    core/RUNTIME_CONTRACT.md    behaviour you can rely on
+
+Build/verify requirements: Python 3, .NET 8 SDK, and -- for the C++ backend only
+-- CMake + MSVC C++ tools + the Windows SDK. The C# path needs none of the C++
+tools.
+
+
+2. EMBED IT
+
+zUI renders into a Form or Panel the host owns (C#), or an HWND (C++). Pick the
+binding for your language; both produce equivalent zUI semantics.
+
+C# (WinForms, or WPF via WindowsFormsHost):
+
+    using var host = new ZUI.ZuiHost(form);          // any Form or Panel you own
+    new MyApp.Generated.MainUi().Build(host);         // construct the tree ONCE
+    host.On("save", payload => Save(payload));
+    host.SetTheme("clean");                           // "holo" (default) or "clean"
+
+C++ (Win32 + common controls):
+
+    zui::Host host(hwnd);
+    std::unordered_map<std::string, zui::MessageHandler> handlers;
+    handlers["save"] = [](const std::string& p){ save(p); };
+    build_ui(host, handlers);                         // generated entry point, once
+    host.set_theme("clean");
+
+Reference bindings/csharp/ZUI.csproj from your .csproj, or link the `zui` CMake
+target. No runtime assets, no external packages.
+
+
+3. AUTHOR THE UI
+
+Write screens in ZSL (brace) or ZML (angle-bracket) -- same tree, same output,
+auto-detected -- and compile ahead of time. Generated code is checked into your
+project and compiled by your normal toolchain; the .zsl/.zml source is not
+shipped.
+
+    py third_party/zui/compiler/zslc.py ui/main.zml \
+        --backend csharp --class MainUi --namespace MyApp.Generated \
+        -o Generated/MainUi.g.cs
+
+    py third_party/zui/compiler/zslc.py ui/main.zml \
+        --backend cpp -o generated/main.g.cpp
+
+Backends are `csharp` and `cpp` only. Layout is flow-based, never x/y: nest
+row / col; the container docks each child to fill its cell. fill, workspace,
+sidebar, panel, table, tree, textarea claim leftover space; grid cols=N,
+scroll, splitter, tabs give more structure; menubar becomes a real menu;
+statusbar docks to the bottom. compiler/GRAMMAR.md lists every node and
+attribute.
+
+
+4. TALK TO IT
+
+Events -- one in-process channel. A node carries on="file.save" or -> file.save;
+a top-level `on file.save { ... }` block also works with no node.
+
+    C#   host.On("file.save", p => ...)      host.Send("file.save", "...")
+    C++  host.on("file.save", cb)            host.send("file.save", "...")
+
+Payloads are UTF-8 strings; use JSON by convention when a value is structured.
+The `on` channel carries a meaningful per-control payload (see core/PROTOCOL.md):
+input -> text, check -> bool, slider/number -> value, select -> option value,
+selectable table/list/tree -> JSON array of selected item KEYS. Extra channels:
+onchange, oncommit (Enter/blur), onactivate (double-click/Enter -> key),
+ontoggle, ontab, oncontext ({control, keys}), ondrop, onmenuopen, onsort.
+
+Read/write components -- tag a node with id / export / bind (resolution order
+export > bind > id), then:
+
+    host.Find("name")     -> the concrete WinForms Control / HWND
+    host.GetText / GetValue / GetChecked / GetSelected
+    host.SetText / SetValue / SetChecked / SetVisible / SetEnabled /
+        SetSelected / SetForeground / SetBackground / SetSize / Focus
+
+Lists / tables / trees -- a control with source="x" is filled through the
+collection API, never Build():
+
+    host.SetRows(name, records)   host.AppendRow / InsertRow(i,..) / RemoveRow(key)
+    host.UpdateRow(key, patch)    host.RefreshRow(key) / ClearRows / GetRowKeys
+    host.GetSelection(name) / SetSelection(name, keys)          // by key, no rebuild
+
+Records are string maps keyed by "key"; a table row's other fields match
+<column field=..>, a list/tree item uses "text". Selection is preserved by key
+across every update. A record's `state` (warn|error|active|new) themes the row.
+A `table virtual` handles tens of thousands of rows without a per-row control.
+(C++ spellings are snake_case: host.set_rows / append_row / get_selection /
+popup_menu / set_menu_enabled / set_image / on_paint.)
+
+State / bind / handlers -- `state { count = 0 }` in the source declares an
+in-process value model. bind="count" links a state property to a control's
+natural property (two-way for input/check/slider/select/number). One property
+can drive many controls.
+
+    host.State.Set("count", "42")   host.State.Watch("count", v => ...)
+    host.Bind("count", "someControl")
+
+Full semantics: core/RUNTIME_CONTRACT.md section 3.
+
+
+5. BUILD ONCE, THEN MUTATE -- the runtime contract
+
+Build() / build_ui() is a CONSTRUCTION operation. Call it exactly once per
+screen. Every later change -- text, value, visibility, selection, list contents,
+theme -- is an in-place mutation of the existing controls via the API in step 4.
+Calling Build() again destroys controls, selection, and focus and emits a
+warning. There is no render() and no reactive re-render loop.
+
+    build once  ->  mutate -> mutate -> mutate -> ...   (screen lifetime)
+
+
+6. THEMES
+
+Two shipped themes: holo (default, dark) and clean (light).
+
+    C#   host.SetTheme("clean")        C++  host.set_theme("clean")
+
+Theme values are typed: ZuiTheme (C#) and zui::Theme (C++). core/css/ holds the
+design-token source these are translated from -- designers edit it, the host
+does not load it.
+
+
+7. KEEP IT CONSISTENT
+
+- ./build.ps1 -Config test is the required gate: compiler tests, the native-only
+  policy (tests/check-native.py -- fails on any browser document, package, or
+  rendering reference), zero-warning C# builds, C# host tests, C++ CTest, and
+  every sample's --self-test.
+- Adding or changing a widget covers BOTH runtimes (unless a task limits the
+  language). The checklist is in design.txt -> "Adding or changing a component":
+  grammar node + attributes, compiler preserves them, C# AddNode switch ->
+  WinForms control, C++ create_node -> common control, register id/export/bind,
+  route interaction through the On/on channel, generator tests + native host
+  tests, green build.ps1 -Config test.
+- Do not substitute snapshot/markup tests for a real control-construction check.
+
+
+================================================================================
+PART 2 -- VISUAL DESIGN STANDARD
+================================================================================
+
+Treat these as requirements whenever creating or modifying UI. New UI must look
+like it was there from the start. Do NOT redesign the visual identity unless
+explicitly told to.
+
+The structure, spacing, typography, density and interaction rules apply to every
+theme; only the palette changes between them. The palette lives in the runtime
+theme types (ZuiTheme / zui::Theme), sourced from core/css/tokens.css.
+
+IDENTITY
+
+Default theme holo -- Google's Android Holo: dark chrome (near-black app,
+~#171b20 surfaces), Holo-blue #33b5e5 accent, thin low-contrast dividers,
+uppercase accent-coloured section headers with an underline rule, blue-tinted
+selection with a left accent bar, light text.
+
+Alternative theme clean -- a light, neutral "native Windows utility" palette
+(off-white app, white surfaces, muted desaturated-blue accent).
+
+Both should feel: CLEAN, QUIET, FAST, NATIVE, COMPACT, ORGANIZED, FUNCTIONAL.
+Not: FLASHY, WEB-LIKE, MOBILE-FIRST, CARD-HEAVY, OVERSIZED, DECORATIVE.
+
+Avoid: gradients (beyond the very subtle ones already in the theme),
+glassmorphism, large rounded cards, oversized controls, giant headings, excessive
+whitespace, floating elements, decorative shadows, pill controls without a
+functional reason.
+
+STRUCTURE
+
+Strong horizontal hierarchy, separated by thin borders not big containers:
+  native title bar -> application menu (menubar) -> primary nav strip (nav)
+    -> workspace (sidebar + fill) -> status/device bar (statusbar)
+    -> contextual/playback bar (contextbar).
+
+Sidebars are narrow and functional (sidebar, with tree for hierarchy): square
+selection, pale-accent highlight, small secondary section headings.
+
+Main content is panel / col / row / table / tree regions that share one
+background and are divided by 1px borders -- never independent floating cards.
+
+TYPE
+
+Platform-native UI font (Segoe UI first), no web fonts. Compact scale, hierarchy
+from weight, not dramatic size jumps. Do not set font sizes in generated screens
+-- the runtime theme owns type metrics; use heading / section-label / text and
+let the theme size them.
+
+CONTROLS
+
+Buttons: compact, rectangular, thin border, very light fill, minimal radius --
+not web CTAs. Inputs: light fill, thin border, small radius, compact height --
+not giant/mobile. Tables: compact rows, subtle separators, clear left-aligned
+headings; highlight rows only for a functional reason (selection, missing
+metadata, error). No decorative zebra striping.
+
+SPACING & BORDERS
+
+Desktop-productivity density, not a touch UI. Lean on 1px low-contrast borders
+for separation rather than padding and containers. Don't hand-tune per-screen
+spacing -- the layout engine and theme provide the scale.
+
+ICONOGRAPHY
+
+Small, monochrome, line-based, consistent weight, from the built-in zUI icon set
+(ZuiIcons in C#, draw_icon in C++), referenced by name (icon="play"). Never emoji
+as UI icons, never mixed icon styles.
+
+INTERACTION
+
+Behave like a desktop app: right-click context menus, double-click actions, drag
+and drop, keyboard shortcuts incl. Ctrl+Z / Ctrl+Y, Tab order, multi / shift /
+ctrl selection, rename-in-place, tooltips, standard Windows key behaviour. Focus,
+keyboard navigation, DPI, IME and painting come from the native Windows control
+stack -- reuse it, do not reimplement it. Behaviour zUI adds lives in the host
+bindings (bindings/csharp, bindings/cpp), not in generated screens.
+
+CONSISTENCY RULE
+
+Before building any new UI: inspect existing components, reuse existing patterns,
+match existing spacing/sizing/typography/borders/behaviour. If a feature needs a
+new reusable pattern, add it as a shared node + both-runtime implementation so
+later work reuses it. A user must not be able to tell which screens were built at
+different times or by different agents.

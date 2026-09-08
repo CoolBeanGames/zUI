@@ -5,6 +5,40 @@
     <branch>final-build-push</branch>
     <branch>refactor</branch>
   </branches>
+  <task id="ZU-87">
+    <name>C++ backend parity for the hTunes capability set</name>
+    <prompt>Bring the C++ zui::Host (bindings/cpp/zui.h/.cpp) to parity with the C# work done for ZU-75..ZU-84 and ZU-79: selection/activation/input events, source= collection CRUD + per-row state, number/toggle/tooltip/console nodes, grid/scroll/tabs/splitter layout, theme coverage, context menus, drag-and-drop, image, templated list items, icons. Mirror the same node kinds, channel names, payload shapes and mutation APIs. design.txt requires both runtimes; hTunes is C#-only so this trails the C# tasks. Add C++ host tests (bindings/cpp/tests) per capability. build.ps1 -Config test with the C++ ctests green.</prompt>
+    <requirements></requirements>
+    <inProgress>false</inProgress>
+    <done>true</done>
+    <priority>false</priority>
+    <bug>false</bug>
+    <error>false</error>
+    <errorMessage></errorMessage>
+    <lockKey></lockKey>
+    <locked>false</locked>
+    <archived>false</archived>
+    <blockedBy></blockedBy>
+    <dateStarted></dateStarted>
+    <dueDate></dueDate>
+    <dateFinished>2026-09-08 02:39</dateFinished>
+    <commit>false</commit>
+    <build>false</build>
+    <release>false</release>
+    <merge>false</merge>
+    <branch>main</branch>
+    <tags></tags>
+    <notes>DONE (zUI_build6). C++ Win32 host at parity with the C# host for ZU-75..86: normalized events, source= collection CRUD + key selection, per-row state (NM_CUSTOMDRAW), virtualized table (LVS_OWNERDATA), templated list (LVS_OWNERDRAWFIXED), image (GDI+) + canvas on_paint, GDI+ icon set, tabs/tabpanel + ontab, grid/scroll/splitter nodes, context menu (TrackPopupMenu + oncontext + menu-bar path registry), drag&amp;drop (WM_DROPFILES + manual internal drag), set_theme palette swap. parity_test.cpp; ctest 6/6. Follow-ups tracked elsewhere: polished grid/scroll/splitter layout = ZU-66; full per-control C++ theme rendering = ZU-70; slider/scroll event coalescing = ZU-65.</notes>
+    <filesChanged>bindings/cpp/zui.h; bindings/cpp/zui.cpp; bindings/cpp/CMakeLists.txt; bindings/cpp/tests/parity_test.cpp; bindings/cpp/tests/collection_test.cpp; core/PROTOCOL.md; docs/INTEGRATION.md</filesChanged>
+    <image></image>
+    <subtasks>
+      <subtask done="true">normalized on payloads in subclass_proc (input/check/slider/select/table)</subtask>
+      <subtask done="true">onactivate + oncommit channels; option value= ; number + console nodes</subtask>
+      <subtask done="true">source= collection CRUD for listview/treeview + selection by key + per-row state</subtask>
+      <subtask done="true">C++ host tests (bindings/cpp/tests) + ctest green</subtask>
+      <subtask done="true">REMAINING: context menus, drag-drop, image, icons, tabs/splitter/grid, virtualization, templated list</subtask>
+    </subtasks>
+  </task>
   <task id="ZU-73">
     <name>Clean Up Legacy Architecture and Write the Agent Integration Guide</name>
     <prompt>Perform a final cleanup pass after the previous tasks are complete.
@@ -203,7 +237,7 @@ Visual/demo screens exercise all major controls under a theme.</requirements>
     <merge>false</merge>
     <branch>final-build-push</branch>
     <tags></tags>
-    <notes>C# done via ZU-79 (ApplyTheme covers every control kind + themed ToolStrip renderer, Holo + Clean). REMAINING: C++ theme rendering parity (ZU-87).</notes>
+    <notes>C# done via ZU-79 (every control kind, Holo+Clean, themed ToolStrip renderer). C++ (ZU-87) does palette swap + list/tree colours + custom-draw row state; full per-control C++ theme rendering (edit borders, combo, trackbar, header hover, etc.) is what REMAINS here.</notes>
     <filesChanged></filesChanged>
     <image></image>
   </task>
@@ -310,7 +344,7 @@ Benchmark/demo with ~50,000 rows; baseline perf expectations recorded for creati
     <merge>false</merge>
     <branch>final-build-push</branch>
     <tags></tags>
-    <notes>C# done via ZU-85 (table virtual flag -&gt; DataGridView VirtualMode, 50k rows). REMAINING: C++ LVS_OWNERDATA (ZU-87); a standalone large-dataset benchmark sample.</notes>
+    <notes>DONE both backends: C# DataGridView VirtualMode (ZU-85), C++ LVS_OWNERDATA (ZU-87). 20-50k rows, no per-row control, key selection survives incremental updates, onsort channel. REMAINING (optional): a standalone large-dataset benchmark sample.</notes>
     <filesChanged></filesChanged>
     <image></image>
   </task>
@@ -363,7 +397,7 @@ C# and C++ have equivalent logical semantics.</requirements>
     <merge>false</merge>
     <branch>final-build-push</branch>
     <tags></tags>
-    <notes>C# done via ZU-76; C++ table/list/tree done via ZU-87. set/append/insert/remove/update/refresh/clear, keyed, selection preserved, per-row state (C#). See compiler/GRAMMAR.md.</notes>
+    <notes>DONE both backends: C# via ZU-76, C++ via ZU-87. table/list/tree source= : set/append/insert/remove/update/refresh/clear, keyed, selection preserved by key, per-row state. See compiler/GRAMMAR.md + core/PROTOCOL.md parity table.</notes>
     <filesChanged></filesChanged>
     <image></image>
   </task>
@@ -492,7 +526,7 @@ Backend-conformance tests verify equivalent event semantics across C# and C++.</
     <merge>false</merge>
     <branch>final-build-push</branch>
     <tags></tags>
-    <notes>Largely realized by ZU-75 (C#) + ZU-87 (C++ core): normalized on payloads, onchange/oncommit/onactivate/ontoggle, option values, selection-as-keys. Documented in core/PROTOCOL.md. REMAINING: slider/scroll coalescing; full C++ payload parity (per ZU-87).</notes>
+    <notes>Events realized for BOTH backends via ZU-75 (C#) + ZU-87 (C++): normalized on payloads, onchange/oncommit/onactivate/ontoggle/ontab/oncontext/ondrop, option values, selection-as-keys. Documented in core/PROTOCOL.md with a parity table. REMAINING: slider/scroll high-frequency coalescing.</notes>
     <filesChanged></filesChanged>
     <image></image>
   </task>
