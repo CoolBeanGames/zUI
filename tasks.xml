@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<tasks project="zUI" nextIndex="88">
+<tasks project="zUI" nextIndex="89">
   <task id="ZU-74">
     <name>hTunes UI redesign - required zUI capabilities</name>
     <note>hTunes UI redesign umbrella. Broken into ZU-75..ZU-87 (created 2026-09-08). Full audit: htunes/docs/zui-requirements.md. ZU-75 events / ZU-76 collection binding / ZU-77 small controls / ZU-78 layout nodes / ZU-79 theme coverage / ZU-80 context menus / ZU-81 drag+drop / ZU-82 image / ZU-83 templated list items / ZU-84 icons / ZU-85 virtualization / ZU-86 P2 polish / ZU-87 C++ parity. This note is informational; work the numbered tasks.</note>
@@ -13,13 +13,13 @@
     <name>Small native control nodes: number, toggle, tooltip, console</name>
     <prompt>ZU-74 / zui-requirements.md items 16,17,19,20. C# first; C++ parity ZU-87.</prompt>
     <requirements></requirements>
-    <inProgress>false</inProgress>
+    <inProgress>true</inProgress>
     <done>false</done>
     <priority>false</priority>
     <bug>false</bug>
     <error>false</error>
     <errorMessage></errorMessage>
-    <lockKey></lockKey>
+    <lockKey>s5htunes</lockKey>
     <locked>false</locked>
     <archived>false</archived>
     <blockedBy></blockedBy>
@@ -35,18 +35,23 @@
     <notes>Partial: number node (NumericUpDown + change/commit), button kind=toggle (ontoggle + Get/Set 'pressed'), and tooltip= (shared ToolTip) all landed with ZU-75/76. REMAINING: console/log node + Append(name,text) auto-scroll monospace capped buffer.</notes>
     <filesChanged></filesChanged>
     <image></image>
+    <subtasks>
+      <subtask done="false">console/log node: read-only monospace multiline</subtask>
+      <subtask done="false">Append(name,text) appends + auto-scrolls, capped line buffer</subtask>
+      <subtask done="false">grammar + tests + gate</subtask>
+    </subtasks>
   </task>
   <task id="ZU-78">
     <name>Layout nodes: grid, scroll container, working tabs, splitter</name>
     <prompt>Extends ZU-66 for hTunes (ZU-74 / zui-requirements.md items 11,12,13,14). C# first; C++ parity ZU-87.</prompt>
     <requirements></requirements>
-    <inProgress>false</inProgress>
+    <inProgress>true</inProgress>
     <done>false</done>
     <priority>false</priority>
     <bug>false</bug>
     <error>false</error>
     <errorMessage></errorMessage>
-    <lockKey></lockKey>
+    <lockKey>s5htunes</lockKey>
     <locked>false</locked>
     <archived>false</archived>
     <blockedBy></blockedBy>
@@ -62,6 +67,13 @@
     <notes></notes>
     <filesChanged></filesChanged>
     <image></image>
+    <subtasks>
+      <subtask done="false">grid cols=N row-major, colspan, gap</subtask>
+      <subtask done="false">scroll container node</subtask>
+      <subtask done="false">tabs/tabpanel real switching + ontab + Set selected + headless deck</subtask>
+      <subtask done="false">splitter node (SplitContainer)</subtask>
+      <subtask done="false">grammar + tests + gate</subtask>
+    </subtasks>
   </task>
   <task id="ZU-79">
     <name>Full Clean + Holo theme coverage for every control</name>
@@ -282,6 +294,33 @@
   <task id="ZU-87">
     <name>C++ backend parity for the hTunes capability set</name>
     <prompt>Bring the C++ zui::Host (bindings/cpp/zui.h/.cpp) to parity with the C# work done for ZU-75..ZU-84 and ZU-79: selection/activation/input events, source= collection CRUD + per-row state, number/toggle/tooltip/console nodes, grid/scroll/tabs/splitter layout, theme coverage, context menus, drag-and-drop, image, templated list items, icons. Mirror the same node kinds, channel names, payload shapes and mutation APIs. design.txt requires both runtimes; hTunes is C#-only so this trails the C# tasks. Add C++ host tests (bindings/cpp/tests) per capability. build.ps1 -Config test with the C++ ctests green.</prompt>
+    <requirements></requirements>
+    <inProgress>false</inProgress>
+    <done>false</done>
+    <priority>false</priority>
+    <bug>false</bug>
+    <error>false</error>
+    <errorMessage></errorMessage>
+    <lockKey></lockKey>
+    <locked>false</locked>
+    <archived>false</archived>
+    <blockedBy></blockedBy>
+    <dateStarted></dateStarted>
+    <dueDate></dueDate>
+    <dateFinished></dateFinished>
+    <commit>false</commit>
+    <build>false</build>
+    <release>false</release>
+    <merge>false</merge>
+    <branch>main</branch>
+    <tags></tags>
+    <notes></notes>
+    <filesChanged></filesChanged>
+    <image></image>
+  </task>
+  <task id="ZU-88">
+    <name>Documentation refresh + which link to pull</name>
+    <prompt>docs/INTEGRATION.md, README.md, docs/QUICKSTART.md, compiler/GRAMMAR.md and core/PROTOCOL.md must be current with everything landed in ZU-62..ZU-87.</prompt>
     <requirements></requirements>
     <inProgress>false</inProgress>
     <done>false</done>

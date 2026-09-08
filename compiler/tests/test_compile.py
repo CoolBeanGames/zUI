@@ -115,6 +115,21 @@ def test_htunes_nodes_and_channels_emitted():
             _check(needle in out, f"{needle!r} missing from {backend} output")
 
 
+def test_layout_and_media_nodes_emitted():
+    src = ('grid cols=2 {\n'
+           '  text "A"\n'
+           '  splitter { col { list source=x } col { console id="log" } }\n'
+           '  tabs id="v" { tabpanel "M" id="m" { text "x" } }\n'
+           '  scroll { image src="a.png" }\n'
+           '}')
+    prog = zslc.compile_source(src)
+    for gen in (lambda p: zslc.gen_csharp(p, "U", "N"), lambda p: zslc.gen_cpp(p, "build_ui")):
+        out = gen(prog)
+        for needle in ('"grid"', '"splitter"', '"tabs"', '"tabpanel"', '"scroll"',
+                       '"console"', '"image"', 'a.png'):
+            _check(needle in out, f"{needle!r} missing")
+
+
 def test_parse_error_reported():
     try:
         zslc.compile_source("window { button ->")

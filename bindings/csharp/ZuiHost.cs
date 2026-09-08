@@ -217,8 +217,13 @@ public sealed class ZuiHost : IDisposable
                         var i = IntOf(value);
                         if (i >= 0 && i < grid.Rows.Count) { grid.Rows[i].Selected = true; grid.CurrentCell = grid.Rows[i].Cells[0]; }
                         return true;
+                    case TabControl or Panel when _tabs.ContainsKey(c):
+                        SelectTab(name, Str(value)); return true;
                     default: return false;
                 }
+            case "source":
+                if (c is PictureBox img) { SetImageSource(img, value); return true; }
+                return false;
             case "selectedvalue": case "selectedtext":
                 if (c is ComboBox cbv)
                 {
@@ -306,13 +311,13 @@ public sealed class ZuiHost : IDisposable
     // (a table, tree, textarea, or a nested fill/workspace).
 
     private static readonly string[] VerticalKinds =
-        ["root", "window", "col", "fill", "panel-body", "tabpanel"];
+        ["root", "window", "col", "fill", "panel-body"];
     private static readonly string[] HorizontalKinds =
-        ["row", "statusbar", "contextbar", "nav", "tabs", "workspace"];
+        ["row", "statusbar", "contextbar", "nav", "workspace"];
     private static readonly string[] LeafKinds =
         ["heading", "section-label", "text", "empty", "item", "menu", "button", "input",
          "textarea", "check", "select", "dropdown", "slider", "progress", "table", "tree",
-         "list", "number", "spinner", "loading", "sep", "option", "column"];
+         "list", "number", "console", "image", "spinner", "loading", "sep", "option", "column"];
 
     private int Gap => Theme.Gap;
 
@@ -328,10 +333,22 @@ public sealed class ZuiHost : IDisposable
             return strip;
         }
 
+        // Containers whose children are placed by a bespoke rule rather than the
+        // generic vertical/horizontal stack.
+        switch (node.Kind)
+        {
+            case "grid": return Finish(parent, node, BuildGrid(node));
+            case "scroll": return Finish(parent, node, BuildScroll(node));
+            case "tabs": return Finish(parent, node, BuildTabs(node));
+            case "splitter": return Finish(parent, node, BuildSplitter(node));
+        }
+
         Control control = node.Kind switch
         {
             "panel" => MakePanel(node),
             "sidebar" => MakeSidebar(),
+            "console" => MakeConsole(node),
+            "image" => MakeImage(node),
             _ when VerticalKinds.Contains(node.Kind) => VStack(fill: true),
             _ when HorizontalKinds.Contains(node.Kind) => HStack(),
             "heading" or "section-label" or "text" or "empty" or "item" or "menu" => CreateLabel(node),
@@ -374,9 +391,23 @@ public sealed class ZuiHost : IDisposable
             _ => VStack(fill: true),
         };
 
+        Register(control, node);
+        Place(parent, control, node);
+
+        if (!LeafKinds.Contains(node.Kind))
+        {
+            var content = control is GroupBox box ? box.Controls[0] : control;
+            foreach (var child in node.Nodes) AddNode(content, child);
+            if (content is TableLayoutPanel { Tag: "v" } stack) TopPack(stack);
+        }
+        return control;
+    }
+
+    /// <summary>Common lookup-name / disabled / tooltip / event registration.
+    /// Resolution priority for a name is export &gt; bind &gt; id.</summary>
+    private void Register(Control control, ZuiNode node)
+    {
         if (node.Attrs.TryGetValue("id", out var id)) control.Name = id;
-        // Register every lookup name. Resolution priority is export > bind > id:
-        // a more specific name wins, but all three resolve to the control.
         foreach (var key in new[]
         {
             node.Attrs.GetValueOrDefault("id", ""),
@@ -388,15 +419,14 @@ public sealed class ZuiHost : IDisposable
         if (node.Attrs.TryGetValue("tooltip", out var tip) && tip.Length > 0) Tooltip.SetToolTip(control, tip);
         RegisterCollection(control, node);
         WireInteractions(control, node);
+    }
 
+    /// <summary>Registers a bespoke container (grid / scroll / tabs / splitter) whose
+    /// own builder has already populated its children.</summary>
+    private Control Finish(Control parent, ZuiNode node, Control control)
+    {
+        Register(control, node);
         Place(parent, control, node);
-
-        if (!LeafKinds.Contains(node.Kind))
-        {
-            var content = control is GroupBox box ? box.Controls[0] : control;
-            foreach (var child in node.Nodes) AddNode(content, child);
-            if (content is TableLayoutPanel { Tag: "v" } stack) TopPack(stack);
-        }
         return control;
     }
 
@@ -412,6 +442,8 @@ public sealed class ZuiHost : IDisposable
             parent.Controls.Add(control);
             return;
         }
+
+        if (table.Tag as string == "grid") { PlaceInGrid(table, control, node); return; }
 
         bool horizontal = table.Tag as string == "h";
         bool grows = Grows(node, horizontal);
@@ -438,10 +470,27 @@ public sealed class ZuiHost : IDisposable
         }
     }
 
+    private void PlaceInGrid(TableLayoutPanel grid, Control control, ZuiNode node)
+    {
+        var (row, col) = _gridCursor.GetValueOrDefault(grid, (0, 0));
+        int span = Math.Clamp(Int(node, "colspan", 1), 1, grid.ColumnCount);
+        if (col + span > grid.ColumnCount) { row++; col = 0; }
+        if (row >= grid.RowCount) { grid.RowStyles.Add(new RowStyle(SizeType.AutoSize)); grid.RowCount = row + 1; }
+        control.Dock = DockStyle.Fill;
+        control.Anchor = AnchorStyles.Left | AnchorStyles.Right;
+        grid.Controls.Add(control, col, row);
+        if (span > 1) grid.SetColumnSpan(control, span);
+        col += span;
+        if (col >= grid.ColumnCount) { row++; col = 0; }
+        _gridCursor[grid] = (row, col);
+    }
+
     private static bool Grows(ZuiNode node, bool horizontal) => horizontal
         ? node.Kind is "input" or "textarea" or "select" or "dropdown" or "slider" or "progress"
-            or "table" or "tree" or "list" or "fill" or "row" or "col" or "workspace"
-        : node.Kind is "table" or "tree" or "list" or "textarea" or "fill" or "workspace" or "tabpanel" or "window";
+            or "table" or "tree" or "list" or "console" or "fill" or "row" or "col" or "workspace"
+            or "tabs" or "scroll" or "splitter"
+        : node.Kind is "table" or "tree" or "list" or "console" or "textarea" or "fill" or "workspace"
+            or "window" or "tabs" or "scroll" or "splitter";
 
     /// <summary>Keeps a vertical stack's children pinned to the top: if nothing in
     /// it already claims the leftover height, a flexible spacer row absorbs it.</summary>
@@ -497,6 +546,169 @@ public sealed class ZuiHost : IDisposable
         s.MinimumSize = new Size(Theme.SidebarWidth, 0);
         s.Width = Theme.SidebarWidth;
         return s;
+    }
+
+    private TextBox MakeConsole(ZuiNode node) => new()
+    {
+        Multiline = true, ReadOnly = true, WordWrap = false,
+        ScrollBars = ScrollBars.Both, BorderStyle = BorderStyle.FixedSingle,
+        Font = new Font("Consolas", 9F), BackColor = Color.FromArgb(0x0c, 0x0c, 0x0c),
+        ForeColor = Color.FromArgb(0xd0, 0xd0, 0xd0), MinimumSize = new Size(0, 140),
+        Tag = new ConsoleBuffer(Int(node, "lines", 5000)),
+    };
+
+    private sealed class ConsoleBuffer(int cap) { public int Cap { get; } = Math.Max(200, cap); }
+
+    /// <summary>Appends a line to a <c>console</c> control and scrolls to the bottom,
+    /// trimming to the capped line buffer.</summary>
+    public void Append(string name, string text)
+    {
+        if (Require(name) is not TextBox box || box.Tag is not ConsoleBuffer buf) return;
+        var lines = box.Lines.ToList();
+        lines.AddRange(text.Replace("\r\n", "\n").Split('\n'));
+        if (lines.Count > buf.Cap) lines.RemoveRange(0, lines.Count - buf.Cap);
+        box.Lines = lines.ToArray();
+        box.SelectionStart = box.TextLength;
+        box.ScrollToCaret();
+    }
+
+    private PictureBox MakeImage(ZuiNode node)
+    {
+        var pic = new PictureBox
+        {
+            SizeMode = node.Attrs.GetValueOrDefault("fit", "uniform") switch
+            {
+                "fill" or "uniform-to-fill" => PictureBoxSizeMode.Zoom,
+                "none" => PictureBoxSizeMode.CenterImage,
+                "stretch" => PictureBoxSizeMode.StretchImage,
+                _ => PictureBoxSizeMode.Zoom,
+            },
+            MinimumSize = new Size(Int(node, "width", 48), Int(node, "height", 48)),
+            BackColor = Theme.Raised,
+        };
+        if (node.Attrs.TryGetValue("src", out var src)) SetImageSource(pic, src);
+        return pic;
+    }
+
+    private static void SetImageSource(PictureBox pic, object? source)
+    {
+        pic.Image?.Dispose();
+        pic.Image = source switch
+        {
+            null or "" => null,
+            byte[] bytes => SafeImage(() => Image.FromStream(new System.IO.MemoryStream(bytes))),
+            string path when System.IO.File.Exists(path) => SafeImage(() => Image.FromFile(path)),
+            _ => null,
+        };
+    }
+
+    private static Image? SafeImage(Func<Image> load) { try { return load(); } catch { return null; } }
+
+    // ---- grid / scroll / tabs / splitter ---------------------------------
+
+    private readonly Dictionary<Control, Dictionary<string, Control>> _tabs = new();
+    private readonly Dictionary<TableLayoutPanel, (int row, int col)> _gridCursor = new();
+
+    private TableLayoutPanel BuildGrid(ZuiNode node)
+    {
+        int cols = Math.Max(1, Int(node, "cols", 2));
+        int gap = Int(node, "gap", Gap);
+        var g = new TableLayoutPanel
+        {
+            ColumnCount = cols, AutoSize = true, AutoSizeMode = AutoSizeMode.GrowAndShrink,
+            Dock = DockStyle.Top, Padding = new Padding(gap / 2), Tag = "grid",
+            GrowStyle = TableLayoutPanelGrowStyle.AddRows,
+        };
+        for (int i = 0; i < cols; i++) g.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100f / cols));
+        _gridCursor[g] = (0, 0);
+        foreach (var child in node.Nodes) AddNode(g, child);
+        return g;
+    }
+
+    private Panel BuildScroll(ZuiNode node)
+    {
+        var host = new Panel { AutoScroll = true, Dock = DockStyle.Fill, MinimumSize = new Size(0, 80) };
+        var inner = VStack(fill: false);
+        inner.Dock = DockStyle.Top;
+        host.Controls.Add(inner);
+        foreach (var child in node.Nodes) AddNode(inner, child);
+        return host;
+    }
+
+    private Control BuildTabs(ZuiNode node)
+    {
+        var panels = node.Nodes.Where(n => n.Kind == "tabpanel").ToArray();
+        bool headless = node.Attrs.ContainsKey("headless") || node.Attrs.ContainsKey("flat");
+        string? onTab = node.Attrs.GetValueOrDefault("ontab") ?? node.Attrs.GetValueOrDefault("on");
+        var map = new Dictionary<string, Control>(StringComparer.Ordinal);
+
+        if (headless)
+        {
+            var deck = new Panel { Dock = DockStyle.Fill, MinimumSize = new Size(0, 120) };
+            for (int i = 0; i < panels.Length; i++)
+            {
+                var v = VStack(fill: true);
+                v.Visible = i == 0;
+                deck.Controls.Add(v);
+                foreach (var gc in panels[i].Nodes) AddNode(v, gc);
+                TopPack(v);
+                map[TabId(panels[i], i)] = v;
+            }
+            _tabs[deck] = map;
+            return deck;
+        }
+
+        var tc = new TabControl { Dock = DockStyle.Fill, MinimumSize = new Size(0, 140) };
+        for (int i = 0; i < panels.Length; i++)
+        {
+            var page = new TabPage(panels[i].Text.Length > 0 ? panels[i].Text : $"Tab {i + 1}") { UseVisualStyleBackColor = true };
+            var v = VStack(fill: true);
+            page.Controls.Add(v);
+            tc.TabPages.Add(page);
+            foreach (var gc in panels[i].Nodes) AddNode(v, gc);
+            TopPack(v);
+            map[TabId(panels[i], i)] = page;
+        }
+        _tabs[tc] = map;
+        if (onTab is not null)
+            tc.SelectedIndexChanged += (_, _) =>
+            {
+                var id = map.FirstOrDefault(kv => kv.Value == tc.SelectedTab).Key;
+                if (id is not null) Dispatch(onTab, id);
+            };
+        return tc;
+    }
+
+    private static string TabId(ZuiNode panel, int index) =>
+        panel.Attrs.GetValueOrDefault("id", panel.Attrs.GetValueOrDefault("value", index.ToString()));
+
+    private void SelectTab(string name, string id)
+    {
+        var control = Require(name);
+        if (!_tabs.TryGetValue(control, out var map) || !map.TryGetValue(id, out var target)) return;
+        switch (control)
+        {
+            case TabControl tc when target is TabPage page: tc.SelectedTab = page; break;
+            case Panel deck:
+                foreach (Control c in deck.Controls) c.Visible = c == target;
+                break;
+        }
+    }
+
+    private SplitContainer BuildSplitter(ZuiNode node)
+    {
+        var kids = node.Nodes.Where(n => n.Kind is not ("column" or "option")).Take(2).ToArray();
+        var sc = new SplitContainer
+        {
+            Dock = DockStyle.Fill,
+            Orientation = node.Attrs.ContainsKey("horizontal") ? Orientation.Horizontal : Orientation.Vertical,
+            MinimumSize = new Size(0, 120),
+        };
+        if (kids.Length > 0) { var v = VStack(fill: true); sc.Panel1.Controls.Add(v); foreach (var c in kids[0].Nodes) AddNode(v, c); TopPack(v); sc.Panel1MinSize = Int(kids[0], "min", 120); }
+        if (kids.Length > 1) { var v = VStack(fill: true); sc.Panel2.Controls.Add(v); foreach (var c in kids[1].Nodes) AddNode(v, c); TopPack(v); sc.Panel2MinSize = Int(kids[1], "min", 120); }
+        int pos = Int(node, "pos", Int(node, "width", 260));
+        try { sc.SplitterDistance = Math.Max(sc.Panel1MinSize, pos); } catch { /* not realized yet */ }
+        return sc;
     }
 
     private static Label CreateLabel(ZuiNode node) => new()
@@ -1023,7 +1235,13 @@ public sealed class ZuiHost : IDisposable
         button.ForeColor = Theme.Text;
     }
 
-    public void Dispose() { if (_disposed) return; _disposed = true; _handlers.Clear(); _exports.Clear(); _rows.Clear(); Tooltip.Dispose(); }
+    public void Dispose()
+    {
+        if (_disposed) return;
+        _disposed = true;
+        _handlers.Clear(); _exports.Clear(); _rows.Clear(); _tabs.Clear(); _gridCursor.Clear();
+        Tooltip.Dispose();
+    }
 
     private sealed class Subscription(Action dispose) : IDisposable
     {

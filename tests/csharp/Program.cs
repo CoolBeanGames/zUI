@@ -212,5 +212,45 @@ if (grid.Rows.Count > 0) { grid.CurrentCell = grid.Rows[0].Cells[0]; }
 h3.Send("noop");
 Check("still one root after all mutations", form3.Controls.Count == 1);
 
+// ----- Layout nodes + console (ZU-77 / ZU-78) -----
+using var form4 = new Form { Width = 900, Height = 700 };
+using var h4 = new ZuiHost(form4);
+form4.Show();
+h4.Build(new ZuiNode("root", "", Children: new[]
+{
+    new ZuiNode("grid", "", new Dictionary<string, string> { ["id"] = "meta", ["cols"] = "2" }, new[]
+    {
+        new ZuiNode("text", "Artist"), new ZuiNode("input", "", new Dictionary<string, string> { ["id"] = "gArtist" }),
+        new ZuiNode("text", "Album"), new ZuiNode("input", "", new Dictionary<string, string> { ["id"] = "gAlbum" }),
+    }),
+    new ZuiNode("tabs", "", new Dictionary<string, string> { ["id"] = "views", ["ontab"] = "views.tab" }, new[]
+    {
+        new ZuiNode("tabpanel", "Music", new Dictionary<string, string> { ["id"] = "music" }, new[] { new ZuiNode("text", "m") }),
+        new ZuiNode("tabpanel", "Podcasts", new Dictionary<string, string> { ["id"] = "pods" }, new[] { new ZuiNode("text", "p") }),
+    }),
+    new ZuiNode("splitter", "", new Dictionary<string, string> { ["id"] = "sp" }, new[]
+    {
+        new ZuiNode("col", "", new Dictionary<string, string> { ["min"] = "120" }, new[] { new ZuiNode("text", "left") }),
+        new ZuiNode("col", "", new Dictionary<string, string>(), new[] { new ZuiNode("text", "right") }),
+    }),
+    new ZuiNode("console", "", new Dictionary<string, string> { ["id"] = "log", ["lines"] = "500" }),
+    new ZuiNode("scroll", "", new Dictionary<string, string> { ["id"] = "scr" }, new[] { new ZuiNode("text", "s") }),
+}));
+
+Check("grid is a 2-column TableLayoutPanel", h4.Find("meta") is TableLayoutPanel { ColumnCount: 2 });
+Check("grid placed 4 children row-major", ((TableLayoutPanel)h4.Find("meta")!).GetControlFromPosition(1, 1) is TextBox);
+Check("tabs built a TabControl", h4.Find("views") is TabControl { TabCount: 2 });
+string tabHit = "";
+h4.On("views.tab", p => tabHit = p);
+((TabControl)h4.Find("views")!).SelectedIndex = 1;
+Check("ontab fires the tabpanel id", tabHit == "pods");
+h4.Set("views", "selected", "music");
+Check("Set selected switches tab by id", ((TabControl)h4.Find("views")!).SelectedTab!.Text == "Music");
+Check("splitter is a SplitContainer", h4.Find("sp") is SplitContainer { Panel1MinSize: 120 });
+h4.Append("log", "line one");
+h4.Append("log", "line two\nline three");
+Check("console Append accumulates lines", ((TextBox)h4.Find("log")!).Lines.Length == 3);
+Check("scroll host auto-scrolls", h4.Find("scr") is Panel { AutoScroll: true });
+
 Console.WriteLine(failures == 0 ? "ZuiHostTests: all passed" : $"ZuiHostTests: {failures} failed");
 return failures;

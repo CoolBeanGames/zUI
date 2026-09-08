@@ -48,15 +48,26 @@ node metadata. `bind`, `source`, and `on` have dedicated meanings. A value of
 
 Structural: `window`, `titlebar`, `menubar`, `menu`, `item`, `sep`, `nav`,
 `workspace`, `sidebar`, `section-label`, `panel`, `panel-body`, `row`, `col`,
-`fill`, `grid`, `statusbar`, `contextbar`, `tabs`, `tabpanel`, `empty`, `drop`.
+`fill`, `grid`, `scroll`, `splitter`, `statusbar`, `contextbar`, `tabs`,
+`tabpanel`, `empty`, `drop`.
 
 Controls: `text`, `heading`, `button`, `field`, `input`, `textarea`, `check`,
 `select`, `option`, `dropdown`, `slider`, `number`, `progress`, `spinner`,
-`loading`, `table`, `column`, `list`, `tree`, `treeitem`.
+`loading`, `table`, `column`, `list`, `tree`, `treeitem`, `image`, `console`.
+
+`grid cols=N` places children row-major into N equal columns (`colspan` on a
+child, `gap` on the grid). `scroll` gives its contents an own vertical
+scrollbar. `splitter` wraps two children in a draggable `SplitContainer`
+(`horizontal` flag; `min` on each child; `pos`). `tabs` shows one `tabpanel`
+(by `id`) at a time, fires `ontab`, and `Set(name,"selected",id)` switches it;
+a `headless` / `flat` flag drops the strip (a deck). `console` is a read-only
+monospace log fed by `host.Append(name, text)`. `image src= | bind=` loads a
+file path or byte buffer (`fit` = `uniform` | `fill` | `none` | `stretch`).
 
 Common metadata: `id`, `export`, `bind`, `source`, `on`, `value`, `placeholder`,
-`kind`, `shortcut`, `field`, `min`, `max`, `step`, `width`, `height`, `disabled`,
-`active`, `selectable`, `tooltip`.
+`kind`, `shortcut`, `field`, `min`, `max`, `step`, `cols`, `colspan`, `gap`,
+`pos`, `src`, `fit`, `lines`, `width`, `height`, `disabled`, `active`,
+`selectable`, `headless`, `tooltip`.
 
 Extra event channels (payload in parentheses): `onchange` (editable → current
 value on every edit — same as `on` for `input`), `oncommit` (editable → value on
