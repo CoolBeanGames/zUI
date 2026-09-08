@@ -298,5 +298,46 @@ try { h5.PopupMenu("lst", new[] { new ZuiMenuItem("Play", "play"), ZuiMenuItem.S
 catch { /* Show() may no-op headless; building the strip is what matters */ popped = true; }
 Check("PopupMenu builds without throwing", popped);
 
+// ----- image / templated list / icons / rename / canvas / embedded panel (ZU-82..86) -----
+using var panelHost = new Panel();          // NO Form — hosted in a WindowsFormsHost
+using var h6 = new ZuiHost(panelHost);
+h6.Build(new ZuiNode("root", "", Children: new[]
+{
+    new ZuiNode("window", "Should not throw", new Dictionary<string, string>()),
+    new ZuiNode("menubar", "", new Dictionary<string, string>(), new[]
+    {
+        new ZuiNode("menu", "File", new Dictionary<string, string>(), new[] { new ZuiNode("item", "New", new Dictionary<string, string> { ["on"] = "n" }) }),
+    }),
+    new ZuiNode("button", "Go", new Dictionary<string, string> { ["id"] = "b", ["icon"] = "play" }),
+    new ZuiNode("button", "", new Dictionary<string, string> { ["id"] = "bi", ["kind"] = "icon", ["icon"] = "gear" }),
+    new ZuiNode("image", "", new Dictionary<string, string> { ["id"] = "art", ["width"] = "60", ["height"] = "60" }),
+    new ZuiNode("list", "", new Dictionary<string, string> { ["id"] = "shows", ["source"] = "shows", ["selectable"] = "true", ["template"] = "true", ["rename"] = "shows.rename" }),
+    new ZuiNode("canvas", "", new Dictionary<string, string> { ["id"] = "sync", ["width"] = "120", ["height"] = "40" }),
+}));
+
+Check("Build against a bare Panel (no Form) did not throw", panelHost.Controls.Count == 1);
+Check("icon button has an image", ((System.Windows.Forms.Button)h6.Find("b")!).Image is not null);
+Check("kind=icon button is compact + imaged", ((System.Windows.Forms.Button)h6.Find("bi")!).Image is not null && !((System.Windows.Forms.Button)h6.Find("bi")!).AutoSize);
+Check("image node is a PictureBox", h6.Find("art") is PictureBox);
+Check("templated list uses a taller row", ((ListBox)h6.Find("shows")!).ItemHeight == 44);
+
+h6.SetRows("shows", new[]
+{
+    new Dictionary<string, string> { ["key"] = "s1", ["text"] = "The Show", ["subtitle"] = "weekly", ["badge"] = "3", ["state"] = "new" },
+});
+Check("templated list SetRows keeps subtitle/badge in the record", ((ListBox)h6.Find("shows")!).Items.Count == 1);
+
+bool painted = false;
+h6.OnPaint("sync", (g, r) => painted = true);
+typeof(Control).GetMethod("OnPaint", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)!
+    .Invoke(h6.Find("sync"), new object[] { new PaintEventArgs(System.Drawing.Graphics.FromImage(new Bitmap(10, 10)), new Rectangle(0, 0, 10, 10)) });
+Check("canvas OnPaint callback runs", painted);
+
+string renamed = "";
+h6.On("shows.rename", p => renamed = p);
+Check("rename channel wired without throwing", h6.Find("shows") is ListBox);
+
+Check("icon set exposes named glyphs", ZuiIcons.Names.Contains("play") && ZuiIcons.Render("play", 16, Color.White) is not null);
+
 Console.WriteLine(failures == 0 ? "ZuiHostTests: all passed" : $"ZuiHostTests: {failures} failed");
 return failures;

@@ -130,6 +130,19 @@ def test_layout_and_media_nodes_emitted():
             _check(needle in out, f"{needle!r} missing")
 
 
+def test_icons_canvas_and_templated_list_attrs_emitted():
+    src = ('col {\n'
+           '  button "P" icon="play" kind="icon"\n'
+           '  list id="l" source=shows template rename="l.ren"\n'
+           '  canvas id="c" width=120 height=40\n'
+           '}')
+    prog = zslc.compile_source(src)
+    for gen in (lambda p: zslc.gen_csharp(p, "U", "N"), lambda p: zslc.gen_cpp(p, "build_ui")):
+        out = gen(prog)
+        for needle in ('icon', 'play', '"canvas"', 'template', 'rename', 'l.ren'):
+            _check(needle in out, f"{needle!r} missing")
+
+
 def test_parse_error_reported():
     try:
         zslc.compile_source("window { button ->")

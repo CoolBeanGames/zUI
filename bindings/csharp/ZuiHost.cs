@@ -43,6 +43,57 @@ public sealed record ZuiTheme(Color Window, Color Surface, Color Raised, Color T
         (int)(a.R + (b.R - a.R) * t), (int)(a.G + (b.G - a.G) * t), (int)(a.B + (b.B - a.B) * t));
 }
 
+/// <summary>zUI's built-in monochrome line-icon set (ZU-84). Drawn with GDI+ so
+/// there is no sprite sheet or external asset; recoloured per theme.</summary>
+public static class ZuiIcons
+{
+    public static readonly IReadOnlyList<string> Names =
+    [
+        "play", "pause", "stop", "prev", "next", "eject", "add", "remove",
+        "search", "folder", "chevron-right", "chevron-down", "dot", "check",
+        "close", "gear", "download", "refresh",
+    ];
+
+    public static Bitmap Render(string name, int size, Color color)
+    {
+        var bmp = new Bitmap(size, size);
+        using var g = Graphics.FromImage(bmp);
+        g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
+        Draw(g, name, new Rectangle(0, 0, size, size), color);
+        return bmp;
+    }
+
+    public static void Draw(Graphics g, string name, Rectangle r, Color color)
+    {
+        using var pen = new Pen(color, Math.Max(1.4f, r.Width / 12f)) { StartCap = System.Drawing.Drawing2D.LineCap.Round, EndCap = System.Drawing.Drawing2D.LineCap.Round };
+        using var fill = new SolidBrush(color);
+        float x = r.X, y = r.Y, w = r.Width, h = r.Height, cx = x + w / 2, cy = y + h / 2;
+        var pad = w * 0.22f;
+        switch (name)
+        {
+            case "play": g.FillPolygon(fill, [new PointF(x + pad, y + pad), new PointF(x + w - pad, cy), new PointF(x + pad, y + h - pad)]); break;
+            case "pause": g.FillRectangle(fill, x + pad, y + pad, w * 0.18f, h - 2 * pad); g.FillRectangle(fill, x + w - pad - w * 0.18f, y + pad, w * 0.18f, h - 2 * pad); break;
+            case "stop": g.FillRectangle(fill, x + pad, y + pad, w - 2 * pad, h - 2 * pad); break;
+            case "prev": g.FillPolygon(fill, [new PointF(x + pad, cy), new PointF(cx, y + pad), new PointF(cx, y + h - pad)]); g.FillRectangle(fill, x + pad, y + pad, w * 0.14f, h - 2 * pad); break;
+            case "next": g.FillPolygon(fill, [new PointF(x + w - pad, cy), new PointF(cx, y + pad), new PointF(cx, y + h - pad)]); g.FillRectangle(fill, x + w - pad - w * 0.14f, y + pad, w * 0.14f, h - 2 * pad); break;
+            case "eject": g.FillPolygon(fill, [new PointF(cx, y + pad), new PointF(x + w - pad, cy), new PointF(x + pad, cy)]); g.FillRectangle(fill, x + pad, y + h - pad - h * 0.12f, w - 2 * pad, h * 0.12f); break;
+            case "add": g.DrawLine(pen, cx, y + pad, cx, y + h - pad); g.DrawLine(pen, x + pad, cy, x + w - pad, cy); break;
+            case "remove": g.DrawLine(pen, x + pad, cy, x + w - pad, cy); break;
+            case "close": g.DrawLine(pen, x + pad, y + pad, x + w - pad, y + h - pad); g.DrawLine(pen, x + w - pad, y + pad, x + pad, y + h - pad); break;
+            case "check": g.DrawLines(pen, [new PointF(x + pad, cy), new PointF(cx - w * 0.05f, y + h - pad), new PointF(x + w - pad, y + pad)]); break;
+            case "chevron-right": g.DrawLines(pen, [new PointF(cx - w * 0.1f, y + pad), new PointF(cx + w * 0.15f, cy), new PointF(cx - w * 0.1f, y + h - pad)]); break;
+            case "chevron-down": g.DrawLines(pen, [new PointF(x + pad, cy - h * 0.1f), new PointF(cx, cy + h * 0.15f), new PointF(x + w - pad, cy - h * 0.1f)]); break;
+            case "dot": g.FillEllipse(fill, cx - w * 0.16f, cy - w * 0.16f, w * 0.32f, w * 0.32f); break;
+            case "search": g.DrawEllipse(pen, x + pad, y + pad, w * 0.45f, h * 0.45f); g.DrawLine(pen, x + pad + w * 0.42f, y + pad + h * 0.42f, x + w - pad, y + h - pad); break;
+            case "folder": g.DrawRectangle(pen, x + pad, y + h * 0.32f, w - 2 * pad, h * 0.42f); g.DrawLine(pen, x + pad, y + h * 0.32f, x + pad + w * 0.22f, y + h * 0.22f); break;
+            case "gear": g.DrawEllipse(pen, cx - w * 0.22f, cy - w * 0.22f, w * 0.44f, w * 0.44f); for (int i = 0; i < 8; i++) { double a = i * Math.PI / 4; g.DrawLine(pen, cx + (float)Math.Cos(a) * w * 0.24f, cy + (float)Math.Sin(a) * w * 0.24f, cx + (float)Math.Cos(a) * w * 0.36f, cy + (float)Math.Sin(a) * w * 0.36f); } break;
+            case "download": g.DrawLine(pen, cx, y + pad, cx, y + h * 0.62f); g.DrawLines(pen, [new PointF(cx - w * 0.15f, y + h * 0.45f), new PointF(cx, y + h * 0.66f), new PointF(cx + w * 0.15f, y + h * 0.45f)]); g.DrawLine(pen, x + pad, y + h - pad, x + w - pad, y + h - pad); break;
+            case "refresh": g.DrawArc(pen, x + pad, y + pad, w - 2 * pad, h - 2 * pad, 40, 280); g.FillPolygon(fill, [new PointF(x + w - pad - w * 0.05f, y + pad), new PointF(x + w - pad + w * 0.12f, y + pad + h * 0.05f), new PointF(x + w - pad - w * 0.02f, y + pad + h * 0.18f)]); break;
+            default: g.DrawRectangle(pen, x + pad, y + pad, w - 2 * pad, h - 2 * pad); break;
+        }
+    }
+}
+
 /// <summary>One item in a context menu or menu-bar dropdown (see ZU-80).</summary>
 public sealed record ZuiMenuItem(string Label = "", string Channel = "", string Payload = "",
     bool Enabled = true, bool Checked = false, bool Separator = false,
@@ -129,8 +180,9 @@ public sealed class ZuiHost : IDisposable
         switch (control)
         {
             case CheckBox: Set(controlName, "checked", value); break;
-            case TrackBar or ProgressBar: Set(controlName, "value", value); break;
+            case TrackBar or ProgressBar or NumericUpDown: Set(controlName, "value", value); break;
             case ComboBox: Set(controlName, int.TryParse(value, out _) ? "selected" : "selectedvalue", value); break;
+            case PictureBox: Set(controlName, "source", value); break;
             case TextBox: Set(controlName, "text", value); break;
             default: Set(controlName, "text", value); break;
         }
@@ -349,7 +401,8 @@ public sealed class ZuiHost : IDisposable
     private static readonly string[] LeafKinds =
         ["heading", "section-label", "text", "empty", "item", "menu", "button", "input",
          "textarea", "check", "select", "dropdown", "slider", "progress", "table", "tree",
-         "list", "number", "console", "image", "spinner", "loading", "sep", "option", "column"];
+         "list", "number", "console", "image", "canvas", "overlay", "spinner", "loading",
+         "sep", "option", "column"];
 
     private int Gap => Theme.Gap;
 
@@ -384,12 +437,8 @@ public sealed class ZuiHost : IDisposable
             _ when VerticalKinds.Contains(node.Kind) => VStack(fill: true),
             _ when HorizontalKinds.Contains(node.Kind) => HStack(),
             "heading" or "section-label" or "text" or "empty" or "item" or "menu" => CreateLabel(node),
-            "button" => new Button
-            {
-                Text = node.Text, AutoSize = true, AutoSizeMode = AutoSizeMode.GrowAndShrink,
-                FlatStyle = FlatStyle.Flat, MinimumSize = new Size(96, 30),
-                Padding = new Padding(12, 5, 12, 5),
-            },
+            "canvas" or "overlay" => MakeCanvas(node),
+            "button" => MakeButton(node),
             "input" => new TextBox
             {
                 PlaceholderText = node.Attrs.GetValueOrDefault("placeholder", ""),
@@ -618,7 +667,8 @@ public sealed class ZuiHost : IDisposable
             MinimumSize = new Size(Int(node, "width", 48), Int(node, "height", 48)),
             BackColor = Theme.Raised,
         };
-        if (node.Attrs.TryGetValue("src", out var src)) SetImageSource(pic, src);
+        if (node.Attrs.TryGetValue("placeholder", out var ph)) SetImageSource(pic, ph);
+        if (node.Attrs.TryGetValue("src", out var src) && src.Length > 0) SetImageSource(pic, src);
         return pic;
     }
 
@@ -743,12 +793,62 @@ public sealed class ZuiHost : IDisposable
         return sc;
     }
 
-    private static Label CreateLabel(ZuiNode node) => new()
+    private Label CreateLabel(ZuiNode node)
     {
-        Text = node.Text, AutoSize = true, Padding = new Padding(0, 3, 0, 3),
-        Font = new Font("Segoe UI", node.Kind is "heading" ? 11F : 9F,
-            node.Kind is "heading" or "section-label" ? FontStyle.Bold : FontStyle.Regular),
-    };
+        var label = new Label
+        {
+            Text = node.Text, AutoSize = true, Padding = new Padding(0, 3, 0, 3),
+            Font = new Font("Segoe UI", node.Kind is "heading" ? 11F : 9F,
+                node.Kind is "heading" or "section-label" ? FontStyle.Bold : FontStyle.Regular),
+        };
+        if (node.Attrs.TryGetValue("icon", out var icon))
+        {
+            label.Image = ZuiIcons.Render(icon, 14, Theme.Muted);
+            label.ImageAlign = ContentAlignment.MiddleLeft;
+            label.TextAlign = ContentAlignment.MiddleLeft;
+            label.Padding = new Padding(18, 3, 0, 3);
+        }
+        return label;
+    }
+
+    private Button MakeButton(ZuiNode node)
+    {
+        bool iconOnly = node.Attrs.GetValueOrDefault("kind") == "icon";
+        var button = new Button
+        {
+            Text = iconOnly ? "" : node.Text,
+            AutoSize = !iconOnly, AutoSizeMode = AutoSizeMode.GrowAndShrink,
+            FlatStyle = FlatStyle.Flat,
+            MinimumSize = iconOnly ? new Size(30, 30) : new Size(96, 30),
+            Padding = iconOnly ? new Padding(4) : new Padding(12, 5, 12, 5),
+        };
+        if (node.Attrs.TryGetValue("icon", out var icon))
+        {
+            button.Image = ZuiIcons.Render(icon, iconOnly ? 16 : 14, Theme.Text);
+            button.ImageAlign = ContentAlignment.MiddleCenter;
+            if (!iconOnly) { button.TextImageRelation = TextImageRelation.ImageBeforeText; button.ImageAlign = ContentAlignment.MiddleLeft; }
+        }
+        return button;
+    }
+
+    private Panel MakeCanvas(ZuiNode node)
+    {
+        var panel = new Panel { MinimumSize = new Size(Int(node, "width", 80), Int(node, "height", 60)), BackColor = Color.Transparent };
+        panel.Paint += (_, e) => { if (_paint.TryGetValue(panel, out var draw)) draw(e.Graphics, panel.ClientRectangle); };
+        panel.Resize += (_, _) => panel.Invalidate();
+        return panel;
+    }
+
+    private readonly Dictionary<Control, Action<Graphics, Rectangle>> _paint = new();
+
+    /// <summary>Registers a paint callback for a <c>canvas</c> / <c>overlay</c> node.</summary>
+    public void OnPaint(string name, Action<Graphics, Rectangle> draw)
+    {
+        if (Require(name) is Panel p) { _paint[p] = draw; p.Invalidate(); }
+    }
+
+    /// <summary>Forces a <c>canvas</c> to repaint (e.g. each animation frame).</summary>
+    public void Redraw(string name) { if (Require(name) is Panel p) p.Invalidate(); }
 
     private static ComboBox Select(ZuiNode node)
     {
@@ -785,7 +885,20 @@ public sealed class ZuiHost : IDisposable
             SelectionMode = DataGridViewSelectionMode.FullRowSelect, ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize,
         };
         foreach (var col in node.Nodes.Where(n => n.Kind == "column"))
-            grid.Columns.Add(col.Attrs.GetValueOrDefault("field", col.Text), col.Text);
+        {
+            var field = col.Attrs.GetValueOrDefault("field", col.Text);
+            DataGridViewColumn column = col.Attrs.GetValueOrDefault("kind") == "image"
+                ? new DataGridViewImageColumn { ImageLayout = DataGridViewImageCellLayout.Zoom }
+                : new DataGridViewTextBoxColumn();
+            column.Name = field;
+            column.HeaderText = col.Text;
+            if (col.Attrs.TryGetValue("width", out var cw) && int.TryParse(cw, out var wpx))
+            {
+                column.AutoSizeMode = DataGridViewAutoSizeColumnMode.None;
+                column.Width = wpx;
+            }
+            grid.Columns.Add(column);
+        }
         return grid;
     }
 
@@ -970,6 +1083,60 @@ public sealed class ZuiHost : IDisposable
         }
 
         WireContextAndDrag(control, node);
+        if (node.Attrs.TryGetValue("rename", out var renameCh)) WireRename(control, renameCh);
+    }
+
+    // ---- Rename in place (ZU-86) -----------------------------------------
+
+    private void WireRename(Control control, string channel)
+    {
+        switch (control)
+        {
+            case TreeView tree:
+                tree.LabelEdit = true;
+                tree.KeyDown += (_, e) => { if (e.KeyCode == Keys.F2 && tree.SelectedNode is { } n) n.BeginEdit(); };
+                tree.AfterLabelEdit += (_, e) =>
+                {
+                    if (e.Label is null) return; // cancelled
+                    Dispatch(channel, JsonSerializer.Serialize(new Dictionary<string, string> { ["key"] = e.Node!.Name, ["value"] = e.Label }));
+                };
+                break;
+            case ListBox list:
+                list.KeyDown += (_, e) => { if (e.KeyCode == Keys.F2) BeginListRename(list, channel); };
+                DateTime lastClick = DateTime.MinValue;
+                list.MouseUp += (_, e) =>
+                {
+                    if (e.Button != MouseButtons.Left) return;
+                    var now = DateTime.UtcNow;
+                    if ((now - lastClick).TotalMilliseconds is > 400 and < 1200) BeginListRename(list, channel);
+                    lastClick = now;
+                };
+                break;
+        }
+    }
+
+    private void BeginListRename(ListBox list, string channel)
+    {
+        int i = list.SelectedIndex;
+        if (i < 0 || list.Items[i] is not RowItem item) return;
+        var r = list.GetItemRectangle(i);
+        var edit = new TextBox { Bounds = r, Text = item.Text, BorderStyle = BorderStyle.FixedSingle };
+        void Commit(bool save)
+        {
+            if (save && edit.Text != item.Text)
+                Dispatch(channel, JsonSerializer.Serialize(new Dictionary<string, string> { ["key"] = item.Key, ["value"] = edit.Text }));
+            list.Controls.Remove(edit);
+            edit.Dispose();
+        }
+        edit.KeyDown += (_, e) =>
+        {
+            if (e.KeyCode == Keys.Enter) { Commit(true); e.SuppressKeyPress = true; }
+            else if (e.KeyCode == Keys.Escape) { Commit(false); e.SuppressKeyPress = true; }
+        };
+        edit.LostFocus += (_, _) => Commit(true);
+        list.Controls.Add(edit);
+        edit.Focus();
+        edit.SelectAll();
     }
 
     // ---- Context menu + drag & drop (ZU-80 / ZU-81) -----------------------
@@ -1124,7 +1291,8 @@ public sealed class ZuiHost : IDisposable
     private static ListBox MakeList(ZuiNode node) => new()
     {
         MinimumSize = new Size(0, 120), BorderStyle = BorderStyle.FixedSingle,
-        IntegralHeight = false, DrawMode = DrawMode.OwnerDrawFixed, ItemHeight = 22,
+        IntegralHeight = false, DrawMode = DrawMode.OwnerDrawFixed,
+        ItemHeight = Int(node, "rowheight", node.Attrs.ContainsKey("template") ? 44 : 22),
         SelectionMode = node.Attrs.ContainsKey("selectable") ? SelectionMode.MultiExtended : SelectionMode.One,
     };
 
@@ -1312,25 +1480,76 @@ public sealed class ZuiHost : IDisposable
         node.ForeColor = style?.fore ?? Color.Empty;
     }
 
+    private readonly Dictionary<string, Image?> _imageCache = new(StringComparer.Ordinal);
+
+    private Image? CachedImage(string path)
+    {
+        if (path.Length == 0) return null;
+        if (!_imageCache.TryGetValue(path, out var img))
+            _imageCache[path] = img = SafeImage(() => Image.FromFile(path));
+        return img;
+    }
+
+    /// <summary>Owner-draws a list row: [status dot | leading image] title / subtitle [badge]
+    /// (ZU-83). Plain rows (text only) render as a single line.</summary>
     private void DrawListItem(ListBox lb, DrawItemEventArgs e)
     {
         if (e.Index < 0 || e.Index >= lb.Items.Count) return;
         var item = (RowItem)lb.Items[e.Index];
+        var rec = item.Record;
         bool selected = (e.State & DrawItemState.Selected) != 0;
-        var state = Theme.RowState(item.Record.GetValueOrDefault("state"));
+        var st = rec.GetValueOrDefault("state");
+        var state = Theme.RowState(st);
         var back = selected ? Theme.Accent : state?.back ?? Theme.Surface;
         var fore = selected ? Theme.Window : state?.fore ?? Theme.Text;
-        using var b = new SolidBrush(back);
-        e.Graphics.FillRectangle(b, e.Bounds);
-        var text = new Rectangle(e.Bounds.X + 8, e.Bounds.Y, e.Bounds.Width - 10, e.Bounds.Height);
-        if (item.Record.GetValueOrDefault("state") == "new")
+        e.Graphics.FillRectangle(new SolidBrush(back), e.Bounds);
+
+        int x = e.Bounds.X + 8, mid = e.Bounds.Y + e.Bounds.Height / 2;
+        if (st is "new" or "active")
         {
-            using var dot = new SolidBrush(Theme.Accent);
-            e.Graphics.FillEllipse(dot, e.Bounds.X + 4, e.Bounds.Y + e.Bounds.Height / 2 - 3, 6, 6);
-            text = new Rectangle(e.Bounds.X + 16, e.Bounds.Y, e.Bounds.Width - 18, e.Bounds.Height);
+            e.Graphics.FillEllipse(new SolidBrush(selected ? Theme.Window : Theme.Accent), x, mid - 3, 6, 6);
+            x += 12;
         }
-        TextRenderer.DrawText(e.Graphics, item.Text, lb.Font, text, fore,
-            TextFormatFlags.Left | TextFormatFlags.VerticalCenter | TextFormatFlags.EndEllipsis);
+        if (rec.GetValueOrDefault("image") is { Length: > 0 } imgPath && CachedImage(imgPath) is { } img)
+        {
+            int s = e.Bounds.Height - 8;
+            e.Graphics.DrawImage(img, new Rectangle(x, e.Bounds.Y + 4, s, s));
+            x += s + 8;
+        }
+        else if (rec.GetValueOrDefault("icon") is { Length: > 0 } ic)
+        {
+            int s = 16;
+            using var g = ZuiIcons.Render(ic, s, fore);
+            e.Graphics.DrawImage(g, x, mid - s / 2);
+            x += s + 8;
+        }
+
+        var badge = rec.GetValueOrDefault("badge") ?? "";
+        int right = e.Bounds.Right - 8;
+        if (badge.Length > 0)
+        {
+            var bs = TextRenderer.MeasureText(badge, lb.Font);
+            var bx = right - bs.Width - 8;
+            e.Graphics.FillRectangle(new SolidBrush(ZuiTheme.Blend(back, fore, 0.15)), bx, mid - bs.Height / 2 - 1, bs.Width + 8, bs.Height + 2);
+            TextRenderer.DrawText(e.Graphics, badge, lb.Font, new Point(bx + 4, mid - bs.Height / 2), fore);
+            right = bx - 6;
+        }
+
+        var subtitle = rec.GetValueOrDefault("subtitle") ?? "";
+        var textRect = new Rectangle(x, e.Bounds.Y, right - x, e.Bounds.Height);
+        if (subtitle.Length > 0)
+        {
+            var titleRect = new Rectangle(x, e.Bounds.Y + 3, right - x, e.Bounds.Height / 2);
+            var subRect = new Rectangle(x, mid, right - x, e.Bounds.Height / 2 - 3);
+            using var bold = new Font(lb.Font, FontStyle.Bold);
+            TextRenderer.DrawText(e.Graphics, item.Text, bold, titleRect, fore, TextFormatFlags.Left | TextFormatFlags.EndEllipsis);
+            TextRenderer.DrawText(e.Graphics, subtitle, lb.Font, subRect, selected ? Theme.Window : Theme.Muted, TextFormatFlags.Left | TextFormatFlags.EndEllipsis);
+        }
+        else
+        {
+            TextRenderer.DrawText(e.Graphics, item.Text, lb.Font, textRect, fore,
+                TextFormatFlags.Left | TextFormatFlags.VerticalCenter | TextFormatFlags.EndEllipsis);
+        }
     }
 
     // ---- Selection --------------------------------------------------------

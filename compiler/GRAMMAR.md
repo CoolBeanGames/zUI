@@ -53,7 +53,17 @@ Structural: `window`, `titlebar`, `menubar`, `menu`, `item`, `sep`, `nav`,
 
 Controls: `text`, `heading`, `button`, `field`, `input`, `textarea`, `check`,
 `select`, `option`, `dropdown`, `slider`, `number`, `progress`, `spinner`,
-`loading`, `table`, `column`, `list`, `tree`, `treeitem`, `image`, `console`.
+`loading`, `table`, `column`, `list`, `tree`, `treeitem`, `image`, `console`,
+`canvas` / `overlay`.
+
+`button icon="play"` / `label icon="…"` draws a themed monochrome glyph from
+the built-in set (`ZuiIcons.Names`); `button kind="icon"` is icon-only.
+A `list` with the `template` flag owner-draws each row from its record:
+`image` (path) or `icon`, `text` (title), `subtitle`, `badge`, plus the `state`
+marker. `list`/`tree` items with `rename="channel"` edit in place on F2 /
+slow-double-click (`{key, value}`, Esc cancels). `canvas` / `overlay` is a
+native GDI+ surface — `host.OnPaint(name, (g, rect) => …)` and
+`host.Redraw(name)`. `<column kind="image" width="40">` renders image cells.
 
 `grid cols=N` places children row-major into N equal columns (`colspan` on a
 child, `gap` on the grid). `scroll` gives its contents an own vertical
