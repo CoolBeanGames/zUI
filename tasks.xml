@@ -1,5 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <tasks project="zUI" nextIndex="89">
+  <branches lastUsed="final-build-push">
+    <branch>main</branch>
+    <branch>final-build-push</branch>
+    <branch>refactor</branch>
+  </branches>
   <task id="ZU-74">
     <name>hTunes UI redesign - required zUI capabilities</name>
     <note>hTunes UI redesign umbrella. Broken into ZU-75..ZU-87 (created 2026-09-08). Full audit: htunes/docs/zui-requirements.md. ZU-75 events / ZU-76 collection binding / ZU-77 small controls / ZU-78 layout nodes / ZU-79 theme coverage / ZU-80 context menus / ZU-81 drag+drop / ZU-82 image / ZU-83 templated list items / ZU-84 icons / ZU-85 virtualization / ZU-86 P2 polish / ZU-87 C++ parity. This note is informational; work the numbered tasks.</note>
@@ -13,13 +18,13 @@
     <name>C++ backend parity for the hTunes capability set</name>
     <prompt>Bring the C++ zui::Host (bindings/cpp/zui.h/.cpp) to parity with the C# work done for ZU-75..ZU-84 and ZU-79: selection/activation/input events, source= collection CRUD + per-row state, number/toggle/tooltip/console nodes, grid/scroll/tabs/splitter layout, theme coverage, context menus, drag-and-drop, image, templated list items, icons. Mirror the same node kinds, channel names, payload shapes and mutation APIs. design.txt requires both runtimes; hTunes is C#-only so this trails the C# tasks. Add C++ host tests (bindings/cpp/tests) per capability. build.ps1 -Config test with the C++ ctests green.</prompt>
     <requirements></requirements>
-    <inProgress>true</inProgress>
+    <inProgress>false</inProgress>
     <done>false</done>
     <priority>false</priority>
     <bug>false</bug>
     <error>false</error>
     <errorMessage></errorMessage>
-    <lockKey>s5htunes</lockKey>
+    <lockKey></lockKey>
     <locked>false</locked>
     <archived>false</archived>
     <blockedBy></blockedBy>
@@ -32,14 +37,14 @@
     <merge>false</merge>
     <branch>main</branch>
     <tags></tags>
-    <notes></notes>
-    <filesChanged></filesChanged>
+    <notes>PARTIAL (core done, zUI_build5). Done in C++ (bindings/cpp/zui.cpp): normalized on payloads + onactivate/oncommit; &lt;option value=&gt; + selectedvalue; number + console(host.append) nodes; source= collection CRUD for table/list (WC_LISTVIEW) + tree (WC_TREEVIEW) with selection by key preserved across updates. New collection_test.cpp; ctest 5/5. REMAINING (each its own Win32 chunk): per-row state colour via NM_CUSTOMDRAW; context menus (TrackPopupMenu + oncontext); drag &amp; drop (OLE IDropTarget / DoDragDrop); image node (GDI blit); icon set (GDI paths mirroring ZuiIcons); tabs/tabpanel (WC_TABCONTROL) + splitter + grid + scroll layout; templated list rows (LVS_OWNERDRAW); virtualization (LVS_OWNERDATA). Next agent: pick up here.</notes>
+    <filesChanged>bindings/cpp/zui.h; bindings/cpp/zui.cpp; bindings/cpp/CMakeLists.txt; bindings/cpp/tests/collection_test.cpp; core/PROTOCOL.md; design.txt</filesChanged>
     <image></image>
     <subtasks>
-      <subtask done="false">normalized on payloads in subclass_proc (input/check/slider/select/table)</subtask>
-      <subtask done="false">onactivate + oncommit channels; option value= ; number + console nodes</subtask>
-      <subtask done="false">source= collection CRUD for listview/treeview + selection by key + per-row state</subtask>
-      <subtask done="false">C++ host tests (bindings/cpp/tests) + ctest green</subtask>
+      <subtask done="true">normalized on payloads in subclass_proc (input/check/slider/select/table)</subtask>
+      <subtask done="true">onactivate + oncommit channels; option value= ; number + console nodes</subtask>
+      <subtask done="true">source= collection CRUD for listview/treeview + selection by key + per-row state</subtask>
+      <subtask done="true">C++ host tests (bindings/cpp/tests) + ctest green</subtask>
       <subtask done="false">REMAINING: context menus, drag-drop, image, icons, tabs/splitter/grid, virtualization, templated list</subtask>
     </subtasks>
   </task>
@@ -103,7 +108,7 @@ Backend-conformance tests verify equivalent event semantics across C# and C++.</
     <merge>false</merge>
     <branch>final-build-push</branch>
     <tags></tags>
-    <notes></notes>
+    <notes>Largely realized by ZU-75 (C#) + ZU-87 (C++ core): normalized on payloads, onchange/oncommit/onactivate/ontoggle, option values, selection-as-keys. Documented in core/PROTOCOL.md. REMAINING: slider/scroll coalescing; full C++ payload parity (per ZU-87).</notes>
     <filesChanged></filesChanged>
     <image></image>
   </task>
@@ -168,7 +173,7 @@ ZSL produces equivalent layout meaning on C# and C++.</requirements>
     <merge>false</merge>
     <branch>final-build-push</branch>
     <tags></tags>
-    <notes></notes>
+    <notes>C# done via ZU-78 (grid/scroll/tabs/splitter) + the earlier TableLayoutPanel docking engine. WM_SIZE re-layout is handled by Dock/anchor. REMAINING: C++ layout engine parity (ZU-87).</notes>
     <filesChanged></filesChanged>
     <image></image>
   </task>
@@ -221,7 +226,7 @@ C# and C++ have equivalent logical semantics.</requirements>
     <merge>false</merge>
     <branch>final-build-push</branch>
     <tags></tags>
-    <notes></notes>
+    <notes>C# done via ZU-76; C++ table/list/tree done via ZU-87. set/append/insert/remove/update/refresh/clear, keyed, selection preserved, per-row state (C#). See compiler/GRAMMAR.md.</notes>
     <filesChanged></filesChanged>
     <image></image>
   </task>
@@ -273,7 +278,7 @@ Benchmark/demo with ~50,000 rows; baseline perf expectations recorded for creati
     <merge>false</merge>
     <branch>final-build-push</branch>
     <tags></tags>
-    <notes></notes>
+    <notes>C# done via ZU-85 (table virtual flag -&gt; DataGridView VirtualMode, 50k rows). REMAINING: C++ LVS_OWNERDATA (ZU-87); a standalone large-dataset benchmark sample.</notes>
     <filesChanged></filesChanged>
     <image></image>
   </task>
@@ -375,7 +380,7 @@ Visual/demo screens exercise all major controls under a theme.</requirements>
     <merge>false</merge>
     <branch>final-build-push</branch>
     <tags></tags>
-    <notes></notes>
+    <notes>C# done via ZU-79 (ApplyTheme covers every control kind + themed ToolStrip renderer, Holo + Clean). REMAINING: C++ theme rendering parity (ZU-87).</notes>
     <filesChanged></filesChanged>
     <image></image>
   </task>
@@ -530,7 +535,7 @@ Primary README updated so zUI cannot be mistaken for a web UI system.</requireme
     <merge>false</merge>
     <branch>final-build-push</branch>
     <tags></tags>
-    <notes></notes>
+    <notes>Integration guide done via ZU-88 (docs/INTEGRATION.md + the 'which zUI to pull' box in README). Legacy browser code already removed; tests/check-native.py gates it.</notes>
     <filesChanged></filesChanged>
     <image></image>
   </task>
