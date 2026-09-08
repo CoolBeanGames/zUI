@@ -5,6 +5,41 @@
     <branch>final-build-push</branch>
     <branch>refactor</branch>
   </branches>
+  <task id="ZU-89">
+    <name>C++ native layout engine (ZU-66 follow-up)</name>
+    <prompt>ZU-66 is archived done but its C++ half was only stubbed by ZU-87 (grid/scroll/splitter positioned by the old flat vertical create_node loop). Build the real thing in bindings/cpp:</prompt>
+    <requirements></requirements>
+    <inProgress>false</inProgress>
+    <done>true</done>
+    <priority>false</priority>
+    <bug>false</bug>
+    <error>false</error>
+    <errorMessage></errorMessage>
+    <lockKey></lockKey>
+    <locked>false</locked>
+    <archived>false</archived>
+    <blockedBy></blockedBy>
+    <dateStarted></dateStarted>
+    <dueDate></dueDate>
+    <dateFinished>2026-09-08 03:00</dateFinished>
+    <commit>false</commit>
+    <build>false</build>
+    <release>false</release>
+    <merge>false</merge>
+    <branch>final-build-push</branch>
+    <tags></tags>
+    <notes>DONE (zUI_build7). C++ measure/arrange layout engine in bindings/cpp/zui.cpp: Box tree mirrors the control tree, every container is a real WS_CLIPCHILDREN child HWND, row/nav/workspace/statusbar are true horizontal bands, fill children split leftover main-axis space, sidebar honours min, grid cols=N row-major, splitter/tabs through the engine, WM_SIZE re-arranges without recreating. New layout_test.cpp (13 checks); ctest 7/7. Remaining polish: draggable splitter handle + live scroll offset (currently static), full per-control C++ theme rendering is ZU-70.</notes>
+    <filesChanged>bindings/cpp/zui.h; bindings/cpp/zui.cpp; bindings/cpp/CMakeLists.txt; bindings/cpp/tests/layout_test.cpp; bindings/cpp/tests/mutation_test.cpp; design.txt</filesChanged>
+    <image></image>
+    <subtasks>
+      <subtask done="true">LayoutBox tree + sizing hints from node attrs (fixed/min/max/fill/gap/pad/align)</subtask>
+      <subtask done="true">measure + arrange pipeline (vertical/horizontal/grid), cross-axis stretch</subtask>
+      <subtask done="true">containers become real child HWNDs (WS_CLIPCHILDREN); reparent children</subtask>
+      <subtask done="true">WM_SIZE re-arrange from root; expose relayout(w,h) for tests</subtask>
+      <subtask done="true">row horizontal, nested containers, sidebar min width, splitter/scroll/tabs through the engine</subtask>
+      <subtask done="true">headless layout tests + full gate</subtask>
+    </subtasks>
+  </task>
   <task id="ZU-87">
     <name>C++ backend parity for the hTunes capability set</name>
     <prompt>Bring the C++ zui::Host (bindings/cpp/zui.h/.cpp) to parity with the C# work done for ZU-75..ZU-84 and ZU-79: selection/activation/input events, source= collection CRUD + per-row state, number/toggle/tooltip/console nodes, grid/scroll/tabs/splitter layout, theme coverage, context menus, drag-and-drop, image, templated list items, icons. Mirror the same node kinds, channel names, payload shapes and mutation APIs. design.txt requires both runtimes; hTunes is C#-only so this trails the C# tasks. Add C++ host tests (bindings/cpp/tests) per capability. build.ps1 -Config test with the C++ ctests green.</prompt>
@@ -462,7 +497,7 @@ ZSL produces equivalent layout meaning on C# and C++.</requirements>
     <merge>false</merge>
     <branch>final-build-push</branch>
     <tags></tags>
-    <notes>C# done via ZU-78 (grid/scroll/tabs/splitter) + the earlier TableLayoutPanel docking engine. WM_SIZE re-layout is handled by Dock/anchor. REMAINING: C++ layout engine parity (ZU-87).</notes>
+    <notes>DONE both backends. C# = TableLayoutPanel docking engine + ZU-78 nodes. C++ = measure/arrange Box-tree engine (ZU-89): real horizontal rows, nested WS_CLIPCHILDREN containers, fill/stretch, sidebar min, WM_SIZE reposition without recreate. layout_test.cpp. Remaining polish tracked on ZU-89 notes / ZU-70.</notes>
     <filesChanged></filesChanged>
     <image></image>
   </task>
