@@ -168,12 +168,22 @@ Host::Host(void* native_parent) : parent_(native_parent) {
     state_.host_ = this;
     INITCOMMONCONTROLSEX init{sizeof(init), ICC_STANDARD_CLASSES | ICC_BAR_CLASSES | ICC_LISTVIEW_CLASSES};
     InitCommonControlsEx(&init);
+    rebuild_theme_brushes();
     SetWindowSubclass(static_cast<HWND>(parent_), reinterpret_cast<SUBCLASSPROC>(&Host::subclass_proc), 1,
                       reinterpret_cast<DWORD_PTR>(this));
 }
 
+void Host::rebuild_theme_brushes() {
+    if (surface_brush_) DeleteObject(static_cast<HGDIOBJ>(surface_brush_));
+    if (raised_brush_) DeleteObject(static_cast<HGDIOBJ>(raised_brush_));
+    surface_brush_ = CreateSolidBrush(theme_.surface);
+    raised_brush_ = CreateSolidBrush(theme_.raised);
+}
+
 Host::~Host() {
     if (parent_) RemoveWindowSubclass(static_cast<HWND>(parent_), reinterpret_cast<SUBCLASSPROC>(&Host::subclass_proc), 1);
+    if (surface_brush_) DeleteObject(static_cast<HGDIOBJ>(surface_brush_));
+    if (raised_brush_) DeleteObject(static_cast<HGDIOBJ>(raised_brush_));
     for (auto& [hwnd, color] : control_colors_)
         if (color.brush) DeleteObject(static_cast<HGDIOBJ>(color.brush));
     for (auto& [hwnd, img] : images_) if (img) delete static_cast<Gdiplus::Image*>(img);
@@ -225,6 +235,8 @@ void Host::build(const Node& root) {
     exports_.clear();
     box_pool_.clear();
     root_box_ = nullptr;
+    splitbars_.clear();
+    scroll_boxes_.clear();
 
     // Build the layout tree (mirrors the HWND tree), then position everything.
     Node synthetic_root{"root", "", {}, root.children};
@@ -270,6 +282,7 @@ Host::Box* Host::build_box(void* raw_parent, const Node& node) {
     box->kind = node.kind;
     box->fixed_w = number(node, "width", 0);
     box->fixed_h = number(node, "height", 0);
+    if (node.kind == "splitter") box->split_pos = number(node, "pos", number(node, "width", 0));
     box->min_w = number(node, "min", 0);
     box->gap = number(node, "gap", 8);
     box->fill = node.attributes.count("fill") > 0 || grows_kind(node.kind);
@@ -298,12 +311,12 @@ Host::Box* Host::build_box(void* raw_parent, const Node& node) {
 
     if (container) {
         klass = L"STATIC";
-        style |= SS_LEFT | WS_CLIPCHILDREN;
+        style |= SS_LEFT | WS_CLIPCHILDREN | SS_NOTIFY;
         if (node.kind == "scroll") style |= WS_VSCROLL;
         box->pad = node.kind == "panel" ? 10 : (node.kind == "root" || node.kind == "window" ? 12 : 4);
         if (node.kind == "window" && !text.empty()) SetWindowTextW(static_cast<HWND>(parent_), text.c_str());
     } else if (node.kind == "button") {
-        klass = L"BUTTON"; style |= WS_TABSTOP | (icon_button ? BS_OWNERDRAW : BS_PUSHBUTTON);
+        klass = L"BUTTON"; style |= WS_TABSTOP | BS_OWNERDRAW;   // owner-draw = fully themed
         box->fixed_h = box->fixed_h ? box->fixed_h : 30;
         if (icon_button && attr(node, "kind") == "icon") { box->fixed_w = 30; box->fixed_h = 30; }
         else box->min_w = std::max(96, measure_text_px(text) + 30);
@@ -427,6 +440,18 @@ Host::Box* Host::build_box(void* raw_parent, const Node& node) {
     }
     if (auto ic = node.attributes.find("icon"); ic != node.attributes.end()) control_icons_[control] = ic->second;
 
+    if (node.kind == "table" || node.kind == "list") {
+        ListView_SetBkColor(control, theme_.surface);
+        ListView_SetTextColor(control, theme_.text);
+        ListView_SetTextBkColor(control, theme_.surface);
+    } else if (node.kind == "tree") {
+        TreeView_SetBkColor(control, theme_.raised);
+        TreeView_SetTextColor(control, theme_.text);
+    } else if (node.kind == "scroll") {
+        scroll_boxes_[control] = box;
+        SetWindowSubclass(static_cast<HWND>(control), reinterpret_cast<SUBCLASSPROC>(&Host::aux_proc), 2, reinterpret_cast<DWORD_PTR>(this));
+    }
+
     if (auto e = node.attributes.find("on"); e != node.attributes.end()) control_channels_[control] = e->second;
     if (auto a = node.attributes.find("onactivate"); a != node.attributes.end()) control_activate_[control] = a->second;
     if (auto c = node.attributes.find("oncommit"); c != node.attributes.end()) control_commit_[control] = c->second;
@@ -443,20 +468,36 @@ Host::Box* Host::build_box(void* raw_parent, const Node& node) {
     if (container && node.kind != "tabs") {
         HWND host_hwnd = static_cast<HWND>(control);
         if (node.kind == "splitter") {
-            box->children.push_back(nullptr_box());   // placeholder for the drag bar
-        }
-        for (const auto& child : node.children) {
-            if (child.kind == "column" || child.kind == "option") continue;
-            box->children.push_back(build_box(host_hwnd, child));
+            box->children.push_back(split_bar(host_hwnd, box));   // children[0] = drag bar
+            int pi = 0;
+            for (const auto& child : node.children) {
+                if (child.kind == "column" || child.kind == "option") continue;
+                Box* pane = build_box(host_hwnd, child);
+                if (pi == 0) box->min_a = number(child, "min", 120);
+                else if (pi == 1) box->min_b = number(child, "min", 120);
+                box->children.push_back(pane);
+                ++pi;
+            }
+        } else {
+            for (const auto& child : node.children) {
+                if (child.kind == "column" || child.kind == "option") continue;
+                box->children.push_back(build_box(host_hwnd, child));
+            }
         }
     }
     return box;
 }
 
-Host::Box* Host::nullptr_box() {
+Host::Box* Host::split_bar(void* parent_hwnd, Box* owner) {
     box_pool_.push_back(std::make_unique<Box>());
     Box* b = box_pool_.back().get();
     b->kind = "splitbar"; b->fixed_w = 6; b->fixed_h = 6;
+    HWND bar = CreateWindowExW(0, L"STATIC", L"", WS_CHILD | WS_VISIBLE | SS_NOTIFY,
+                               0, 0, 6, 6, static_cast<HWND>(parent_hwnd), nullptr, GetModuleHandleW(nullptr), nullptr);
+    b->hwnd = bar;
+    control_kinds_[bar] = "splitbar";
+    splitbars_[bar] = owner;
+    SetWindowSubclass(bar, reinterpret_cast<SUBCLASSPROC>(&Host::aux_proc), 2, reinterpret_cast<DWORD_PTR>(this));
     return b;
 }
 
@@ -534,12 +575,14 @@ void Host::arrange(Box* box, int x, int y, int w, int h) {
 
     if (box->kind == "splitter") {
         // children[0] = drag bar, [1] = pane A, [2] = pane B
-        int pos = box->fixed_w ? box->fixed_w : iw / 2;
+        int pos = box->split_pos ? box->split_pos : iw / 2;
+        pos = std::max(box->min_a, std::min(pos, iw - 6 - box->min_b));
+        box->split_pos = pos;   // remember the (clamped) divider position
         Box* bar = box->children.size() > 0 ? box->children[0] : nullptr;
         Box* a = box->children.size() > 1 ? box->children[1] : nullptr;
         Box* b = box->children.size() > 2 ? box->children[2] : nullptr;
         if (a) arrange(a, ix, iy, pos, ih);
-        if (bar && bar->hwnd) SetWindowPos(static_cast<HWND>(bar->hwnd), nullptr, ix + pos, iy, 6, ih, SWP_NOZORDER | SWP_NOACTIVATE);
+        if (bar && bar->hwnd) SetWindowPos(static_cast<HWND>(bar->hwnd), HWND_TOP, ix + pos, iy, 6, ih, SWP_NOACTIVATE);
         if (b) arrange(b, ix + pos + 6, iy, iw - pos - 6, ih);
         return;
     }
@@ -555,6 +598,26 @@ void Host::arrange(Box* box, int x, int y, int w, int h) {
             arrange(c, cx, rowy, cell_w, ch);
             row_h = std::max(row_h, ch);
             if (++col >= box->cols) { col = 0; rowy += row_h + box->gap; row_h = 0; }
+        }
+        return;
+    }
+
+    if (box->kind == "scroll") {
+        // Lay children at natural height from the top, offset by scroll_pos.
+        int total = 0;
+        for (Box* c : box->children) if (c) total += c->want_h + box->gap;
+        box->content_h = total;
+        int max_scroll = std::max(0, total - ih);
+        box->scroll_pos = std::min(box->scroll_pos, max_scroll);
+        SCROLLINFO si{sizeof(si)};
+        si.fMask = SIF_RANGE | SIF_PAGE | SIF_POS;
+        si.nMin = 0; si.nMax = total; si.nPage = ih; si.nPos = box->scroll_pos;
+        SetScrollInfo(static_cast<HWND>(box->hwnd), SB_VERT, &si, TRUE);
+        int cy = iy - box->scroll_pos;
+        for (Box* c : box->children) {
+            if (!c) continue;
+            arrange(c, ix, cy, iw, c->want_h);
+            cy += c->want_h + box->gap;
         }
         return;
     }
@@ -595,23 +658,84 @@ void Host::relayout(int width, int height) {
     arrange(root_box_, 0, 0, width, height);
 }
 
+// Re-arrange a box in its current on-screen position (splitter drag, scroll).
+void Host::arrange_in_place(Box* box) {
+    if (!box || !box->hwnd) return;
+    HWND h = static_cast<HWND>(box->hwnd);
+    RECT wr; GetWindowRect(h, &wr);
+    POINT tl{wr.left, wr.top};
+    if (HWND p = GetParent(h)) ScreenToClient(p, &tl);
+    arrange(box, tl.x, tl.y, wr.right - wr.left, wr.bottom - wr.top);
+}
+
+long long Host::aux_proc(void* hwnd, unsigned msg, unsigned long long wparam, long long lparam,
+                         unsigned long long id, unsigned long long data) {
+    auto* self = reinterpret_cast<Host*>(data);
+    HWND h = static_cast<HWND>(hwnd);
+
+    if (auto it = self->splitbars_.find(h); it != self->splitbars_.end()) {
+        Box* owner = it->second;
+        static bool dragging = false;
+        if (msg == WM_SETCURSOR) { SetCursor(LoadCursorA(nullptr, IDC_SIZEWE)); return TRUE; }
+        if (msg == WM_LBUTTONDOWN) { dragging = true; SetCapture(h); return 0; }
+        if (msg == WM_MOUSEMOVE && dragging && owner && owner->hwnd) {
+            POINT pt; GetCursorPos(&pt);
+            ScreenToClient(static_cast<HWND>(owner->hwnd), &pt);
+            owner->split_pos = pt.x - owner->pad;    // arrange() clamps to pane minimums
+            self->arrange_in_place(owner);
+            return 0;
+        }
+        if (msg == WM_LBUTTONUP) { dragging = false; ReleaseCapture(); return 0; }
+    }
+
+    if (auto it = self->scroll_boxes_.find(h); it != self->scroll_boxes_.end()) {
+        Box* box = it->second;
+        if (msg == WM_VSCROLL) {
+            SCROLLINFO si{sizeof(si)}; si.fMask = SIF_ALL;
+            GetScrollInfo(h, SB_VERT, &si);
+            int pos = si.nPos;
+            switch (LOWORD(wparam)) {
+                case SB_LINEUP: pos -= 24; break;
+                case SB_LINEDOWN: pos += 24; break;
+                case SB_PAGEUP: pos -= si.nPage; break;
+                case SB_PAGEDOWN: pos += si.nPage; break;
+                case SB_THUMBTRACK: case SB_THUMBPOSITION: pos = si.nTrackPos; break;
+            }
+            box->scroll_pos = std::max(0, std::min(pos, std::max(0, box->content_h - static_cast<int>(si.nPage))));
+            self->arrange_in_place(box);
+            return 0;
+        }
+        if (msg == WM_MOUSEWHEEL) {
+            box->scroll_pos = std::max(0, box->scroll_pos - GET_WHEEL_DELTA_WPARAM(wparam) / 4);
+            self->arrange_in_place(box);
+            return 0;
+        }
+    }
+    return DefSubclassProc(h, msg, static_cast<WPARAM>(wparam), static_cast<LPARAM>(lparam));
+}
+
 void Host::on(const std::string& channel, MessageHandler handler) { handlers_[channel].push_back(std::move(handler)); }
 void Host::send(const std::string& channel, const std::string& payload) { dispatch(channel, payload); }
+void Host::apply_theme_recursive(void* raw) {
+    HWND hwnd = static_cast<HWND>(raw);
+    std::string k = kind_of(raw);
+    if (k == "table" || k == "list") {
+        ListView_SetBkColor(hwnd, theme_.surface);
+        ListView_SetTextColor(hwnd, theme_.text);
+        ListView_SetTextBkColor(hwnd, theme_.surface);
+    } else if (k == "tree") {
+        TreeView_SetBkColor(hwnd, theme_.raised);
+        TreeView_SetTextColor(hwnd, theme_.text);
+    }
+    InvalidateRect(hwnd, nullptr, TRUE);
+    for (HWND c = GetWindow(hwnd, GW_CHILD); c; c = GetWindow(c, GW_HWNDNEXT))
+        apply_theme_recursive(c);
+}
+
 void Host::set_theme(const std::string& name) {
     theme_ = (name == "clean") ? Theme::clean() : Theme::holo();
-    for (auto& [raw, store] : rows_) {
-        HWND hwnd = static_cast<HWND>(raw);
-        std::string k = kind_of(raw);
-        if (k == "table" || k == "list") {
-            ListView_SetBkColor(hwnd, theme_.surface);
-            ListView_SetTextColor(hwnd, theme_.text);
-            ListView_SetTextBkColor(hwnd, theme_.surface);
-        } else if (k == "tree") {
-            TreeView_SetBkColor(hwnd, theme_.raised);
-            TreeView_SetTextColor(hwnd, theme_.text);
-        }
-        InvalidateRect(hwnd, nullptr, TRUE);
-    }
+    rebuild_theme_brushes();
+    if (root_box_ && root_box_->hwnd) apply_theme_recursive(root_box_->hwnd);
     dispatch("theme-changed", name);
     InvalidateRect(static_cast<HWND>(parent_), nullptr, TRUE);
 }
@@ -1145,9 +1269,12 @@ void Host::draw_owner_button(void* raw) {
     HDC dc = dis->hDC;
     RECT r = dis->rcItem;
     bool pressed = (dis->itemState & ODS_SELECTED) != 0;
-    HBRUSH bg = CreateSolidBrush(pressed ? blend(theme_.raised, theme_.accent, 0.30) : theme_.raised);
+    bool hot = (dis->itemState & ODS_HOTLIGHT) != 0 || (dis->itemState & ODS_FOCUS) != 0;
+    HBRUSH bg = CreateSolidBrush(pressed ? blend(theme_.raised, theme_.accent, 0.30)
+                                 : hot ? blend(theme_.raised, theme_.accent, 0.14) : theme_.raised);
     FillRect(dc, &r, bg); DeleteObject(bg);
-    FrameRect(dc, &r, reinterpret_cast<HBRUSH>(GetStockObject(DC_BRUSH)));
+    HBRUSH edge = CreateSolidBrush(pressed || hot ? theme_.accent : theme_.border);
+    FrameRect(dc, &r, edge); DeleteObject(edge);
     auto ic = control_icons_.find(dis->hwndItem);
     wchar_t caption[128]{}; GetWindowTextW(dis->hwndItem, caption, 128);
     bool icon_only = caption[0] == 0;
@@ -1276,15 +1403,26 @@ long long Host::subclass_proc(void* hwnd, unsigned msg, unsigned long long wpara
         return 0;
     }
     if (msg == WM_CTLCOLORSTATIC || msg == WM_CTLCOLOREDIT || msg == WM_CTLCOLORBTN ||
-        msg == WM_CTLCOLORLISTBOX) {
-        auto it = self->control_colors_.find(reinterpret_cast<HWND>(lparam));
+        msg == WM_CTLCOLORLISTBOX || msg == WM_CTLCOLORSCROLLBAR) {
+        HWND ctl = reinterpret_cast<HWND>(lparam);
+        HDC dc = reinterpret_cast<HDC>(wparam);
+        auto it = self->control_colors_.find(ctl);
         if (it != self->control_colors_.end()) {
-            HDC dc = reinterpret_cast<HDC>(wparam);
             if (it->second.fg != 0xffffffff) SetTextColor(dc, it->second.fg);
             if (it->second.bg != 0xffffffff) {
                 SetBkColor(dc, it->second.bg);
                 if (it->second.brush) return reinterpret_cast<long long>(it->second.brush);
             }
+        }
+        // Theme fallback for every zUI control.
+        std::string k = self->kind_of(ctl);
+        if (!k.empty()) {
+            bool raised = (msg == WM_CTLCOLOREDIT || msg == WM_CTLCOLORLISTBOX ||
+                           k == "input" || k == "textarea" || k == "number" || k == "console" ||
+                           k == "select" || k == "dropdown");
+            SetTextColor(dc, self->theme_.text);
+            SetBkColor(dc, raised ? self->theme_.raised : self->theme_.surface);
+            return reinterpret_cast<long long>(raised ? self->raised_brush_ : self->surface_brush_);
         }
     }
     if (msg == WM_DRAWITEM) {
@@ -1436,12 +1574,38 @@ long long Host::subclass_proc(void* hwnd, unsigned msg, unsigned long long wpara
         }
         self->drag_from_ = nullptr; self->drag_keys_.clear();
     }
+    if (msg == WM_TIMER && wparam == 0xF51 && self->pending_slider_) {
+        KillTimer(static_cast<HWND>(hwnd), 0xF51);
+        void* src = self->pending_slider_;
+        self->pending_slider_ = nullptr;
+        self->dispatch(self->pending_slider_ch_, self->payload_for(src));
+        return 0;
+    }
+    if (msg == WM_HSCROLL && self->kind_of(reinterpret_cast<HWND>(lparam)) == "slider") {
+        HWND source = reinterpret_cast<HWND>(lparam);
+        unsigned code = LOWORD(wparam);
+        if (auto it = self->control_channels_.find(source); it != self->control_channels_.end()) {
+            if (code == TB_ENDTRACK || code == SB_ENDSCROLL) {
+                // Drag finished: flush immediately.
+                if (self->pending_slider_) KillTimer(static_cast<HWND>(hwnd), 0xF51);
+                self->pending_slider_ = nullptr;
+                self->dispatch(it->second, self->payload_for(source));
+            } else {
+                // Mid-drag: coalesce — only the latest value fires, ~60ms apart.
+                self->pending_slider_ = source;
+                self->pending_slider_ch_ = it->second;
+                SetTimer(static_cast<HWND>(hwnd), 0xF51, 60, nullptr);
+            }
+        }
+        // two-way write-back still runs below
+    }
     if (msg == WM_COMMAND || msg == WM_HSCROLL) {
         HWND source = reinterpret_cast<HWND>(lparam);
         unsigned code = HIWORD(wparam);
         auto it = self->control_channels_.find(source);
         bool editish = self->kind_of(source) == "input" || self->kind_of(source) == "textarea" || self->kind_of(source) == "number";
-        if (it != self->control_channels_.end()) {
+        bool is_slider = self->kind_of(source) == "slider";
+        if (it != self->control_channels_.end() && !is_slider) {
             // Coalesce: for an edit, `on` fires on EN_CHANGE; for others, on any command.
             if (!editish || msg == WM_HSCROLL || code == EN_CHANGE)
                 self->dispatch(it->second, self->payload_for(source));

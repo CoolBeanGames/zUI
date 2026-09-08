@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<tasks project="zUI" nextIndex="90">
+<tasks project="zUI" nextIndex="91">
   <branches lastUsed="final-build-push">
     <branch>main</branch>
     <branch>final-build-push</branch>
@@ -13,5 +13,39 @@
     <archived>false</archived>
     <branch>main</branch>
     <clearAfterReading>false</clearAfterReading>
+  </task>
+  <task id="ZU-90">
+    <name>C++ finishing polish: theme rendering, splitter, scroll, coalescing</name>
+    <prompt>Close out the C++ follow-ups noted on ZU-70 / ZU-65 / ZU-89:</prompt>
+    <requirements></requirements>
+    <inProgress>true</inProgress>
+    <done>false</done>
+    <priority>false</priority>
+    <bug>false</bug>
+    <error>false</error>
+    <errorMessage></errorMessage>
+    <lockKey>s5htunes</lockKey>
+    <locked>false</locked>
+    <archived>false</archived>
+    <blockedBy></blockedBy>
+    <dateStarted></dateStarted>
+    <dueDate></dueDate>
+    <dateFinished></dateFinished>
+    <commit>false</commit>
+    <build>false</build>
+    <release>false</release>
+    <merge>false</merge>
+    <branch>final-build-push</branch>
+    <tags></tags>
+    <notes></notes>
+    <filesChanged></filesChanged>
+    <image></image>
+    <subtasks>
+      <subtask done="false">themed brushes + WM_CTLCOLOR* for all control kinds + container backgrounds; apply on build and set_theme</subtask>
+      <subtask done="false">draggable splitter handle (capture / track / re-arrange, clamp to min)</subtask>
+      <subtask done="false">live scroll offset for scroll containers (WM_VSCROLL + SetScrollInfo)</subtask>
+      <subtask done="false">slider/scroll on-channel coalescing</subtask>
+      <subtask done="false">C++ tests + full gate</subtask>
+    </subtasks>
   </task>
 </tasks>

@@ -3,6 +3,8 @@
 #include "../zui.h"
 #include <windows.h>
 #include <iostream>
+#include <string>
+#include <vector>
 
 static int failures = 0;
 static void check(const char* name, bool ok) {
@@ -80,6 +82,41 @@ int main() {
     check("resize back restores the layout", grid3.right > W - 60);
 
     DestroyWindow(parent);
+
+    // ----- splitter + scroll -----
+    HWND p2 = CreateWindowExW(0, L"STATIC", L"t", WS_OVERLAPPEDWINDOW, 0, 0, 800, 600,
+                              nullptr, nullptr, GetModuleHandleW(nullptr), nullptr);
+    SetWindowPos(p2, nullptr, 0, 0, 800, 600, SWP_NOMOVE | SWP_NOZORDER);
+    RECT c2{}; GetClientRect(p2, &c2);
+    zui::Host h2(p2);
+    h2.build(zui::Node{"root", "", {}, {
+        zui::Node{"splitter", "", {{"pos", "240"}}, {
+            zui::Node{"col", "", {{"min", "160"}}, { zui::Node{"text", "L", {{"id", "leftPane"}}, {}} }},
+            zui::Node{"col", "", {}, { zui::Node{"text", "R", {{"id", "rightPane"}}, {}} }},
+        }},
+    }});
+    auto L = bounds(h2, p2, "leftPane");
+    auto R = bounds(h2, p2, "rightPane");
+    check("splitter left pane starts near the left edge", L.left < 32);
+    check("splitter right pane starts past the divider (~240)", R.left > 230 && R.left < 300);
+    check("splitter right pane extends to the edge", R.right > c2.right - 30);
+    DestroyWindow(p2);
+
+    HWND p3 = CreateWindowExW(0, L"STATIC", L"t", WS_OVERLAPPEDWINDOW, 0, 0, 400, 200,
+                              nullptr, nullptr, GetModuleHandleW(nullptr), nullptr);
+    SetWindowPos(p3, nullptr, 0, 0, 400, 200, SWP_NOMOVE | SWP_NOZORDER);
+    zui::Host h3(p3);
+    std::vector<zui::Node> many;
+    for (int i = 0; i < 20; ++i) many.push_back(zui::Node{"button", "row " + std::to_string(i),
+        {{"id", i == 0 ? "firstRow" : (i == 19 ? "lastRow" : "row")}}, {}});
+    h3.build(zui::Node{"root", "", {}, { zui::Node{"scroll", "", {{"id", "sc"}}, many} }});
+    auto first = bounds(h3, p3, "firstRow");
+    check("scroll: first child visible at top", first.top >= 0 && first.top < 40);
+    HWND scHwnd = static_cast<HWND>(h3.find("sc"));
+    SCROLLINFO si{sizeof(si)}; si.fMask = SIF_RANGE | SIF_PAGE;
+    GetScrollInfo(scHwnd, SB_VERT, &si);
+    check("scroll: scrollbar range exceeds the page (content overflows)", si.nMax > (int)si.nPage);
+    DestroyWindow(p3);
     std::cout << (failures == 0 ? "layout_test: all passed\n" : "layout_test: failures\n");
     return failures == 0 ? 0 : 1;
 }

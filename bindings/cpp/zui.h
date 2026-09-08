@@ -166,11 +166,19 @@ private:
         int fixed_w = 0, fixed_h = 0, min_w = 0, min_h = 0;
         bool fill = false;          // consumes leftover main-axis space
         int gap = 8, pad = 0, margin = 0;
+        int scroll_pos = 0;         // for kind == "scroll"
+        int content_h = 0;          // measured content height (scroll)
+        int split_pos = 0;          // splitter divider offset (0 = centre)
+        int min_a = 120, min_b = 120;  // splitter pane minimums
         // per-measure scratch
         int want_w = 0, want_h = 0;
     };
     Box* build_box(void* parent_hwnd, const Node& node);
-    Box* nullptr_box();
+    Box* split_bar(void* parent_hwnd, Box* owner);
+    std::unordered_map<void*, Box*> splitbars_;    // split-bar HWND  -> splitter Box
+    std::unordered_map<void*, Box*> scroll_boxes_; // scroll HWND     -> scroll Box
+    void arrange_in_place(Box* box);
+    static long long aux_proc(void*, unsigned, unsigned long long, long long, unsigned long long, unsigned long long);
     void measure(Box* box);
     void arrange(Box* box, int x, int y, int w, int h);
     Box* root_box_ = nullptr;
@@ -222,6 +230,13 @@ private:
     unsigned menu_next_id_ = 40000;
     std::vector<std::string> drag_keys_;
     void* drag_from_ = nullptr;
+    void* surface_brush_ = nullptr;   // HBRUSH, theme.surface
+    void* raised_brush_ = nullptr;    // HBRUSH, theme.raised
+    void* split_drag_ = nullptr;      // HWND of the split bar being dragged
+    void* pending_slider_ = nullptr;  // coalesced high-frequency source
+    std::string pending_slider_ch_;
+    void rebuild_theme_brushes();
+    void apply_theme_recursive(void* hwnd);
     std::string payload_for(void* control) const;
     void build_menu(void* hmenu, const Node& node, const std::string& path);
     unsigned add_menu_spec(void* hmenu, const MenuItem& item);

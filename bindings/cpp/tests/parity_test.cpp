@@ -68,6 +68,13 @@ int main() {
     host.set_menu_checked("View/Holo", true);
     check("menu-bar mutation on an unknown path is a safe no-op", true);
 
+    // ----- theme rendering (ZU-70 / ZU-90) -----
+    host.set_theme("holo");
+    check("holo themes the list background", ListView_GetBkColor(static_cast<HWND>(host.find("lib"))) == zui::Theme::holo().surface);
+    host.set_theme("clean");
+    check("clean themes the list background", ListView_GetBkColor(static_cast<HWND>(host.find("lib"))) == zui::Theme::clean().surface);
+    host.set_theme("holo");
+
     // ----- image / canvas -----
     check("image node is a real control", host.find("art") != nullptr);
     bool painted = false;
