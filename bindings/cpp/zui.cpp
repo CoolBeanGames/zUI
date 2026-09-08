@@ -223,79 +223,156 @@ void Host::build(const Node& root) {
         if (color.brush) DeleteObject(static_cast<HGDIOBJ>(color.brush));
     control_colors_.clear();
     exports_.clear();
+    box_pool_.clear();
+    root_box_ = nullptr;
+
+    // Build the layout tree (mirrors the HWND tree), then position everything.
+    Node synthetic_root{"root", "", {}, root.children};
+    root_box_ = build_box(parent, synthetic_root);
     RECT client{}; GetClientRect(parent, &client);
-    int x = 12, y = 12;
-    for (const auto& child : root.children) create_node(parent, child, x, y, std::max(200L, client.right - 24));
+    relayout(client.right - client.left, client.bottom - client.top);
 }
 
-void* Host::create_node(void* raw_parent, const Node& node, int& x, int& y, int width) {
+// ---- Layout engine (ZU-66) -------------------------------------------------
+namespace {
+int measure_text_px(const std::wstring& s, bool bold = false) {
+    HDC dc = GetDC(nullptr);
+    HFONT f = bold ? CreateFontW(-13, 0, 0, 0, FW_BOLD, 0, 0, 0, 0, 0, 0, 0, 0, L"Segoe UI")
+                   : static_cast<HFONT>(GetStockObject(DEFAULT_GUI_FONT));
+    HGDIOBJ old = SelectObject(dc, f);
+    SIZE sz{}; GetTextExtentPoint32W(dc, s.c_str(), static_cast<int>(s.size()), &sz);
+    SelectObject(dc, old);
+    if (bold) DeleteObject(f);
+    ReleaseDC(nullptr, dc);
+    return sz.cx;
+}
+bool is_container_kind(const std::string& k) {
+    return k == "root" || k == "window" || k == "col" || k == "fill" || k == "workspace" ||
+           k == "row" || k == "panel" || k == "panel-body" || k == "sidebar" || k == "statusbar" ||
+           k == "contextbar" || k == "nav" || k == "grid" || k == "scroll" || k == "splitter" ||
+           k == "tabpanel";
+}
+bool is_horizontal_kind(const std::string& k) {
+    return k == "row" || k == "nav" || k == "workspace" || k == "contextbar" ||
+           k == "statusbar" || k == "splitter";
+}
+bool grows_kind(const std::string& k) {
+    return k == "fill" || k == "workspace" || k == "scroll" || k == "tabs" || k == "splitter" ||
+           k == "table" || k == "tree" || k == "list" || k == "textarea" || k == "console" ||
+           k == "window" || k == "panel-body";
+}
+}  // namespace
+
+Host::Box* Host::build_box(void* raw_parent, const Node& node) {
     HWND parent = static_cast<HWND>(raw_parent);
+    box_pool_.push_back(std::make_unique<Box>());
+    Box* box = box_pool_.back().get();
+    box->kind = node.kind;
+    box->fixed_w = number(node, "width", 0);
+    box->fixed_h = number(node, "height", 0);
+    box->min_w = number(node, "min", 0);
+    box->gap = number(node, "gap", 8);
+    box->fill = node.attributes.count("fill") > 0 || grows_kind(node.kind);
+
+    // ---- menubar: window menu, occupies no layout space ----
+    if (node.kind == "menubar") {
+        HMENU bar = CreateMenu();
+        for (const auto& m : node.children) build_menu(bar, m, "");
+        HWND top = GetAncestor(parent, GA_ROOT);
+        if (top && (GetWindowLongPtrW(top, GWL_STYLE) & WS_CHILD) == 0) {
+            SetMenu(top, bar); DrawMenuBar(top); menu_bar_ = bar;
+        } else DestroyMenu(bar);
+        box->fixed_h = 0; box->fill = false;
+        return box;
+    }
+
+    bool container = is_container_kind(node.kind);
+    bool icon_button = node.kind == "button" && (node.attributes.count("icon") || attr(node, "kind") == "icon");
     auto text = wide(node.text);
+
     const wchar_t* klass = L"STATIC";
     DWORD style = WS_CHILD | WS_VISIBLE;
-    int height = 28;
-    bool container = false;
+    box->axis = node.kind == "grid" ? Box::GRID
+              : is_horizontal_kind(node.kind) ? Box::HORZ : Box::VERT;
+    if (node.kind == "grid") box->cols = std::max(1, number(node, "cols", 2));
 
-    bool icon_button = node.kind == "button" && (node.attributes.count("icon") || attr(node, "kind") == "icon");
-    if (node.kind == "button") {
-        klass = L"BUTTON";
-        style |= WS_TABSTOP | (icon_button ? BS_OWNERDRAW : BS_PUSHBUTTON);
-    }
-    else if (node.kind == "check") { klass = L"BUTTON"; style |= BS_AUTOCHECKBOX | WS_TABSTOP; }
-    else if (node.kind == "image" || node.kind == "canvas" || node.kind == "overlay") {
+    if (container) {
+        klass = L"STATIC";
+        style |= SS_LEFT | WS_CLIPCHILDREN;
+        if (node.kind == "scroll") style |= WS_VSCROLL;
+        box->pad = node.kind == "panel" ? 10 : (node.kind == "root" || node.kind == "window" ? 12 : 4);
+        if (node.kind == "window" && !text.empty()) SetWindowTextW(static_cast<HWND>(parent_), text.c_str());
+    } else if (node.kind == "button") {
+        klass = L"BUTTON"; style |= WS_TABSTOP | (icon_button ? BS_OWNERDRAW : BS_PUSHBUTTON);
+        box->fixed_h = box->fixed_h ? box->fixed_h : 30;
+        if (icon_button && attr(node, "kind") == "icon") { box->fixed_w = 30; box->fixed_h = 30; }
+        else box->min_w = std::max(96, measure_text_px(text) + 30);
+    } else if (node.kind == "check") {
+        klass = L"BUTTON"; style |= BS_AUTOCHECKBOX | WS_TABSTOP; box->fixed_h = 22;
+        box->min_w = measure_text_px(text) + 26;
+    } else if (node.kind == "image" || node.kind == "canvas" || node.kind == "overlay") {
         klass = L"STATIC"; style |= SS_OWNERDRAW;
-        height = number(node, "height", node.kind == "image" ? 60 : 48);
-    }
-    else if (node.kind == "number") { klass = L"EDIT"; style |= WS_BORDER | WS_TABSTOP | ES_NUMBER | ES_RIGHT; }
-    else if (node.kind == "console") {
-        klass = L"EDIT";
-        style |= WS_BORDER | ES_MULTILINE | ES_AUTOVSCROLL | ES_READONLY | WS_VSCROLL | WS_HSCROLL;
-        height = 140;
-    }
-    else if (node.kind == "input" || node.kind == "textarea") {
+        box->fixed_w = box->fixed_w ? box->fixed_w : (node.kind == "image" ? 60 : 80);
+        box->fixed_h = box->fixed_h ? box->fixed_h : (node.kind == "image" ? 60 : 48);
+    } else if (node.kind == "number") {
+        klass = L"EDIT"; style |= WS_BORDER | WS_TABSTOP | ES_NUMBER | ES_RIGHT;
+        box->fixed_h = 26; box->min_w = box->min_w ? box->min_w : 90;
+    } else if (node.kind == "console") {
+        klass = L"EDIT"; style |= WS_BORDER | ES_MULTILINE | ES_AUTOVSCROLL | ES_READONLY | WS_VSCROLL | WS_HSCROLL;
+        box->min_h = 140;
+    } else if (node.kind == "input" || node.kind == "textarea") {
         klass = L"EDIT"; style |= WS_BORDER | WS_TABSTOP | ES_AUTOHSCROLL;
-        if (node.kind == "textarea") { style |= ES_MULTILINE | ES_AUTOVSCROLL | WS_VSCROLL; height = 90; }
-    }
-    else if (node.kind == "list") {
-        klass = WC_LISTVIEWW; style |= LVS_REPORT | LVS_NOCOLUMNHEADER | WS_BORDER | WS_TABSTOP; height = 240;
+        if (node.kind == "textarea") { style |= ES_MULTILINE | ES_AUTOVSCROLL | WS_VSCROLL; box->min_h = 96; }
+        else box->fixed_h = 26;
+        box->min_w = box->min_w ? box->min_w : 160;
+    } else if (node.kind == "list") {
+        klass = WC_LISTVIEWW; style |= LVS_REPORT | LVS_NOCOLUMNHEADER | WS_BORDER | WS_TABSTOP;
         if (node.attributes.count("selectable") == 0) style |= LVS_SINGLESEL;
         if (node.attributes.count("template")) style |= LVS_OWNERDRAWFIXED;
         if (node.attributes.count("virtual")) style |= LVS_OWNERDATA;
-    }
-    else if (node.kind == "slider") { klass = TRACKBAR_CLASSW; style |= TBS_HORZ | WS_TABSTOP; height = 36; }
-    else if (node.kind == "progress" || node.kind == "spinner" || node.kind == "loading") { klass = PROGRESS_CLASSW; height = 16; }
-    else if (node.kind == "select" || node.kind == "dropdown") { klass = WC_COMBOBOXW; style |= CBS_DROPDOWNLIST | WS_TABSTOP; height = 180; }
-    else if (node.kind == "table") {
-        klass = WC_LISTVIEWW; style |= LVS_REPORT | WS_BORDER | WS_TABSTOP; height = 300;
+        box->min_h = 120;
+    } else if (node.kind == "slider") {
+        klass = TRACKBAR_CLASSW; style |= TBS_HORZ | WS_TABSTOP; box->fixed_h = 34;
+        box->min_w = box->min_w ? box->min_w : 160;
+    } else if (node.kind == "progress" || node.kind == "spinner" || node.kind == "loading") {
+        klass = PROGRESS_CLASSW; box->fixed_h = 16;
+    } else if (node.kind == "select" || node.kind == "dropdown") {
+        klass = WC_COMBOBOXW; style |= CBS_DROPDOWNLIST | WS_TABSTOP;
+        box->fixed_h = 26; box->min_w = box->min_w ? box->min_w : 140;
+    } else if (node.kind == "table") {
+        klass = WC_LISTVIEWW; style |= LVS_REPORT | WS_BORDER | WS_TABSTOP;
         if (node.attributes.count("selectable") == 0) style |= LVS_SINGLESEL;
         if (node.attributes.count("virtual")) style |= LVS_OWNERDATA;
-    }
-    else if (node.kind == "tree") { klass = WC_TREEVIEWW; style |= TVS_HASLINES | TVS_LINESATROOT | WS_BORDER | WS_TABSTOP; height = 300; }
-    else if (node.kind == "tabs") { klass = WC_TABCONTROLW; style |= WS_TABSTOP; container = true; height = 260; }
-    else if (node.kind == "window" || node.kind == "root" || node.kind == "col" || node.kind == "fill" ||
-             node.kind == "workspace" || node.kind == "row" || node.kind == "panel" || node.kind == "sidebar" ||
-             node.kind == "statusbar" || node.kind == "contextbar" || node.kind == "nav" ||
-             node.kind == "grid" || node.kind == "scroll" || node.kind == "splitter" ||
-             node.kind == "tabpanel" || node.kind == "menubar") {
-        klass = L"STATIC"; style |= SS_LEFT; container = true; height = 4;
-        if (node.kind == "scroll") style |= WS_VSCROLL;
-        if (node.kind == "window" && !text.empty()) SetWindowTextW(static_cast<HWND>(parent_), text.c_str());
+        box->min_h = 160;
+    } else if (node.kind == "tree") {
+        klass = WC_TREEVIEWW; style |= TVS_HASLINES | TVS_LINESATROOT | WS_BORDER | WS_TABSTOP;
+        box->min_h = 140;
+    } else if (node.kind == "tabs") {
+        klass = WC_TABCONTROLW; style |= WS_TABSTOP | WS_CLIPCHILDREN;
+        box->min_h = 200;
+    } else {
+        klass = L"STATIC"; style |= SS_LEFT;
+        box->fixed_h = node.kind == "heading" ? 26 : 22;
+        int tw = measure_text_px(text, node.kind == "heading" || node.kind == "section-label");
+        box->min_w = tw + 4;
     }
 
-    HWND control = CreateWindowExW(0, klass, text.c_str(), style, x, y, width, height,
+    HWND control = CreateWindowExW(0, klass, container ? L"" : text.c_str(), style,
+                                   0, 0, 100, box->fixed_h ? box->fixed_h : 28,
                                    parent, nullptr, GetModuleHandleW(nullptr), nullptr);
-    if (!control) return nullptr;
-    SendMessageW(control, WM_SETFONT, reinterpret_cast<WPARAM>(GetStockObject(DEFAULT_GUI_FONT)), TRUE);
+    if (!control) return box;
+    box->hwnd = control;
+    SendMessageW(control, WM_SETFONT,
+                 reinterpret_cast<WPARAM>(GetStockObject(node.kind == "console" ? ANSI_FIXED_FONT : DEFAULT_GUI_FONT)), TRUE);
+
     if (node.kind == "slider") {
         SendMessageW(control, TBM_SETRANGE, TRUE, MAKELONG(number(node, "min", 0), number(node, "max", 100)));
         SendMessageW(control, TBM_SETPOS, TRUE, number(node, "value", 0));
+        box->min_w = 160;  // min already applied above; keep slider growable
     }
     if (node.kind == "progress") SendMessageW(control, PBM_SETPOS, number(node, "value", 0), 0);
-    if (node.kind == "number") SetWindowTextW(control, std::to_wstring(number(node, "value", number(node, "min", 0))).c_str());
-    if (node.kind == "console" || node.kind == "input" || node.kind == "textarea" || node.kind == "list" || node.kind == "table" || node.kind == "tree") {
-        if (node.kind == "console")
-            SendMessageW(control, WM_SETFONT, reinterpret_cast<WPARAM>(GetStockObject(ANSI_FIXED_FONT)), TRUE);
-    }
+    if (node.kind == "number")
+        SetWindowTextW(control, std::to_wstring(number(node, "value", number(node, "min", 0))).c_str());
     if (node.kind == "table" || node.kind == "list") {
         ListView_SetExtendedListViewStyle(control, LVS_EX_FULLROWSELECT | LVS_EX_DOUBLEBUFFER);
         auto& store = rows_[control];
@@ -314,18 +391,6 @@ void* Host::create_node(void* raw_parent, const Node& node, int& x, int& y, int 
         }
     }
     if (node.kind == "tree") rows_[control];
-    if (node.kind == "tabs") {
-        int ti = 0;
-        for (const auto& tp : node.children) if (tp.kind == "tabpanel") {
-            auto label = wide(tp.text.empty() ? ("Tab " + std::to_string(ti + 1)) : tp.text);
-            TCITEMW item{TCIF_TEXT, 0, 0, label.data()}; SendMessageW(control, TCM_INSERTITEMW, ti++, reinterpret_cast<LPARAM>(&item));
-        }
-    }
-    if (node.kind == "image") {
-        if (auto s = node.attributes.find("src"); s != node.attributes.end() && !s->second.empty()) load_image(control, s->second);
-        else if (auto p = node.attributes.find("placeholder"); p != node.attributes.end()) load_image(control, p->second);
-    }
-    if (auto ic = node.attributes.find("icon"); ic != node.attributes.end()) control_icons_[control] = ic->second;
     if (node.kind == "select" || node.kind == "dropdown") {
         auto& values = option_values_[control];
         for (const auto& item : node.children) if (item.kind == "option" || item.kind == "item") {
@@ -340,98 +405,194 @@ void* Host::create_node(void* raw_parent, const Node& node, int& x, int& y, int 
             insert.item.mask = TVIF_TEXT; insert.item.pszText = value.data(); TreeView_InsertItem(control, &insert);
         }
     }
+    if (node.kind == "tabs") {
+        int ti = 0;
+        auto& panels = tabs_[control];
+        for (const auto& tp : node.children) if (tp.kind == "tabpanel") {
+            auto label = wide(tp.text.empty() ? ("Tab " + std::to_string(ti + 1)) : tp.text);
+            TCITEMW item{TCIF_TEXT, 0, 0, label.data()};
+            SendMessageW(control, TCM_INSERTITEMW, ti, reinterpret_cast<LPARAM>(&item));
+            Box* panel = build_box(control, tp);       // panel HWND is a child of the tab control
+            std::string id = attr(tp, "id");
+            if (id.empty()) id = attr(tp, "value", std::to_string(ti).c_str());
+            panels.push_back({id, panel->hwnd});
+            box->children.push_back(panel);
+            if (ti != 0 && panel->hwnd) ShowWindow(static_cast<HWND>(panel->hwnd), SW_HIDE);
+            ++ti;
+        }
+    }
+    if (node.kind == "image") {
+        if (auto s = node.attributes.find("src"); s != node.attributes.end() && !s->second.empty()) load_image(control, s->second);
+        else if (auto p = node.attributes.find("placeholder"); p != node.attributes.end()) load_image(control, p->second);
+    }
+    if (auto ic = node.attributes.find("icon"); ic != node.attributes.end()) control_icons_[control] = ic->second;
 
-    auto event = node.attributes.find("on");
-    if (event != node.attributes.end()) control_channels_[control] = event->second;
+    if (auto e = node.attributes.find("on"); e != node.attributes.end()) control_channels_[control] = e->second;
     if (auto a = node.attributes.find("onactivate"); a != node.attributes.end()) control_activate_[control] = a->second;
     if (auto c = node.attributes.find("oncommit"); c != node.attributes.end()) control_commit_[control] = c->second;
     if (auto x = node.attributes.find("oncontext"); x != node.attributes.end()) control_context_[control] = x->second;
     if (auto d = node.attributes.find("ondrop"); d != node.attributes.end()) { control_drop_[control] = d->second; DragAcceptFiles(control, TRUE); }
     if (node.attributes.count("dragsource")) drag_sources_.insert(control);
     control_kinds_[control] = node.kind;
-    // Register every lookup name. Priority is export > bind > id (a more specific
-    // name wins), but all three resolve to this control.
     for (const char* key : {"id", "bind", "export"}) {
         auto name = attr(node, key);
         if (!name.empty()) exports_[name] = control;
     }
 
-    if (node.kind == "menubar") {
-        HMENU bar = CreateMenu();
-        for (const auto& m : node.children) build_menu(bar, m, "");
-        HWND top = GetAncestor(parent, GA_ROOT);
-        if (top && (GetWindowLongPtrW(top, GWL_STYLE) & WS_CHILD) == 0) {
-            SetMenu(top, bar); DrawMenuBar(top); menu_bar_ = bar;
-        } else {
-            DestroyMenu(bar);  // embedded panel: no menu bar, matches the C# host
+    // Recurse into structural children (tabs already handled its tabpanels).
+    if (container && node.kind != "tabs") {
+        HWND host_hwnd = static_cast<HWND>(control);
+        if (node.kind == "splitter") {
+            box->children.push_back(nullptr_box());   // placeholder for the drag bar
         }
-        y += 4;
-        return control;
+        for (const auto& child : node.children) {
+            if (child.kind == "column" || child.kind == "option") continue;
+            box->children.push_back(build_box(host_hwnd, child));
+        }
+    }
+    return box;
+}
+
+Host::Box* Host::nullptr_box() {
+    box_pool_.push_back(std::make_unique<Box>());
+    Box* b = box_pool_.back().get();
+    b->kind = "splitbar"; b->fixed_w = 6; b->fixed_h = 6;
+    return b;
+}
+
+void Host::measure(Box* box) {
+    if (!box) return;
+    for (Box* c : box->children) measure(c);
+
+    if (box->children.empty()) {
+        box->want_w = box->fixed_w ? box->fixed_w : std::max(box->min_w, 40);
+        box->want_h = box->fixed_h ? box->fixed_h : std::max(box->min_h, 22);
+        return;
     }
 
-    int child_x = x + (container ? 8 : 0), child_y = y + height + 4;
-    if (node.kind == "tabs") {
-        RECT disp{0, 0, width, height};
-        SendMessageW(control, TCM_ADJUSTRECT, FALSE, reinterpret_cast<LPARAM>(&disp));
-        auto& panels = tabs_[control];
-        int pi = 0;
-        for (const auto& tp : node.children) {
-            if (tp.kind != "tabpanel") continue;
-            HWND panel = CreateWindowExW(0, L"STATIC", L"", WS_CHILD | (pi == 0 ? WS_VISIBLE : 0) | SS_LEFT,
-                                         x + disp.left, y + disp.top, disp.right - disp.left, disp.bottom - disp.top,
-                                         parent, nullptr, GetModuleHandleW(nullptr), nullptr);
-            std::string id = attr(tp, "id");
-            if (id.empty()) id = attr(tp, "value", std::to_string(pi).c_str());
-            panels.push_back({id, panel});
-            int px = 8, py = 8;
-            for (const auto& c : tp.children) create_node(panel, c, px, py, disp.right - disp.left - 20);
-            ++pi;
+    int main_sum = 0, cross_max = 0, visible = 0;
+    for (Box* c : box->children) {
+        if (!c) continue;
+        if (c->hwnd && !IsWindowVisible(static_cast<HWND>(c->hwnd)) && c->kind == "tabpanel") continue;
+        int cm = box->axis == Box::HORZ ? c->want_w : c->want_h;
+        int cc = box->axis == Box::HORZ ? c->want_h : c->want_w;
+        if (box->axis == Box::GRID) { main_sum = 0; }  // grid handled in arrange
+        main_sum += cm;
+        cross_max = std::max(cross_max, cc);
+        ++visible;
+    }
+    if (visible > 1) main_sum += box->gap * (visible - 1);
+
+    if (box->axis == Box::GRID) {
+        int rows = (static_cast<int>(box->children.size()) + box->cols - 1) / box->cols;
+        int row_h = 0; for (Box* c : box->children) if (c) row_h = std::max(row_h, c->want_h);
+        box->want_h = rows * row_h + (rows - 1) * box->gap + 2 * box->pad;
+        box->want_w = std::max(box->min_w, 240);
+    } else if (box->axis == Box::HORZ) {
+        box->want_w = main_sum + 2 * box->pad;
+        box->want_h = cross_max + 2 * box->pad;
+    } else {
+        box->want_h = main_sum + 2 * box->pad;
+        box->want_w = cross_max + 2 * box->pad;
+    }
+    if (box->min_w) box->want_w = std::max(box->want_w, box->min_w);
+    if (box->min_h) box->want_h = std::max(box->want_h, box->min_h);
+    if (box->fixed_w) box->want_w = box->fixed_w;
+    if (box->fixed_h) box->want_h = box->fixed_h;
+}
+
+namespace {
+bool horz_field(const std::string& k) {
+    return k == "input" || k == "select" || k == "dropdown" || k == "slider" ||
+           k == "number" || k == "progress" || k == "table" || k == "tree" || k == "list";
+}
+}  // namespace
+
+void Host::arrange(Box* box, int x, int y, int w, int h) {
+    if (!box) return;
+    if (box->hwnd) {
+        SetWindowPos(static_cast<HWND>(box->hwnd), nullptr, x, y, w, h,
+                     SWP_NOZORDER | SWP_NOACTIVATE);
+    }
+    if (box->children.empty()) return;
+
+    int ix = box->pad, iy = box->pad, iw = w - 2 * box->pad, ih = h - 2 * box->pad;
+
+    if (box->kind == "tabs") {
+        RECT disp{0, 0, iw, ih};
+        SendMessageW(static_cast<HWND>(box->hwnd), TCM_ADJUSTRECT, FALSE, reinterpret_cast<LPARAM>(&disp));
+        int sel = TabCtrl_GetCurSel(static_cast<HWND>(box->hwnd));
+        for (size_t i = 0; i < box->children.size(); ++i) {
+            Box* p = box->children[i];
+            if (!p || !p->hwnd) continue;
+            bool on = static_cast<int>(i) == (sel < 0 ? 0 : sel);
+            ShowWindow(static_cast<HWND>(p->hwnd), on ? SW_SHOW : SW_HIDE);
+            if (on) arrange(p, disp.left, disp.top, disp.right - disp.left, disp.bottom - disp.top);
         }
-        SetWindowPos(control, HWND_BOTTOM, x, y, width, height, SWP_NOACTIVATE);
-        y += height + 8;
-        return control;
+        return;
     }
-    if (node.kind == "grid") {
-        int cols = std::max(1, number(node, "cols", 2));
-        int gap = number(node, "gap", 8);
-        int cell_w = (width - gap * (cols - 1)) / cols;
-        int col = 0, row_y = child_y, row_h = 0;
-        for (const auto& child : node.children) {
-            int cx = child_x + col * (cell_w + gap), cy = row_y, dummy_y = cy;
-            create_node(parent, child, cx, dummy_y, cell_w);
-            row_h = std::max(row_h, dummy_y - cy);
-            if (++col >= cols) { col = 0; row_y += row_h + gap; row_h = 0; }
+
+    if (box->kind == "splitter") {
+        // children[0] = drag bar, [1] = pane A, [2] = pane B
+        int pos = box->fixed_w ? box->fixed_w : iw / 2;
+        Box* bar = box->children.size() > 0 ? box->children[0] : nullptr;
+        Box* a = box->children.size() > 1 ? box->children[1] : nullptr;
+        Box* b = box->children.size() > 2 ? box->children[2] : nullptr;
+        if (a) arrange(a, ix, iy, pos, ih);
+        if (bar && bar->hwnd) SetWindowPos(static_cast<HWND>(bar->hwnd), nullptr, ix + pos, iy, 6, ih, SWP_NOZORDER | SWP_NOACTIVATE);
+        if (b) arrange(b, ix + pos + 6, iy, iw - pos - 6, ih);
+        return;
+    }
+
+    if (box->axis == Box::GRID) {
+        int n = static_cast<int>(box->children.size());
+        int cell_w = (iw - box->gap * (box->cols - 1)) / std::max(1, box->cols);
+        int col = 0, rowy = iy, row_h = 0;
+        for (int i = 0; i < n; ++i) {
+            Box* c = box->children[i]; if (!c) continue;
+            int cx = ix + col * (cell_w + box->gap);
+            int ch = c->want_h;
+            arrange(c, cx, rowy, cell_w, ch);
+            row_h = std::max(row_h, ch);
+            if (++col >= box->cols) { col = 0; rowy += row_h + box->gap; row_h = 0; }
         }
-        height = std::max(height, (col ? row_y + row_h : row_y) - y);
-        SetWindowPos(control, HWND_BOTTOM, x, y, width, height, SWP_NOACTIVATE);
-        y += height + 8;
-        return control;
+        return;
     }
-    if (node.kind == "splitter") {
-        int pos = number(node, "pos", number(node, "width", width / 2));
-        int panes = 0; std::vector<const Node*> kids;
-        for (const auto& c : node.children) if (c.kind != "column" && c.kind != "option") kids.push_back(&c);
-        int split_h = number(node, "height", 260);
-        for (size_t k = 0; k < kids.size() && k < 2; ++k) {
-            int px = (k == 0) ? child_x : child_x + pos + 6;
-            int pw = (k == 0) ? pos : width - pos - 6;
-            int cx = px, cy = y + 4;
-            for (const auto& c : kids[k]->children) create_node(parent, c, cx, cy, pw - 8);
-            split_h = std::max(split_h, cy - (y + 4));
-        }
-        height = split_h + 8;
-        SetWindowPos(control, HWND_BOTTOM, x, y, width, height, SWP_NOACTIVATE);
-        y += height + 8;
-        return control;
+
+    // Flex: fixed/natural children keep their want; fill children split the rest.
+    bool horz = box->axis == Box::HORZ;
+    int avail = horz ? iw : ih;
+    auto is_filler = [&](Box* c) { return c->fill || (horz && horz_field(c->kind)); };
+    int used = 0, fillers = 0, visible = 0;
+    for (Box* c : box->children) {
+        if (!c) continue;
+        ++visible;
+        if (is_filler(c)) { ++fillers; continue; }
+        used += horz ? c->want_w : c->want_h;
     }
-    if (container) {
-        void* host_parent = (node.kind == "scroll") ? static_cast<void*>(control) : raw_parent;
-        for (const auto& child : node.children) create_node(host_parent, child, child_x, child_y, std::max(160, width - 16));
-        height = std::max(height, child_y - y);
-        SetWindowPos(control, HWND_BOTTOM, x, y, width, height, SWP_NOACTIVATE);
+    if (visible > 1) used += box->gap * (visible - 1);
+    int leftover = std::max(0, avail - used);
+    int per_filler = fillers ? leftover / fillers : 0;
+
+    int cursor = horz ? ix : iy;
+    for (Box* c : box->children) {
+        if (!c) continue;
+        int main_sz = is_filler(c) ? per_filler : (horz ? c->want_w : c->want_h);
+        if (is_filler(c) && horz && c->fixed_w) main_sz = c->fixed_w;
+        if (is_filler(c) && !horz && c->fixed_h) main_sz = c->fixed_h;
+        int cross_sz = horz ? ih : iw;
+        if (horz && c->fixed_h) cross_sz = c->fixed_h;
+        if (!horz && c->fixed_w) cross_sz = c->fixed_w;
+        if (horz) arrange(c, cursor, iy, main_sz, cross_sz);
+        else      arrange(c, ix, cursor, cross_sz, main_sz);
+        cursor += main_sz + box->gap;
     }
-    y += height + 8;
-    return control;
+}
+
+void Host::relayout(int width, int height) {
+    if (!root_box_) return;
+    measure(root_box_);
+    arrange(root_box_, 0, 0, width, height);
 }
 
 void Host::on(const std::string& channel, MessageHandler handler) { handlers_[channel].push_back(std::move(handler)); }
@@ -1110,6 +1271,10 @@ void Host::dispatch(const std::string& channel, const std::string& payload) {
 long long Host::subclass_proc(void* hwnd, unsigned msg, unsigned long long wparam, long long lparam,
                               unsigned long long id, unsigned long long data) {
     auto* self = reinterpret_cast<Host*>(data);
+    if (msg == WM_SIZE && self->root_box_) {
+        self->relayout(LOWORD(lparam), HIWORD(lparam));
+        return 0;
+    }
     if (msg == WM_CTLCOLORSTATIC || msg == WM_CTLCOLOREDIT || msg == WM_CTLCOLORBTN ||
         msg == WM_CTLCOLORLISTBOX) {
         auto it = self->control_colors_.find(reinterpret_cast<HWND>(lparam));

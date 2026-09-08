@@ -38,4 +38,8 @@ if(ZUI_BUILD_TESTS)
     add_executable(zui_parity_test tests/parity_test.cpp)
     target_link_libraries(zui_parity_test PRIVATE zui)
     add_test(NAME parity COMMAND zui_parity_test)
+
+    add_executable(zui_layout_test tests/layout_test.cpp)
+    target_link_libraries(zui_layout_test PRIVATE zui)
+    add_test(NAME layout COMMAND zui_layout_test)
 endif()

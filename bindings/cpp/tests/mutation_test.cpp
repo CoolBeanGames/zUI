@@ -62,10 +62,19 @@ int main() {
     check("combobox HWND preserved", rate == host.find("rate"));
 
     // A second build() would trip the construction-only guard; ordinary mutation
-    // must never need it. Count children as a rebuild sentinel.
-    int children = 0;
-    for (HWND c = GetWindow(parent, GW_CHILD); c; c = GetWindow(c, GW_HWNDNEXT)) ++children;
-    check("child count stable after mutations (no rebuild)", children == 6);
+    // must never recreate the tree. Count every descendant HWND as a rebuild
+    // sentinel: containers nest their children (ZU-66), so the total, not the
+    // direct-child count, is what must stay constant.
+    struct Counter {
+        static int all(HWND w) {
+            int n = 0;
+            for (HWND c = GetWindow(w, GW_CHILD); c; c = GetWindow(c, GW_HWNDNEXT)) n += 1 + all(c);
+            return n;
+        }
+    };
+    check("descendant HWND count stable after mutations (no rebuild)", Counter::all(parent) == 7);
+    check("root is a single nested container", GetWindow(parent, GW_CHILD) != nullptr &&
+          GetWindow(GetWindow(parent, GW_CHILD), GW_HWNDNEXT) == nullptr);
 
     DestroyWindow(parent);
     std::cout << (failures == 0 ? "mutation_test: all passed\n" : "mutation_test: failures\n");

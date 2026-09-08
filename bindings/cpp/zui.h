@@ -2,6 +2,7 @@
 #define ZUI_H
 
 #include <functional>
+#include <memory>
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
@@ -147,7 +148,33 @@ public:
     void on_paint(const std::string& name, PaintFn draw);
     void redraw(const std::string& name);
 
+    // ----- Layout engine (ZU-66) -----
+    /// Re-runs measure/arrange for the whole tree at the given client size,
+    /// repositioning every existing control. Called automatically on WM_SIZE.
+    void relayout(int width, int height);
+
 private:
+    // A box in the layout tree, parallel to the HWND tree. `hwnd` is the window
+    // this box positions (a container HWND or a leaf control).
+    struct Box {
+        void* hwnd = nullptr;
+        std::string kind;
+        enum Axis { VERT, HORZ, GRID } axis = VERT;
+        int cols = 1;
+        std::vector<Box*> children;
+        // authored hints
+        int fixed_w = 0, fixed_h = 0, min_w = 0, min_h = 0;
+        bool fill = false;          // consumes leftover main-axis space
+        int gap = 8, pad = 0, margin = 0;
+        // per-measure scratch
+        int want_w = 0, want_h = 0;
+    };
+    Box* build_box(void* parent_hwnd, const Node& node);
+    Box* nullptr_box();
+    void measure(Box* box);
+    void arrange(Box* box, int x, int y, int w, int h);
+    Box* root_box_ = nullptr;
+    std::vector<std::unique_ptr<Box>> box_pool_;
     struct RowStore {
         std::vector<std::string> fields;
         std::vector<std::string> order;
@@ -159,7 +186,6 @@ private:
     const RowStore* store_for(const std::string& name) const;
     void render_rows(const std::string& name);
     std::vector<std::string> get_selection_for(void* control) const;
-    void* create_node(void* parent, const Node& node, int& x, int& y, int width);
     void dispatch(const std::string& channel, const std::string& payload);
     void* require(const std::string& name) const;
     void apply_bound_value(const std::string& control_name, const std::string& value);
