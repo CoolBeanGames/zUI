@@ -222,6 +222,19 @@ public sealed class ZuiHost : IDisposable
             if (_parent.FindForm() is { } form && form.MinimumSize.IsEmpty)
                 form.MinimumSize = new Size(960, 680);
             foreach (var child in tree.Nodes) AddNode(root, child);
+            // The screen's single top-level element (e.g. a whole-workspace <col>) is
+            // placed like any nested child, which sizes it to its own preferred content
+            // height (AutoSize) instead of the real space root has available. Any
+            // growable descendant (a table/console/textarea meant to fill the rest of
+            // the screen) then never sees real leftover space to expand into, and with
+            // no scrollbar to reach the remainder, it's just silently clipped. Force the
+            // one top-level row to actually claim all of root's available height.
+            if (root.RowStyles.Count == 1 && root.Controls.Count == 1)
+            {
+                root.RowStyles[0] = new RowStyle(SizeType.Percent, 100f);
+                root.Controls[0].AutoSize = false;
+                root.Controls[0].Dock = DockStyle.Fill;
+            }
             ApplyTheme(root);
             return root;
         }
