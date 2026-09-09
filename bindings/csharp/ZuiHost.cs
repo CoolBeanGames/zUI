@@ -826,7 +826,12 @@ public sealed class ZuiHost : IDisposable
 
     private Button MakeButton(ZuiNode node)
     {
-        bool iconOnly = node.Attrs.GetValueOrDefault("kind") == "icon";
+        // A toggle button with an icon and no text (e.g. the Repeat button, kind="toggle"
+        // icon="refresh") wants the same compact centered-icon layout as kind="icon" -
+        // only the "kind" value differs, since that attribute separately drives the
+        // toggle click wiring in WireInteractions.
+        bool iconOnly = node.Attrs.GetValueOrDefault("kind") == "icon"
+            || (node.Attrs.ContainsKey("icon") && node.Text.Length == 0);
         var button = new Button
         {
             Text = iconOnly ? "" : node.Text,
@@ -841,6 +846,29 @@ public sealed class ZuiHost : IDisposable
             button.ImageAlign = ContentAlignment.MiddleCenter;
             if (!iconOnly) { button.TextImageRelation = TextImageRelation.ImageBeforeText; button.ImageAlign = ContentAlignment.MiddleLeft; }
         }
+        // A disabled FlatStyle.Flat Button ignores ForeColor/FlatAppearance entirely and
+        // falls back to a fixed system disabled look (SystemColors.GrayText on a faded
+        // border), which is tuned for a light theme - on this dark theme it renders as a
+        // near-invisible box. Repaint it ourselves so disabled text/border stay legible.
+        button.Paint += (_, e) =>
+        {
+            if (button.Enabled) return;
+            var dimBack = button.BackColor;
+            var dimBorder = ZuiTheme.Blend(dimBack, Theme.Border, 0.6);
+            var dimText = ZuiTheme.Blend(dimBack, Theme.Text, 0.45);
+            e.Graphics.Clear(dimBack);
+            using (var pen = new Pen(dimBorder)) e.Graphics.DrawRectangle(pen, 0, 0, button.Width - 1, button.Height - 1);
+            if (button.Image is { } img)
+            {
+                var imgRect = new Rectangle(iconOnly ? (button.Width - img.Width) / 2 : 8, (button.Height - img.Height) / 2, img.Width, img.Height);
+                var attrs = new System.Drawing.Imaging.ImageAttributes();
+                attrs.SetColorMatrix(new System.Drawing.Imaging.ColorMatrix { Matrix33 = 0.45f });
+                e.Graphics.DrawImage(img, imgRect, 0, 0, img.Width, img.Height, GraphicsUnit.Pixel, attrs);
+            }
+            if (!string.IsNullOrEmpty(button.Text))
+                TextRenderer.DrawText(e.Graphics, button.Text, button.Font, button.ClientRectangle, dimText,
+                    TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter | TextFormatFlags.EndEllipsis);
+        };
         return button;
     }
 
@@ -937,7 +965,7 @@ public sealed class ZuiHost : IDisposable
 
     private MenuStrip BuildMenuStrip(ZuiNode node)
     {
-        var strip = new MenuStrip { Dock = DockStyle.Top, GripStyle = ToolStripGripStyle.Hidden, Renderer = _menuRenderer };
+        var strip = new MenuStrip { Dock = DockStyle.Top, GripStyle = ToolStripGripStyle.Hidden, Renderer = _menuRenderer, BackColor = Theme.Raised, ForeColor = Theme.Text };
         foreach (var menu in node.Nodes) strip.Items.Add(BuildMenuItem(menu, ""));
         return strip;
     }
@@ -945,7 +973,12 @@ public sealed class ZuiHost : IDisposable
     private ToolStripItem BuildMenuItem(ZuiNode node, string parentPath)
     {
         if (node.Kind == "sep") return new ToolStripSeparator();
-        var item = new ToolStripMenuItem(node.Text);
+        // Text color, unlike background, is not controlled by the ToolStripRenderer's
+        // ProfessionalColorTable - it defaults to SystemColors.ControlText (near-black)
+        // on every ToolStripItem. A dropdown/submenu is a fresh ToolStrip built lazily
+        // at open time, never visited by the one-shot ApplyTheme() pass on the control
+        // tree, so without this it renders unreadable dark text on the dark theme.
+        var item = new ToolStripMenuItem(node.Text) { ForeColor = Theme.Text };
         var path = parentPath.Length == 0 ? node.Text : parentPath + "/" + node.Text;
         _menuItems[path] = item;
         if (node.Attrs.TryGetValue("shortcut", out var text) && TryParseShortcut(text, out var keys))
@@ -978,7 +1011,7 @@ public sealed class ZuiHost : IDisposable
     public void PopupMenu(string name, IEnumerable<ZuiMenuItem> items)
     {
         var control = Require(name);
-        var menu = new ContextMenuStrip { Renderer = _menuRenderer };
+        var menu = new ContextMenuStrip { Renderer = _menuRenderer, BackColor = Theme.Raised, ForeColor = Theme.Text };
         foreach (var spec in items) menu.Items.Add(BuildSpecItem(spec));
         menu.Show(Cursor.Position);
     }
@@ -986,7 +1019,7 @@ public sealed class ZuiHost : IDisposable
     private ToolStripItem BuildSpecItem(ZuiMenuItem spec)
     {
         if (spec.Separator) return new ToolStripSeparator();
-        var item = new ToolStripMenuItem(spec.Label) { Enabled = spec.Enabled, Checked = spec.Checked };
+        var item = new ToolStripMenuItem(spec.Label) { Enabled = spec.Enabled, Checked = spec.Checked, ForeColor = Theme.Text };
         if (spec.Channel.Length > 0) item.Click += (_, _) => Dispatch(spec.Channel, spec.Payload);
         if (spec.Submenu is { Count: > 0 })
             foreach (var sub in spec.Submenu) item.DropDownItems.Add(BuildSpecItem(sub));
