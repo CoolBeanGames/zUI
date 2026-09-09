@@ -856,6 +856,13 @@ public sealed class ZuiHost : IDisposable
             var dimBack = button.BackColor;
             var dimBorder = ZuiTheme.Blend(dimBack, Theme.Border, 0.6);
             var dimText = ZuiTheme.Blend(dimBack, Theme.Text, 0.45);
+            // Windows sometimes invalidates and repaints only a thin sliver of a control
+            // (observed: a 2px-tall clip on the very first paint), not the whole client
+            // area. Clear()/DrawRectangle()/DrawText() all respect the ambient clip, so
+            // without resetting it here only that sliver would get the fixed rendering
+            // and the rest of the button would keep whatever the broken system disabled
+            // paint had already drawn.
+            e.Graphics.SetClip(button.ClientRectangle);
             e.Graphics.Clear(dimBack);
             using (var pen = new Pen(dimBorder)) e.Graphics.DrawRectangle(pen, 0, 0, button.Width - 1, button.Height - 1);
             if (button.Image is { } img)
