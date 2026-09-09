@@ -1160,9 +1160,25 @@ public sealed class ZuiHost : IDisposable
 
         if (node.Attrs.ContainsKey("dragsource") && name is not null)
         {
+            // DoDragDrop runs a blocking modal loop: firing it unconditionally on MouseDown
+            // swallows the click, so a real drag AND a plain click/double-click looked
+            // identical to the OS and double-click (onactivate) never fired. Wait for the
+            // mouse to actually move past the system drag threshold before starting OLE drag,
+            // same as every native drag source.
+            Point dragStart = Point.Empty;
+            bool dragArmed = false;
             control.MouseDown += (_, e) =>
             {
-                if (e.Button != MouseButtons.Left) return;
+                dragArmed = e.Button == MouseButtons.Left;
+                dragStart = e.Location;
+            };
+            control.MouseUp += (_, _) => dragArmed = false;
+            control.MouseMove += (_, e) =>
+            {
+                if (!dragArmed || e.Button != MouseButtons.Left) return;
+                var size = SystemInformation.DragSize;
+                if (Math.Abs(e.X - dragStart.X) < size.Width && Math.Abs(e.Y - dragStart.Y) < size.Height) return;
+                dragArmed = false;
                 var keys = GetSelection(name);
                 if (keys.Count == 0) return;
                 var data = new DataObject();
